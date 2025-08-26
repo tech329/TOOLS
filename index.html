@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Préstamos - Caja de Ahorro Tupak Rantina</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles and Tailwind Config -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-dark-blue': '#001749',
+                        'brand-orange': '#e48410',
+                        'brand-light-blue': '#3787c6',
+                        'brand-accent-blue': '#015cd0',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 antialiased">
+
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-white shadow-md">
+            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <img 
+                        src="https://i.postimg.cc/zBPmbxNT/TRANSPARENTE-min.png" 
+                        alt="Logo Tupak Rantina" 
+                        class="h-12 w-auto mr-4"
+                        onerror="this.onerror=null;this.src='https://placehold.co/200x50/001749/FFFFFF?text=Tupak+Rantina';"
+                    >
+                </div>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#" class="text-gray-600 hover:text-brand-accent-blue transition duration-300">Inicio</a>
+                    <a href="#" class="text-gray-600 hover:text-brand-accent-blue transition duration-300">Servicios</a>
+                    <a href="#" class="text-gray-600 hover:text-brand-accent-blue transition duration-300">Contacto</a>
+                    <a href="#" class="bg-brand-orange text-white font-semibold px-4 py-2 rounded-lg hover:bg-opacity-90 transition duration-300">Portal de Cliente</a>
+                </div>
+                <div class="md:hidden">
+                    <button class="text-gray-600 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-brand-dark-blue">
+            <div class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden md:flex">
+                <!-- Left Side: Information -->
+                <div class="w-full md:w-1/2 p-8 bg-brand-accent-blue text-white flex flex-col justify-center">
+                    <h2 class="text-3xl font-bold mb-4 leading-tight">Calculadora de Desembolso</h2>
+                    <p class="text-gray-200 mb-6">
+                        Calcule el monto total a financiar para asegurar que el desembolso neto sea exactamente lo que su cliente necesita.
+                    </p>
+                    <div class="bg-white/20 p-4 rounded-lg">
+                        <p class="font-semibold text-sm">Fórmula Aplicada:</p>
+                        <p class="text-xs mt-1 font-mono">Monto a Financiar = Monto Neto / (1 - (% Descuento / 100))</p>
+                    </div>
+                </div>
+
+                <!-- Right Side: Calculator -->
+                <div class="w-full md:w-1/2 p-8">
+                    <h3 class="text-2xl font-bold text-brand-dark-blue mb-6">Ingresar Datos</h3>
+                    
+                    <div class="space-y-6">
+                        <!-- Net Amount Input -->
+                        <div>
+                            <label for="netAmount" class="block text-sm font-medium text-gray-700">Monto Neto a Liquidar ($)</label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
+                                    <span class="text-gray-500 sm:text-sm">$</span>
+                                </div>
+                                <input type="number" id="netAmount" class="block w-full rounded-md border-gray-300 pl-7 pr-12 focus:border-brand-accent-blue focus:ring-brand-accent-blue sm:text-sm py-3" placeholder="2500.00" value="2500">
+                            </div>
+                        </div>
+
+                        <!-- Discount Percentage Input -->
+                        <div>
+                            <label for="discountPercentage" class="block text-sm font-medium text-gray-700">Porcentaje a Descontar (%)</label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
+                                    <span class="text-gray-500 sm:text-sm">%</span>
+                                </div>
+                                <input type="number" id="discountPercentage" class="block w-full rounded-md border-gray-300 pl-7 pr-12 focus:border-brand-accent-blue focus:ring-brand-accent-blue sm:text-sm py-3" placeholder="3.0" value="3">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result Display -->
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <p class="text-sm font-medium text-gray-600">Monto Total a Otorgar:</p>
+                        <p id="totalAmount" class="text-4xl font-bold text-brand-orange mt-2 tracking-tight">$0.00</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white">
+            <div class="container mx-auto px-6 py-4 text-center text-gray-500">
+                &copy; 2024 Caja de Ahorro Tupak Rantina. Todos los derechos reservados.
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // --- DOM Element References ---
+        const netAmountInput = document.getElementById('netAmount');
+        const discountPercentageInput = document.getElementById('discountPercentage');
+        const totalAmountDisplay = document.getElementById('totalAmount');
+
+        // --- Calculation Logic ---
+        function calculateTotalAmount() {
+            // 1. Get values and convert them to numbers. Default to 0 if empty or invalid.
+            const netAmount = parseFloat(netAmountInput.value) || 0;
+            const discountPercentage = parseFloat(discountPercentageInput.value) || 0;
+
+            // 2. Validate inputs to prevent division by zero or negative percentages
+            if (netAmount <= 0 || discountPercentage < 0 || discountPercentage >= 100) {
+                totalAmountDisplay.textContent = '$0.00';
+                return;
+            }
+
+            // 3. Apply the formula
+            // The percentage is converted to its decimal form (e.g., 3% -> 0.03)
+            const discountDecimal = discountPercentage / 100;
+            const totalAmount = netAmount / (1 - discountDecimal);
+
+            // 4. Format the result as currency and display it
+            totalAmountDisplay.textContent = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(totalAmount);
+        }
+
+        // --- Event Listeners ---
+        // Recalculate whenever the user types in either input field
+        netAmountInput.addEventListener('input', calculateTotalAmount);
+        discountPercentageInput.addEventListener('input', calculateTotalAmount);
+
+        // --- Initial Calculation ---
+        // Run the calculation once when the page loads to show the result for default values
+        document.addEventListener('DOMContentLoaded', calculateTotalAmount);
+    </script>
+
+</body>
+</html>
