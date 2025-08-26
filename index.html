@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Préstamos - Caja de Ahorro Tupak Rantina</title>
+    <title>Calculadora de Préstamos Avanzada - Caja de Ahorro Tupak Rantina</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,10 +13,49 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- MathJax for formula rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <!-- Custom Styles and Tailwind Config -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
+        }
+        /* Ensure MathJax formula is visible on dark backgrounds */
+        .mathjax-formula {
+            color: white;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #e48410 #015cd0;
+        }
+        
+        /* Custom scrollbar for tables */
+        .scroll-container {
+            scrollbar-width: thin;
+            scrollbar-color: #e48410 #f1f5f9;
+        }
+        
+        .scroll-container::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        
+        .scroll-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        
+        .scroll-container::-webkit-scrollbar-thumb {
+            background: #e48410;
+            border-radius: 10px;
+        }
+        
+        .scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #d97706;
         }
     </style>
     <script>
@@ -38,86 +77,234 @@
 
     <div id="app" class="min-h-screen flex flex-col">
         <!-- Header -->
-        <header class="bg-white shadow-md">
-            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-                <div class="flex items-center">
-                    <img 
-                        src="https://i.postimg.cc/zBPmbxNT/TRANSPARENTE-min.png" 
-                        alt="Logo Tupak Rantina" 
-                        class="h-12 w-auto mr-4"
-                        onerror="this.onerror=null;this.src='https://placehold.co/200x50/001749/FFFFFF?text=Tupak+Rantina';"
-                    >
-                </div>
-                <div class="hidden md:flex items-center space-x-6">
-                    <a href="#" class="text-gray-600 hover:text-brand-accent-blue transition duration-300">Inicio</a>
-                    <a href="#" class="text-gray-600 hover:text-brand-accent-blue transition duration-300">Servicios</a>
-                    <a href="#" class="text-gray-600 hover:text-brand-accent-blue transition duration-300">Contacto</a>
-                    <a href="#" class="bg-brand-orange text-white font-semibold px-4 py-2 rounded-lg hover:bg-opacity-90 transition duration-300">Portal de Cliente</a>
-                </div>
-                <div class="md:hidden">
-                    <button class="text-gray-600 focus:outline-none">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                    </button>
-                </div>
-            </nav>
+        <header class="bg-brand-dark-blue text-white py-4 px-6">
+            <div class="max-w-7xl mx-auto">
+                <h1 class="text-2xl font-bold">Calculadora de Préstamos Avanzada</h1>
+                <p class="text-gray-300 text-sm">Caja de Ahorro Tupak Rantina</p>
+            </div>
         </header>
 
         <!-- Main Content -->
-        <main class="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-brand-dark-blue">
-            <div class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden md:flex">
-                <!-- Left Side: Information -->
-                <div class="w-full md:w-1/2 p-8 bg-brand-accent-blue text-white flex flex-col justify-center">
-                    <h2 class="text-3xl font-bold mb-4 leading-tight">Calculadora de Desembolso</h2>
-                    <p class="text-gray-200 mb-6">
-                        Calcule el monto total a financiar para asegurar que el desembolso neto sea exactamente lo que su cliente necesita.
-                    </p>
-                    <div class="bg-white/20 p-4 rounded-lg">
-                        <p class="font-semibold text-sm">Fórmula Aplicada:</p>
-                        <p class="text-xs mt-1 font-mono">Monto a Financiar = Monto Neto / (1 - (% Descuento / 100))</p>
+        <main class="flex-grow py-6 px-4 bg-gray-50">
+            <div class="max-w-7xl mx-auto">
+                
+                <!-- Calculator Section -->
+                <div class="bg-white rounded-lg shadow-xl overflow-hidden mb-8">
+                    <div class="lg:flex">
+                        <!-- Left Side: Information -->
+                        <div class="lg:w-1/3 p-6 bg-brand-accent-blue text-white">
+                            <h2 class="text-2xl font-bold mb-4">Calculadora de Créditos</h2>
+                            <p class="text-gray-200 mb-4 text-sm">
+                                Configure el tipo de financiamiento y calcule el monto total, tabla de amortización y costos.
+                            </p>
+                            
+                            <!-- Formula Display -->
+                            <div class="bg-white/20 p-3 rounded-lg mb-4">
+                                <p class="font-semibold text-xs mb-2">Fórmulas Aplicadas:</p>
+                                <div class="mathjax-formula text-xs">
+                                    $$ \text{Cuota} = \frac{P \times r \times (1+r)^n}{(1+r)^n - 1} $$
+                                </div>
+                                <div class="mathjax-formula text-xs">
+                                    $$ \text{Financ.} = \frac{\text{Neto}}{1 - \frac{\%Desc.}{100}} $$
+                                </div>
+                            </div>
+                            
+                            <div class="text-xs text-gray-200">
+                                <p><strong>P:</strong> Capital | <strong>r:</strong> Tasa mensual | <strong>n:</strong> Períodos</p>
+                            </div>
+                        </div>
+
+                        <!-- Right Side: Calculator Form -->
+                        <div class="lg:w-2/3 p-6">
+                            <div class="grid md:grid-cols-2 gap-6">
+                                
+                                <!-- Column 1: Basic Data -->
+                                <div class="space-y-4">
+                                    <h3 class="text-lg font-semibold text-brand-dark-blue border-b border-gray-200 pb-2">Datos Básicos</h3>
+                                    
+                                    <!-- Net Amount -->
+                                    <div>
+                                        <label for="netAmount" class="block text-sm font-medium text-gray-700">Monto Neto Requerido ($)</label>
+                                        <input type="number" id="netAmount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="2500.00" value="2500">
+                                    </div>
+
+                                    <!-- Annual Interest Rate -->
+                                    <div>
+                                        <label for="annualRate" class="block text-sm font-medium text-gray-700">Tasa Anual (%)</label>
+                                        <input type="number" id="annualRate" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="26.00" value="26">
+                                    </div>
+
+                                    <!-- Term in months -->
+                                    <div>
+                                        <label for="termMonths" class="block text-sm font-medium text-gray-700">Plazo (meses)</label>
+                                        <input type="number" id="termMonths" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="12" value="12">
+                                    </div>
+
+                                    <!-- SOLCA Percentage -->
+                                    <div>
+                                        <label for="solcaPercentage" class="block text-sm font-medium text-gray-700">SOLCA (%)</label>
+                                        <input type="number" id="solcaPercentage" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="0.5" value="0.5">
+                                    </div>
+
+                                    <!-- Autoseguro Percentage -->
+                                    <div>
+                                        <label for="autoseguroPercentage" class="block text-sm font-medium text-gray-700">Autoseguro (%)</label>
+                                        <input type="number" id="autoseguroPercentage" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="0.72" value="0.72">
+                                    </div>
+                                </div>
+
+                                <!-- Column 2: Patrimonial Contribution Options -->
+                                <div class="space-y-4">
+                                    <h3 class="text-lg font-semibold text-brand-dark-blue border-b border-gray-200 pb-2">Aporte Patrimonial</h3>
+                                    
+                                    <!-- Patrimonial Contribution Percentage -->
+                                    <div>
+                                        <label for="patrimonialPercentage" class="block text-sm font-medium text-gray-700">Porcentaje Aporte (%)</label>
+                                        <input type="number" id="patrimonialPercentage" step="0.1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="3.0" value="3">
+                                    </div>
+
+                                    <!-- Financing Option -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Financiamiento</label>
+                                        <div class="space-y-2">
+                                            <label class="flex items-center">
+                                                <input type="radio" name="financingType" value="discount" class="text-brand-accent-blue focus:ring-brand-accent-blue" checked>
+                                                <span class="ml-2 text-sm">Descontar del crédito</span>
+                                            </label>
+                                            <label class="flex items-center">
+                                                <input type="radio" name="financingType" value="finance" class="text-brand-accent-blue focus:ring-brand-accent-blue">
+                                                <span class="ml-2 text-sm">Financiar aporte</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Generate Button -->
+                                    <button id="generateBtn" class="w-full bg-brand-orange hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-md transition duration-200 mt-4">
+                                        Generar Cálculos
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Right Side: Calculator -->
-                <div class="w-full md:w-1/2 p-8">
-                    <h3 class="text-2xl font-bold text-brand-dark-blue mb-6">Ingresar Datos</h3>
+                <!-- Results Section -->
+                <div id="resultsSection" class="grid lg:grid-cols-2 gap-8" style="display: none;">
                     
-                    <div class="space-y-6">
-                        <!-- Net Amount Input -->
-                        <div>
-                            <label for="netAmount" class="block text-sm font-medium text-gray-700">Monto Neto a Liquidar ($)</label>
-                            <div class="mt-1 relative rounded-md shadow-sm">
-                                <div class="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
-                                    <span class="text-gray-500 sm:text-sm">$</span>
-                                </div>
-                                <input type="number" id="netAmount" class="block w-full rounded-md border-gray-300 pl-7 pr-12 focus:border-brand-accent-blue focus:ring-brand-accent-blue sm:text-sm py-3" placeholder="2500.00" value="2500">
+                    <!-- Summary Card -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-brand-dark-blue mb-4">Resumen del Crédito</h3>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-600">Monto Neto Solicitado:</span>
+                                <span id="summaryNetAmount" class="font-semibold">$0.00</span>
                             </div>
-                        </div>
-
-                        <!-- Discount Percentage Input -->
-                        <div>
-                            <label for="discountPercentage" class="block text-sm font-medium text-gray-700">Porcentaje a Descontar (%)</label>
-                            <div class="mt-1 relative rounded-md shadow-sm">
-                                <div class="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
-                                    <span class="text-gray-500 sm:text-sm">%</span>
-                                </div>
-                                <input type="number" id="discountPercentage" class="block w-full rounded-md border-gray-300 pl-7 pr-12 focus:border-brand-accent-blue focus:ring-brand-accent-blue sm:text-sm py-3" placeholder="3.0" value="3">
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-600">Aporte Patrimonial:</span>
+                                <span id="summaryPatrimonialAmount" class="font-semibold">$0.00</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-600">Monto Total del Crédito:</span>
+                                <span id="summaryTotalCredit" class="font-semibold text-brand-orange text-lg">$0.00</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-600">Desembolso Neto:</span>
+                                <span id="summaryNetDisbursement" class="font-semibold text-green-600 text-lg">$0.00</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-600">Cuota Mensual Base:</span>
+                                <span id="summaryBasePayment" class="font-semibold">$0.00</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-600">SOLCA:</span>
+                                <span id="summarySolcaAmount" class="font-semibold text-gray-600">$0.00</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-600">Autoseguro:</span>
+                                <span id="summaryAutoseguroAmount" class="font-semibold text-gray-600">$0.00</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-600">Cuota Total:</span>
+                                <span id="summaryMonthlyPayment" class="font-semibold text-blue-600 text-lg">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total a Pagar:</span>
+                                <span id="summaryTotalToPay" class="font-semibold">$0.00</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Result Display -->
-                    <div class="mt-8 pt-6 border-t border-gray-200">
-                        <p class="text-sm font-medium text-gray-600">Monto Total a Otorgar:</p>
-                        <p id="totalAmount" class="text-4xl font-bold text-brand-orange mt-2 tracking-tight">$0.00</p>
+                    <!-- Additional Info Card -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-brand-dark-blue mb-4">Información Adicional</h3>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-blue-50 p-3 rounded-lg">
+                                <p class="text-sm text-blue-800">
+                                    <strong>Tipo de Financiamiento:</strong> 
+                                    <span id="financingTypeDisplay">Descuento del crédito</span>
+                                </p>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Tasa Mensual:</span>
+                                    <span id="monthlyRateDisplay" class="font-medium">0.00%</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Total SOLCA:</span>
+                                    <span id="totalSolcaDisplay" class="font-medium">$0.00</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Total Autoseguro:</span>
+                                    <span id="totalAutoseguroDisplay" class="font-medium">$0.00</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Total Intereses:</span>
+                                    <span id="totalInterestDisplay" class="font-medium">$0.00</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Plazo:</span>
+                                    <span id="termDisplay" class="font-medium">0 meses</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Amortization Table -->
+                <div id="amortizationSection" class="mt-8 bg-white rounded-lg shadow-lg p-6" style="display: none;">
+                    <h3 class="text-xl font-bold text-brand-dark-blue mb-4">Tabla de Amortización</h3>
+                    
+                    <div class="overflow-x-auto scroll-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuota</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Inicial</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuota Base</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interés</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capital</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SOLCA</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Autoseguro</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuota Total</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Final</th>
+                                </tr>
+                            </thead>
+                            <tbody id="amortizationTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Table rows will be generated by JavaScript -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </main>
 
         <!-- Footer -->
-        <footer class="bg-white">
-            <div class="container mx-auto px-6 py-4 text-center text-gray-500">
-                &copy; 2024 Caja de Ahorro Tupak Rantina. Todos los derechos reservados.
+        <footer class="bg-brand-dark-blue text-white py-4 px-6">
+            <div class="max-w-7xl mx-auto text-center">
+                <p class="text-sm text-gray-300">© 2025 Caja de Ahorro Tupak Rantina - Calculadora de Préstamos</p>
             </div>
         </footer>
     </div>
@@ -125,41 +312,206 @@
     <script>
         // --- DOM Element References ---
         const netAmountInput = document.getElementById('netAmount');
-        const discountPercentageInput = document.getElementById('discountPercentage');
-        const totalAmountDisplay = document.getElementById('totalAmount');
+        const annualRateInput = document.getElementById('annualRate');
+        const termMonthsInput = document.getElementById('termMonths');
+        const patrimonialPercentageInput = document.getElementById('patrimonialPercentage');
+        const solcaPercentageInput = document.getElementById('solcaPercentage');
+        const autoseguroPercentageInput = document.getElementById('autoseguroPercentage');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const amortizationSection = document.getElementById('amortizationSection');
 
-        // --- Calculation Logic ---
-        function calculateTotalAmount() {
-            // 1. Get values and convert them to numbers. Default to 0 if empty or invalid.
+        // Summary elements
+        const summaryNetAmount = document.getElementById('summaryNetAmount');
+        const summaryPatrimonialAmount = document.getElementById('summaryPatrimonialAmount');
+        const summaryTotalCredit = document.getElementById('summaryTotalCredit');
+        const summaryNetDisbursement = document.getElementById('summaryNetDisbursement');
+        const summaryBasePayment = document.getElementById('summaryBasePayment');
+        const summarySolcaAmount = document.getElementById('summarySolcaAmount');
+        const summaryAutoseguroAmount = document.getElementById('summaryAutoseguroAmount');
+        const summaryMonthlyPayment = document.getElementById('summaryMonthlyPayment');
+        const summaryTotalToPay = document.getElementById('summaryTotalToPay');
+        const financingTypeDisplay = document.getElementById('financingTypeDisplay');
+        const monthlyRateDisplay = document.getElementById('monthlyRateDisplay');
+        const totalSolcaDisplay = document.getElementById('totalSolcaDisplay');
+        const totalAutoseguroDisplay = document.getElementById('totalAutoseguroDisplay');
+        const totalInterestDisplay = document.getElementById('totalInterestDisplay');
+        const termDisplay = document.getElementById('termDisplay');
+        const amortizationTableBody = document.getElementById('amortizationTableBody');
+
+        // --- Utility Functions ---
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        function formatPercentage(rate) {
+            return (rate * 100).toFixed(2) + '%';
+        }
+
+        // --- Main Calculation Function ---
+        function calculateLoan() {
+            // Get input values
             const netAmount = parseFloat(netAmountInput.value) || 0;
-            const discountPercentage = parseFloat(discountPercentageInput.value) || 0;
+            const annualRate = parseFloat(annualRateInput.value) || 0;
+            const termMonths = parseInt(termMonthsInput.value) || 0;
+            const patrimonialPercentage = parseFloat(patrimonialPercentageInput.value) || 0;
+            const solcaPercentage = parseFloat(solcaPercentageInput.value) || 0;
+            const autoseguroPercentage = parseFloat(autoseguroPercentageInput.value) || 0;
+            
+            // Get financing type
+            const financingType = document.querySelector('input[name="financingType"]:checked').value;
 
-            // 2. Validate inputs to prevent division by zero or negative percentages
-            if (netAmount <= 0 || discountPercentage < 0 || discountPercentage >= 100) {
-                totalAmountDisplay.textContent = '$0.00';
+            // Validate inputs
+            if (netAmount <= 0 || annualRate <= 0 || termMonths <= 0) {
+                alert('Por favor, ingrese valores válidos para todos los campos.');
                 return;
             }
 
-            // 3. Apply the formula
-            // The percentage is converted to its decimal form (e.g., 3% -> 0.03)
-            const discountDecimal = discountPercentage / 100;
-            const totalAmount = netAmount / (1 - discountDecimal);
+            if (patrimonialPercentage < 0 || patrimonialPercentage >= 100) {
+                alert('El porcentaje del aporte patrimonial debe estar entre 0 y 99.99%');
+                return;
+            }
 
-            // 4. Format the result as currency and display it
-            totalAmountDisplay.textContent = new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD'
-            }).format(totalAmount);
+            // Calculate monthly interest rate
+            const monthlyRate = annualRate / 100 / 12;
+
+            let totalCredit, netDisbursement, patrimonialAmount;
+
+            if (financingType === 'finance') {
+                // Option 2: Finance the patrimonial contribution
+                // Total credit = Net Amount / (1 - Patrimonial Percentage)
+                totalCredit = netAmount / (1 - patrimonialPercentage / 100);
+                patrimonialAmount = totalCredit * (patrimonialPercentage / 100);
+                netDisbursement = netAmount; // Client receives exactly what they asked for
+            } else {
+                // Option 1: Discount from credit
+                totalCredit = netAmount;
+                patrimonialAmount = totalCredit * (patrimonialPercentage / 100);
+                netDisbursement = totalCredit - patrimonialAmount;
+            }
+
+            // Calculate base monthly payment using the standard loan formula
+            // PMT = P * [r(1+r)^n] / [(1+r)^n - 1]
+            const baseMonthlyPayment = totalCredit * (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / 
+                                      (Math.pow(1 + monthlyRate, termMonths) - 1);
+
+            // Calculate SOLCA and Autoseguro amounts (based on credit amount)
+            const monthlySolca = totalCredit * (solcaPercentage / 100) / termMonths;
+            const monthlyAutoseguro = totalCredit * (autoseguroPercentage / 100) / termMonths;
+
+            // Total monthly payment including SOLCA and Autoseguro
+            const totalMonthlyPayment = baseMonthlyPayment + monthlySolca + monthlyAutoseguro;
+
+            const baseTotalToPay = baseMonthlyPayment * termMonths;
+            const totalSolca = monthlySolca * termMonths;
+            const totalAutoseguro = monthlyAutoseguro * termMonths;
+            const grandTotalToPay = totalMonthlyPayment * termMonths;
+            const totalInterest = baseTotalToPay - totalCredit;
+
+            // Update summary display
+            summaryNetAmount.textContent = formatCurrency(netAmount);
+            summaryPatrimonialAmount.textContent = formatCurrency(patrimonialAmount);
+            summaryTotalCredit.textContent = formatCurrency(totalCredit);
+            summaryNetDisbursement.textContent = formatCurrency(netDisbursement);
+            summaryBasePayment.textContent = formatCurrency(baseMonthlyPayment);
+            summarySolcaAmount.textContent = formatCurrency(monthlySolca);
+            summaryAutoseguroAmount.textContent = formatCurrency(monthlyAutoseguro);
+            summaryMonthlyPayment.textContent = formatCurrency(totalMonthlyPayment);
+            summaryTotalToPay.textContent = formatCurrency(grandTotalToPay);
+
+            // Update additional info
+            financingTypeDisplay.textContent = financingType === 'finance' ? 
+                'Financiamiento del aporte' : 'Descuento del crédito';
+            monthlyRateDisplay.textContent = formatPercentage(monthlyRate);
+            totalSolcaDisplay.textContent = formatCurrency(totalSolca);
+            totalAutoseguroDisplay.textContent = formatCurrency(totalAutoseguro);
+            totalInterestDisplay.textContent = formatCurrency(totalInterest);
+            termDisplay.textContent = `${termMonths} meses`;
+
+            // Generate amortization table
+            generateAmortizationTable(totalCredit, monthlyRate, termMonths, baseMonthlyPayment, monthlySolca, monthlyAutoseguro);
+
+            // Show results sections
+            resultsSection.style.display = 'grid';
+            amortizationSection.style.display = 'block';
+
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- Amortization Table Generation ---
+        function generateAmortizationTable(principal, monthlyRate, termMonths, baseMonthlyPayment, monthlySolca, monthlyAutoseguro) {
+            let balance = principal;
+            let tableHTML = '';
+
+            for (let month = 1; month <= termMonths; month++) {
+                const interestPayment = balance * monthlyRate;
+                const principalPayment = baseMonthlyPayment - interestPayment;
+                const newBalance = balance - principalPayment;
+
+                // Handle final payment rounding
+                const finalPrincipalPayment = month === termMonths ? balance : principalPayment;
+                const finalBalance = month === termMonths ? 0 : newBalance;
+                const finalBasePayment = month === termMonths ? 
+                    interestPayment + finalPrincipalPayment : baseMonthlyPayment;
+
+                // Total payment including SOLCA and Autoseguro
+                const totalPayment = finalBasePayment + monthlySolca + monthlyAutoseguro;
+
+                tableHTML += `
+                    <tr class="${month % 2 === 0 ? 'bg-gray-50' : 'bg-white'}">
+                        <td class="px-2 py-2 text-sm text-gray-900">${month}</td>
+                        <td class="px-2 py-2 text-sm text-gray-900">${formatCurrency(balance)}</td>
+                        <td class="px-2 py-2 text-sm text-gray-700">${formatCurrency(finalBasePayment)}</td>
+                        <td class="px-2 py-2 text-sm text-red-600">${formatCurrency(interestPayment)}</td>
+                        <td class="px-2 py-2 text-sm text-green-600">${formatCurrency(finalPrincipalPayment)}</td>
+                        <td class="px-2 py-2 text-sm text-purple-600">${formatCurrency(monthlySolca)}</td>
+                        <td class="px-2 py-2 text-sm text-indigo-600">${formatCurrency(monthlyAutoseguro)}</td>
+                        <td class="px-2 py-2 text-sm font-medium text-brand-orange">${formatCurrency(totalPayment)}</td>
+                        <td class="px-2 py-2 text-sm text-gray-900">${formatCurrency(finalBalance)}</td>
+                    </tr>
+                `;
+
+                balance = finalBalance;
+            }
+
+            amortizationTableBody.innerHTML = tableHTML;
         }
 
         // --- Event Listeners ---
-        // Recalculate whenever the user types in either input field
-        netAmountInput.addEventListener('input', calculateTotalAmount);
-        discountPercentageInput.addEventListener('input', calculateTotalAmount);
+        generateBtn.addEventListener('click', calculateLoan);
 
-        // --- Initial Calculation ---
-        // Run the calculation once when the page loads to show the result for default values
-        document.addEventListener('DOMContentLoaded', calculateTotalAmount);
+        // Allow pressing Enter to calculate
+        [netAmountInput, annualRateInput, termMonthsInput, patrimonialPercentageInput, solcaPercentageInput, autoseguroPercentageInput].forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    calculateLoan();
+                }
+            });
+        });
+
+        // Radio button change handler
+        document.querySelectorAll('input[name="financingType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (resultsSection.style.display !== 'none') {
+                    calculateLoan(); // Recalculate if results are already showing
+                }
+            });
+        });
+
+        // --- Initialize MathJax when loaded ---
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
     </script>
 
 </body>
