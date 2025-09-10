@@ -475,7 +475,7 @@
 
                 // Redirigir a la aplicación principal después de un breve delay
                 setTimeout(() => {
-                    window.location.href = 'INDEX.html';
+                    window.location.href = 'index.html';
                 }, 1500);
 
             } catch (error) {
@@ -520,7 +520,7 @@
                     // Usuario ya autenticado, redirigir a la aplicación principal
                     showMessage('Ya tienes una sesión activa. Redirigiendo...', 'info');
                     setTimeout(() => {
-                        window.location.href = 'INDEX.html';
+                        window.location.href = 'index.html';
                     }, 1500);
                 }
             } catch (error) {
@@ -563,10 +563,11 @@
             if (event === 'SIGNED_IN') {
                 showMessage('¡Bienvenido! Redirigiendo a la aplicación...', 'success');
                 setTimeout(() => {
-                    window.location.href = 'INDEX.html';
+                    window.location.href = 'index.html';
                 }, 1500);
             }
         });
     </script>
 </body>
 </html>
+
