@@ -269,6 +269,61 @@
         #login-container.show {
             display: flex;
         }
+        
+        /* Checklist styles */
+        .document-checkbox {
+            accent-color: #ff8c42;
+        }
+        
+        .document-checkbox:checked {
+            background-color: #ff8c42;
+            border-color: #ff8c42;
+        }
+        
+        .document-checkbox:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(255, 140, 66, 0.5);
+        }
+        
+        /* Smooth transitions for row styling */
+        .p-4 {
+            transition: background-color 0.2s ease;
+        }
+        
+        /* Custom checkbox styling for better visibility */
+        .document-checkbox {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 0.25rem;
+            border: 2px solid #d1d5db;
+            appearance: none;
+            background-color: white;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .document-checkbox:checked::before {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+        
+        /* Responsive adjustments for mobile */
+        @media (max-width: 640px) {
+            .document-checkbox {
+                width: 1.125rem;
+                height: 1.125rem;
+            }
+            
+            .document-checkbox:checked::before {
+                font-size: 0.75rem;
+            }
+        }
     </style>
     <script>
         tailwind.config = {
@@ -329,6 +384,7 @@
         <div class="tab-container bg-white">
             <button class="tab-button active" onclick="switchTab(0)">Calculadora</button>
             <button class="tab-button" onclick="switchTab(1)">Herramientas de Consulta</button>
+            <button class="tab-button" onclick="switchTab(2)">Documentación</button>
         </div>
 
         <!-- Tab Content -->
@@ -713,6 +769,345 @@
             </div>
         </div>
 
+        <div id="tab2" class="tab-content">
+            <div class="flex flex-col h-full bg-gray-50">
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-brand-dark-blue mb-6">
+                        <i class="fas fa-file-alt mr-2"></i>
+                        Documentación para Créditos Aprobados
+                    </h2>
+                    
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <div class="bg-blue-50 border-l-4 border-brand-accent-blue p-4 mb-6">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-brand-accent-blue"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-blue-800">
+                                        Guía para Asesores - Documentación de Créditos
+                                    </h3>
+                                    <div class="mt-2 text-sm text-blue-700">
+                                        <p><strong>IMPORTANTE:</strong> Todos los documentos deben ser enviados en <strong>UN SOLO ARCHIVO PDF CONSOLIDADO</strong>, escaneados en el mismo orden que se indica a continuación:</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="space-y-4">
+                            <!-- Recordatorio de Formalidad Institucional -->
+                            <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-university text-blue-500"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-blue-800">
+                                            Presentación Profesional de Documentos
+                                        </h3>
+                                        <div class="mt-2 text-sm text-blue-700">
+                                            <p class="mb-2">
+                                                <strong>Tupak Rantina</strong> es una institución financiera formal que mantiene altos estándares de calidad. 
+                                                La documentación debe presentarse con la debida altura y exigencia profesional:
+                                            </p>
+                                            <ul class="list-disc list-inside space-y-1">
+                                                <li><strong>Orientación adecuada:</strong> Todas las páginas deben estar correctamente orientadas (verticales las verticales, horizontales las horizontales)</li>
+                                                <li><strong>Sin interferencias de visión:</strong> Documentos completamente visibles, sin sombras, reflejos o partes cortadas</li>
+                                                <li><strong>Calidad profesional:</strong> Escaneos nítidos, bien iluminados y con buena resolución</li>
+                                                <li><strong>Orden y presentación:</strong> Documentos organizados secuencialmente según esta guía</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Control de Checklist -->
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <span id="checklistStatus">Checklist se reinicia automáticamente cada 7 días</span>
+                                </div>
+                                <button id="resetChecklistBtn" class="bg-brand-orange hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center">
+                                    <i class="fas fa-refresh mr-2"></i>
+                                    Reiniciar Checklist
+                                </button>
+                            </div>
+                        </div>
+
+                            <!-- Lista de documentos requeridos -->
+                            <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                <div class="bg-gray-50 px-4 py-3 flex items-center justify-between">
+                                    <h3 class="text-lg font-semibold text-brand-dark-blue">Documentos Requeridos (en orden)</h3>
+                                    <div class="text-sm text-gray-600">
+                                        <span id="completedCount">0</span> de <span id="totalCount">13</span> completados
+                                    </div>
+                                </div>
+                                <div class="divide-y divide-gray-200">
+                                    
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc1" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="1">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">1</span>
+                                            <div class="flex-1">
+                                                <label for="doc1" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Copia de Cédula</h4>
+                                                    <p class="text-sm text-gray-600">(Opcional: Papeleta de votación)</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc2" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="2">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">2</span>
+                                            <div class="flex-1">
+                                                <label for="doc2" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Autorización de Revisión de Buró</h4>
+                                                    <p class="text-sm text-gray-600">Documento firmado por el solicitante</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc3" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="3">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">3</span>
+                                            <div class="flex-1">
+                                                <label for="doc3" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Buró</h4>
+                                                    <p class="text-sm text-gray-600">Reporte de historial crediticio</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc4" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="4">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">4</span>
+                                            <div class="flex-1">
+                                                <label for="doc4" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Revisión de Demandas Judiciales</h4>
+                                                    <p class="text-sm text-gray-600">Consulta de procesos judiciales activos</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc5" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="5">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">5</span>
+                                            <div class="flex-1">
+                                                <label for="doc5" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Revisión de SUPA</h4>
+                                                    <p class="text-sm text-gray-600">Sistema Único de Pensiones Alimenticias</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc6" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="6">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">6</span>
+                                            <div class="flex-1">
+                                                <label for="doc6" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Cartilla de Servicios Básicos</h4>
+                                                    <p class="text-sm text-gray-600">Planilla de luz o agua (últimos 3 meses)</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc7" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="7">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">7</span>
+                                            <div class="flex-1">
+                                                <label for="doc7" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Informe de Ingresos y Egresos</h4>
+                                                    <p class="text-sm text-gray-600">Detalle financiero del solicitante</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc8" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="8">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">8</span>
+                                            <div class="flex-1">
+                                                <label for="doc8" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Certificado de Trabajo</h4>
+                                                    <p class="text-sm text-gray-600 italic">(Si aplica - para empleados en relación de dependencia)</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc9" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="9">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">9</span>
+                                            <div class="flex-1">
+                                                <label for="doc9" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Carnet de Sustento de Actividad</h4>
+                                                    <p class="text-sm text-gray-600">Ejemplos para Mejía y Cotopaxi:</p>
+                                                    <ul class="text-sm text-gray-600 mt-2 ml-4 list-disc">
+                                                        <li>CONEFA (Consorcio de Empresas Florícolas)</li>
+                                                        <li>Certificado de la Asociación de Ganaderos de Cotopaxi</li>
+                                                        <li>Registro de la Cámara de Agricultura de Cotopaxi</li>
+                                                        <li>Certificado de MAGAP (Ministerio de Agricultura)</li>
+                                                        <li>Registro en la Asociación de Productores Agrícolas de Mejía</li>
+                                                        <li>Carnet de la Federación de Ganaderos del Ecuador (FEDEGAN)</li>
+                                                        <li>Certificado de la Unión de Organizaciones Campesinas de Cotopaxi</li>
+                                                    </ul>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc10" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="10">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">10</span>
+                                            <div class="flex-1">
+                                                <label for="doc10" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Impuesto Predial</h4>
+                                                    <p class="text-sm text-gray-600 italic">(Si aplica - para propietarios de bienes inmuebles)</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc11" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="11">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">11</span>
+                                            <div class="flex-1">
+                                                <label for="doc11" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Facturas de Compra/Venta</h4>
+                                                    <p class="text-sm text-gray-600 italic">(Si aplica - para actividades comerciales)</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc12" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="12">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">12</span>
+                                            <div class="flex-1">
+                                                <label for="doc12" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Referencias Comerciales</h4>
+                                                    <p class="text-sm text-gray-600">(Opcional - cartas de proveedores o clientes)</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc13" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="13">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">13</span>
+                                            <div class="flex-1">
+                                                <label for="doc13" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Matrícula de Vehículo</h4>
+                                                    <p class="text-sm text-gray-600 italic">(Si aplica - para créditos vehiculares o como garantía)</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <!-- Notas importantes -->
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-6">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-yellow-800">
+                                            Notas Importantes
+                                        </h3>
+                                        <div class="mt-2 text-sm text-yellow-700">
+                                            <ul class="list-disc list-inside space-y-1">
+                                                <li><strong>UN SOLO ARCHIVO PDF CONSOLIDADO</strong> con todos los documentos en orden</li>
+                                                <li>La calidad de escaneo debe permitir la lectura clara del contenido</li>
+                                                <li>Respetar el orden establecido para agilizar el proceso de revisión</li>
+                                                <li>Los documentos marcados como "Si aplica" solo se incluyen cuando corresponda al caso específico</li>
+                                                <li>Para actividades agropecuarias en Mejía y Cotopaxi, verificar el tipo de carnet o certificado más apropiado</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Alert Modal -->
+        <div id="customAlertModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="flex-shrink-0">
+                            <i id="alertIcon" class="fas fa-exclamation-triangle text-yellow-500 text-2xl"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 id="alertTitle" class="text-lg font-semibold text-gray-900">Confirmar Acción</h3>
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <p id="alertMessage" class="text-sm text-gray-600">¿Estás seguro que deseas continuar?</p>
+                    </div>
+                    <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+                        <button id="alertCancelBtn" class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button id="alertConfirmBtn" class="w-full sm:w-auto px-4 py-2 bg-brand-orange hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors">
+                            Confirmar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <footer class="bg-brand-dark-blue text-white py-4 px-6">
             <div class="max-w-7xl mx-auto text-center">
@@ -936,6 +1331,282 @@
             });
         });
 
+        // --- Custom Alert Modal ---
+        class CustomAlert {
+            constructor() {
+                this.modal = document.getElementById('customAlertModal');
+                this.alertIcon = document.getElementById('alertIcon');
+                this.alertTitle = document.getElementById('alertTitle');
+                this.alertMessage = document.getElementById('alertMessage');
+                this.confirmBtn = document.getElementById('alertConfirmBtn');
+                this.cancelBtn = document.getElementById('alertCancelBtn');
+                
+                this.init();
+            }
+
+            init() {
+                // Close modal when clicking outside or pressing Escape
+                this.modal.addEventListener('click', (e) => {
+                    if (e.target === this.modal) {
+                        this.hide();
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && !this.modal.classList.contains('hidden')) {
+                        this.hide();
+                    }
+                });
+
+                this.cancelBtn.addEventListener('click', () => {
+                    this.hide();
+                });
+            }
+
+            show(options = {}) {
+                const {
+                    title = 'Confirmar Acción',
+                    message = '¿Estás seguro que deseas continuar?',
+                    confirmText = 'Confirmar',
+                    cancelText = 'Cancelar',
+                    icon = 'fas fa-exclamation-triangle text-yellow-500',
+                    onConfirm = null
+                } = options;
+
+                this.alertTitle.textContent = title;
+                this.alertMessage.textContent = message;
+                this.confirmBtn.textContent = confirmText;
+                this.cancelBtn.textContent = cancelText;
+                this.alertIcon.className = `${icon} text-2xl`;
+
+                // Remove any existing event listeners
+                this.confirmBtn.replaceWith(this.confirmBtn.cloneNode(true));
+                this.confirmBtn = document.getElementById('alertConfirmBtn');
+
+                // Add new event listener
+                this.confirmBtn.addEventListener('click', () => {
+                    this.hide();
+                    if (onConfirm && typeof onConfirm === 'function') {
+                        onConfirm();
+                    }
+                });
+
+                this.modal.classList.remove('hidden');
+                this.confirmBtn.focus();
+            }
+
+            hide() {
+                this.modal.classList.add('hidden');
+            }
+        }
+
+        // --- Checklist Management ---
+        class DocumentChecklistManager {
+            constructor() {
+                this.storageKey = 'documentChecklist';
+                this.timestampKey = 'documentChecklistTimestamp';
+                this.resetPeriod = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+                this.init();
+            }
+
+            init() {
+                this.checkExpiration();
+                this.loadChecklistState();
+                this.attachEventListeners();
+                this.updateCounters();
+                this.updateLastResetDisplay();
+            }
+
+            checkExpiration() {
+                const timestamp = localStorage.getItem(this.timestampKey);
+                if (timestamp) {
+                    const lastReset = new Date(parseInt(timestamp));
+                    const now = new Date();
+                    const timeDiff = now.getTime() - lastReset.getTime();
+                    
+                    if (timeDiff > this.resetPeriod) {
+                        this.resetChecklist();
+                        return;
+                    }
+                }
+                
+                // If no timestamp exists, create one
+                if (!timestamp) {
+                    localStorage.setItem(this.timestampKey, Date.now().toString());
+                }
+            }
+
+            loadChecklistState() {
+                const savedState = localStorage.getItem(this.storageKey);
+                if (savedState) {
+                    const checkedItems = JSON.parse(savedState);
+                    checkedItems.forEach(docId => {
+                        const checkbox = document.getElementById(`doc${docId}`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            this.updateRowStyle(checkbox, true);
+                        }
+                    });
+                }
+            }
+
+            saveChecklistState() {
+                const checkboxes = document.querySelectorAll('.document-checkbox');
+                const checkedItems = [];
+                
+                checkboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        const docId = checkbox.getAttribute('data-doc');
+                        checkedItems.push(docId);
+                    }
+                });
+                
+                localStorage.setItem(this.storageKey, JSON.stringify(checkedItems));
+            }
+
+            resetChecklist() {
+                localStorage.removeItem(this.storageKey);
+                localStorage.setItem(this.timestampKey, Date.now().toString());
+                
+                const checkboxes = document.querySelectorAll('.document-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                    this.updateRowStyle(checkbox, false);
+                });
+                
+                this.updateCounters();
+                this.updateLastResetDisplay();
+                this.showResetNotification();
+            }
+
+            updateRowStyle(checkbox, isChecked) {
+                const row = checkbox.closest('.p-4');
+                const label = row.querySelector('label');
+                
+                if (isChecked) {
+                    row.classList.add('bg-green-50');
+                    label.classList.add('line-through', 'opacity-75');
+                } else {
+                    row.classList.remove('bg-green-50');
+                    label.classList.remove('line-through', 'opacity-75');
+                }
+            }
+
+            updateCounters() {
+                const checkboxes = document.querySelectorAll('.document-checkbox');
+                const totalCount = checkboxes.length;
+                const completedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+                
+                document.getElementById('completedCount').textContent = completedCount;
+                document.getElementById('totalCount').textContent = totalCount;
+            }
+
+            updateLastResetDisplay() {
+                const timestamp = localStorage.getItem(this.timestampKey);
+                const statusElement = document.getElementById('checklistStatus');
+                
+                if (timestamp) {
+                    const lastReset = new Date(parseInt(timestamp));
+                    const now = new Date();
+                    const daysAgo = Math.floor((now.getTime() - lastReset.getTime()) / (24 * 60 * 60 * 1000));
+                    const daysRemaining = Math.max(0, 7 - daysAgo);
+                    
+                    if (daysRemaining > 0) {
+                        statusElement.innerHTML = `
+                            <i class="fas fa-clock mr-2"></i>
+                            Checklist se reinicia en ${daysRemaining} día${daysRemaining !== 1 ? 's' : ''}
+                        `;
+                    } else {
+                        statusElement.innerHTML = `
+                            <i class="fas fa-exclamation-triangle mr-2 text-orange-500"></i>
+                            <span class="text-orange-600">Checklist listo para reiniciar</span>
+                        `;
+                    }
+                } else {
+                    statusElement.innerHTML = `
+                        <i class="fas fa-clock mr-2"></i>
+                        Checklist se reinicia automáticamente cada 7 días
+                    `;
+                }
+            }
+
+            showResetNotification() {
+                // Create a temporary notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span>Checklist reiniciado correctamente</span>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Animate in
+                setTimeout(() => {
+                    notification.classList.remove('translate-x-full');
+                }, 100);
+                
+                // Animate out and remove
+                setTimeout(() => {
+                    notification.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 300);
+                }, 3000);
+            }
+
+            attachEventListeners() {
+                // Checkbox change listeners
+                const checkboxes = document.querySelectorAll('.document-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', (e) => {
+                        this.updateRowStyle(e.target, e.target.checked);
+                        this.saveChecklistState();
+                        this.updateCounters();
+                    });
+                });
+
+                // Reset button listener
+                const resetButton = document.getElementById('resetChecklistBtn');
+                if (resetButton) {
+                    resetButton.addEventListener('click', () => {
+                        if (!window.customAlert) {
+                            window.customAlert = new CustomAlert();
+                        }
+                        
+                        window.customAlert.show({
+                            title: 'Reiniciar Checklist',
+                            message: '¿Estás seguro que deseas reiniciar el checklist? Se perderá todo el progreso actual.',
+                            confirmText: 'Sí, Reiniciar',
+                            cancelText: 'Cancelar',
+                            icon: 'fas fa-refresh text-orange-500',
+                            onConfirm: () => {
+                                this.resetChecklist();
+                            }
+                        });
+                    });
+                }
+            }
+        }
+
+        // Initialize checklist manager when on the documentation tab
+        let checklistManager = null;
+        
+        // Override the switchTab function to initialize checklist on documentation tab
+        const originalSwitchTab = switchTab;
+        switchTab = function(tabIndex) {
+            originalSwitchTab(tabIndex);
+            
+            // Initialize checklist manager when switching to documentation tab (index 2)
+            if (tabIndex === 2 && !checklistManager) {
+                setTimeout(() => {
+                    checklistManager = new DocumentChecklistManager();
+                }, 100);
+            }
+        };
+
         // --- Initialize MathJax when loaded ---
         window.MathJax = {
             tex: {
@@ -972,3 +1643,4 @@
 
 </body>
 </html>
+
