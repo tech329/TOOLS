@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Acta de Crédito</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8fafc;
+        }
+        
+        /* Estilos para el acta imprimible */
+        .acta-styles {
+            --primary: #001749;
+            --accent: #e48410;
+            --info: #3787c6;
+            --brand: #015cd0;
+            --ink: #111;
+            --muted: #5e6b85;
+            --paper: #ffffff;
+            --screen: #f3f5f9;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            .print-area { 
+                width: 100% !important; 
+                margin: 0 !important; 
+                padding: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                background: white !important;
+            }
+            body { 
+                background: white !important; 
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .sheet {
+                width: 100% !important;
+                min-height: auto !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                background: white !important;
+            }
+            .container { 
+                max-width: none !important; 
+                padding: 0 !important; 
+                margin: 0 !important;
+            }
+        }
+
+        .sheet {
+            width: 100%; 
+            min-height: auto; 
+            margin: 20px auto; 
+            background: var(--paper);
+            position: relative; 
+            overflow: visible;
+            max-width: 210mm;
+        }
+        
+        .frame { padding: 18mm; }
+
+        .header { 
+            display: flex; 
+            align-items: center; 
+            gap: 16px; 
+            border-bottom: 3px solid var(--brand); 
+            padding-bottom: 12px; 
+        }
+        
+        .logo { 
+            width: 64px; 
+            height: 64px; 
+            object-fit: contain; 
+        }
+        
+        .brand-block { flex: 1; }
+        
+        .brand-title { 
+            font-weight: 900; 
+            font-size: 20px; 
+            color: var(--primary); 
+        }
+        
+        .brand-sub { 
+            font-weight: 600; 
+            font-size: 12px; 
+            color: var(--muted); 
+        }
+
+        .doc-title {
+            margin-top: 14px; 
+            padding: 10px 12px; 
+            border: 1px solid var(--brand);
+            background: linear-gradient(180deg, rgba(1,92,208,.06), rgba(1,92,208,.02));
+            color: var(--primary); 
+            font-weight: 800; 
+            font-size: 16px; 
+            text-align: center; 
+            border-radius: 10px;
+        }
+        
+        .doc-meta { 
+            display: flex; 
+            gap: 8px; 
+            justify-content: space-between; 
+            margin-top: 8px; 
+            font-size: 11px; 
+            color: var(--muted); 
+        }
+
+        h3.section { 
+            margin: 18px 0 8px; 
+            font-size: 13px; 
+            color: var(--primary); 
+            font-weight: 800; 
+        }
+
+        .card { 
+            border: 1px solid #e6ebf3; 
+            border-radius: 12px; 
+            padding: 12px; 
+        }
+        
+        .grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px 12px; 
+        }
+        
+        .grid-3 { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 10px 12px; 
+        }
+
+        .field { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; 
+        }
+        
+        .label { 
+            font-size: 10px; 
+            color: #6b778d; 
+            font-weight: 600; 
+        }
+        
+        .value { 
+            border: 1px solid #c9d3e6; 
+            border-radius: 8px; 
+            min-height: 34px; 
+            padding: 6px 8px; 
+            font-size: 12px; 
+            display: flex; 
+            align-items: center; 
+        }
+
+        .conditions { 
+            padding-left: 16px; 
+            font-size: 12px; 
+        }
+        
+        .conditions li { 
+            margin: 6px 0; 
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        .signs { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 14px; 
+            margin-top: 18px; 
+            page-break-inside: avoid; 
+        }
+        
+        .sign { 
+            text-align: center; 
+            padding-top: 32px; 
+        }
+        
+        .sign .line { 
+            border-top: 1.8px solid var(--primary); 
+            width: 100%; 
+            margin: 28px auto 6px; 
+        }
+        
+        .sign .name { 
+            font-weight: 700; 
+            font-size: 12px; 
+            color: var(--primary); 
+        }
+        
+        .sign .role { 
+            font-size: 10px; 
+            color: var(--muted); 
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto p-4 max-w-6xl">
+        <!-- Formulario de entrada -->
+        <div id="form-section" class="no-print bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex items-center mb-6">
+                <i class="fas fa-file-signature text-2xl text-blue-600 mr-3"></i>
+                <h1 class="text-2xl font-bold text-gray-800">Generador de Acta de Crédito</h1>
+            </div>
+
+            <form id="acta-form" class="grid md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Datos del Cliente</h3>
+                    
+                    <div>
+                        <label for="nombreCompleto" class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+                        <input type="text" id="nombreCompleto" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Luis Armando Pinta Cajilema" required>
+                    </div>
+
+                    <div>
+                        <label for="identificacion" class="block text-sm font-medium text-gray-700 mb-1">Identificación (C.I./RUC)</label>
+                        <input type="text" id="identificacion" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="1727652107" required>
+                    </div>
+
+                    <div>
+                        <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                        <input type="tel" id="telefono" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0962543428" required>
+                    </div>
+
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Detalles del Crédito</h3>
+                    
+                    <div>
+                        <label for="montoAprobado" class="block text-sm font-medium text-gray-700 mb-1">Monto Aprobado (USD)</label>
+                        <input type="number" id="montoAprobado" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="2000" required>
+                    </div>
+
+                    <div>
+                        <label for="tasaInteres" class="block text-sm font-medium text-gray-700 mb-1">Tasa de Interés (anual %)</label>
+                        <input type="number" id="tasaInteres" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="26" required>
+                    </div>
+
+                    <div>
+                        <label for="plazoPago" class="block text-sm font-medium text-gray-700 mb-1">Plazo de Pago (meses)</label>
+                        <input type="number" id="plazoPago" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="12" required>
+                    </div>
+
+                    <div>
+                        <label for="formaPago" class="block text-sm font-medium text-gray-700 mb-1">Forma de Pago</label>
+                        <select id="formaPago" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <option value="Mensual" selected>Mensual</option>
+                            <option value="Quincenal">Quincenal</option>
+                            <option value="Semanal">Semanal</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="destinoCredito" class="block text-sm font-medium text-gray-700 mb-1">Destino del Crédito</label>
+                        <select id="destinoCredito" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="Capital de trabajo">Capital de trabajo</option>
+                            <option value="Consumo">Consumo</option>
+                            <option value="Vivienda">Vivienda</option>
+                            <option value="Educación">Educación</option>
+                            <option value="Emergencia médica">Emergencia médica</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="observaciones" class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+                        <textarea id="observaciones" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="El crédito es viable post verificación"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="fechaActaForm" class="block text-sm font-medium text-gray-700 mb-1">Fecha del Acta</label>
+                            <input type="date" id="fechaActaForm" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="horaActaForm" class="block text-sm font-medium text-gray-700 mb-1">Hora del Acta</label>
+                            <input type="time" id="horaActaForm" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 flex gap-4 pt-6 border-t">
+                    <button type="button" onclick="generarActa()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-file-alt mr-2"></i>
+                        Generar Acta
+                    </button>
+                    <button type="button" onclick="imprimirActa()" class="bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors" id="btn-imprimir">
+                        <i class="fas fa-print mr-2"></i>
+                        Imprimir
+                    </button>
+                    <button type="reset" class="bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-undo mr-2"></i>
+                        Limpiar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Preview del acta - Ahora visible por defecto -->
+        <div id="acta-preview" class="print-area">
+            <div class="acta-styles">
+                <div class="sheet">
+                    <div class="frame">
+                        <header class="header">
+                            <img class="logo" alt="Logo Tupak Rantina" src="https://i.postimg.cc/zBPmbxNT/TRANSPARENTE-min.png" />
+                            <div class="brand-block">
+                                <div class="brand-title">CAJA DE AHORRO Y CRÉDITO TUPAK RANTINA</div>
+                                <div class="brand-sub">Acta oficial de aprobación de crédito</div>
+                            </div>
+                        </header>
+
+                        <div class="doc-title">ACTA DE APROBACIÓN DE CRÉDITO</div>
+                        <div class="doc-meta">
+                            <div><strong>N.º de Acta:</strong> <span id="numeroActa">000001</span></div>
+                            <div><strong>N.º de Sesión:</strong> <span id="numeroSesion">001</span></div>
+                            <div><strong>Fecha:</strong> <span id="fechaActa">____ / ____ / ______</span></div>
+                            <div><strong>Lugar:</strong> Machachi – Ecuador</div>
+                        </div>
+
+                        <h3 class="section">1. Datos del Cliente</h3>
+                        <section class="card">
+                            <div class="grid">
+                                <div class="field">
+                                    <div class="label">Nombre completo</div>
+                                    <div class="value" id="preview-nombre">---</div>
+                                </div>
+                                <div class="field">
+                                    <div class="label">Identificación (C.I./RUC)</div>
+                                    <div class="value" id="preview-identificacion">---</div>
+                                </div>
+                                <div class="field">
+                                    <div class="label">Teléfono</div>
+                                    <div class="value" id="preview-telefono">---</div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <h3 class="section">2. Detalles del Crédito</h3>
+                        <section class="card">
+                            <div class="grid-3">
+                                <div class="field">
+                                    <div class="label">Monto aprobado (USD)</div>
+                                    <div class="value" id="preview-monto">---</div>
+                                </div>
+                                <div class="field">
+                                    <div class="label">Tasa de interés (anual)</div>
+                                    <div class="value" id="preview-tasa">---</div>
+                                </div>
+                                <div class="field">
+                                    <div class="label">Plazo de pago (meses)</div>
+                                    <div class="value" id="preview-plazo">---</div>
+                                </div>
+                            </div>
+                            <div class="grid" style="margin-top:10px;">
+                                <div class="field">
+                                    <div class="label">Forma de pago</div>
+                                    <div class="value" id="preview-forma">---</div>
+                                </div>
+                                <div class="field">
+                                    <div class="label">Destino del crédito</div>
+                                    <div class="value" id="preview-destino">---</div>
+                                </div>
+                                <div class="field" style="grid-column: 1 / -1;">
+                                    <div class="label">Observaciones o condiciones específicas</div>
+                                    <div class="value" id="preview-observaciones">---</div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <h3 class="section">3. Condiciones y Requisitos Previos al Desembolso</h3>
+                        <section class="card">
+                            <ol class="conditions">
+                                <li>Presentar documentación completa: cédula y papeleta de votación, planilla de servicios básicos, y demás soportes requeridos.</li>
+                                <li>Cumplir con garantías, avales o co-deudores según el análisis crediticio.</li>
+                                <li>Suscribir el contrato de crédito y pagar los gastos administrativos (si aplican).</li>
+                                <li>No mantener moras u obligaciones pendientes con la Caja de Ahorro y Crédito Tupak Rantina al momento del desembolso.</li>
+                                <li>Aceptar las políticas internas de evaluación, seguimiento y cobranza.</li>
+                            </ol>
+                        </section>
+
+                        <h3 class="section page-break">4. Reconocimiento</h3>
+                        <section class="card">
+                            <p style="font-size:12px; line-height:1.55; margin:0;">
+                                En virtud del análisis realizado por el Comité de Crédito y conforme a las políticas y normativa interna vigente, se <strong>aprueba</strong> el crédito detallado en esta acta. El socio solicitante declara conocer y aceptar las condiciones establecidas, así como el cronograma de pagos correspondiente.
+                            </p>
+                        </section>
+
+                        <h3 class="section">5. Firmas de Aprobación</h3>
+                        <section class="signs">
+                            <div class="sign">
+                                <div class="line"></div>
+                                <div class="name">Ing. Byron Ayala</div>
+                                <div class="role">Representante – Comité de Crédito</div>
+                            </div>
+                            <div class="sign">
+                                <div class="line"></div>
+                                <div class="name">Luis Pinta</div>
+                                <div class="role">Representante – Comité de Crédito</div>
+                            </div>
+                            <div class="sign">
+                                <div class="line"></div>
+                                <div class="name">Natalia Nishve</div>
+                                <div class="role">Representante – Comité de Crédito</div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="customAlertModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="flex-shrink-0">
+                        <i id="alertIcon" class="fas fa-info-circle text-blue-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 id="alertTitle" class="text-lg font-semibold text-gray-900">Información</h3>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <p id="alertMessage" class="text-sm text-gray-600"></p>
+                </div>
+                <div id="alertButtons" class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+                    <!-- Los botones se generarán dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables para controlar el proceso de impresión
+        let datosActaParaGuardar = null;
+        let esperandoImpresion = false;
+
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://lpsupabase.luispinta.com'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.bZRDLg2HoJKCXPp_B6BD5s-qcZM6-NrKO8qtxBtFGTk'
+        
+        // Inicializar Supabase
+        const { createClient } = supabase
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+        // Funciones para Custom Alerts
+        function mostrarCustomAlert(titulo, mensaje, botones, icono = 'fa-info-circle', colorIcono = 'text-blue-500') {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('customAlertModal');
+                const alertTitle = document.getElementById('alertTitle');
+                const alertMessage = document.getElementById('alertMessage');
+                const alertIcon = document.getElementById('alertIcon');
+                const alertButtons = document.getElementById('alertButtons');
+                
+                // Configurar contenido
+                alertTitle.textContent = titulo;
+                alertMessage.textContent = mensaje;
+                alertIcon.className = `fas ${icono} ${colorIcono} text-2xl`;
+                
+                // Limpiar botones existentes
+                alertButtons.innerHTML = '';
+                
+                // Crear botones
+                botones.forEach((boton, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = `w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium transition-colors ${boton.clase}`;
+                    btn.textContent = boton.texto;
+                    btn.onclick = () => {
+                        modal.classList.add('hidden');
+                        resolve(boton.valor);
+                    };
+                    alertButtons.appendChild(btn);
+                });
+                
+                // Mostrar modal
+                modal.classList.remove('hidden');
+            });
+        }
+
+        function cerrarCustomAlert() {
+            document.getElementById('customAlertModal').classList.add('hidden');
+        }
+
+        // Función para obtener fecha local en formato YYYY-MM-DD
+        function obtenerFechaLocal() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Función para obtener hora local en formato HH:MM
+        function obtenerHoraLocal() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        // Generar fecha y hora actuales al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer fecha y hora actuales en los inputs (hora local de Guayaquil)
+            const fechaInput = document.getElementById('fechaActaForm');
+            const horaInput = document.getElementById('horaActaForm');
+            
+            fechaInput.value = obtenerFechaLocal();
+            horaInput.value = obtenerHoraLocal();
+            
+            // Generar números iniciales (se actualizarán al generar)
+            document.getElementById('numeroActa').textContent = '000001';
+            document.getElementById('numeroSesion').textContent = '001';
+            
+            // Establecer fecha formateada inicial
+            actualizarFechaFormateada();
+        });
+
+        // Función para formatear fecha en español
+        function formatearFechaEspanol(fecha, hora) {
+            const meses = [
+                'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+                'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+            ];
+            
+            const fechaObj = new Date(fecha + 'T' + hora);
+            const dia = fechaObj.getDate();
+            const mes = meses[fechaObj.getMonth()];
+            const año = fechaObj.getFullYear();
+            
+            let horas = fechaObj.getHours();
+            const minutos = fechaObj.getMinutes();
+            
+            // Determinar período del día en español
+            let periodo, horaFormateada;
+            if (horas === 0) {
+                periodo = 'de la medianoche';
+                horaFormateada = '12';
+            } else if (horas === 12) {
+                periodo = 'del mediodía';
+                horaFormateada = '12';
+            } else if (horas >= 1 && horas <= 11) {
+                periodo = 'de la mañana';
+                horaFormateada = horas.toString();
+            } else if (horas >= 13 && horas <= 17) {
+                periodo = 'de la tarde';
+                horaFormateada = (horas - 12).toString();
+            } else if (horas >= 18 && horas <= 23) {
+                periodo = 'de la noche';
+                horaFormateada = (horas - 12).toString();
+            }
+            
+            // Formatear minutos
+            let minutosTexto = '';
+            if (minutos === 0) {
+                minutosTexto = ' en punto';
+            } else if (minutos === 1) {
+                minutosTexto = ' con 1 minuto';
+            } else {
+                minutosTexto = ` con ${minutos} minutos`;
+            }
+            
+            return `${dia} de ${mes} del ${año} a las ${horaFormateada} ${periodo}${minutosTexto}`;
+        }
+
+        // Actualizar fecha formateada cuando cambian los inputs
+        function actualizarFechaFormateada() {
+            const fecha = document.getElementById('fechaActaForm').value;
+            const hora = document.getElementById('horaActaForm').value;
+            
+            if (fecha && hora) {
+                const fechaFormateada = formatearFechaEspanol(fecha, hora);
+                document.getElementById('fechaActa').textContent = fechaFormateada;
+            }
+        }
+
+        // Escuchar cambios en fecha y hora
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('fechaActaForm').addEventListener('change', actualizarFechaFormateada);
+            document.getElementById('horaActaForm').addEventListener('change', actualizarFechaFormateada);
+        });
+
+        // Función para obtener el próximo número de acta
+        async function obtenerProximoNumeroActa() {
+            try {
+                // Consulta real a Supabase para obtener el último número de acta
+                const { data, error } = await supabaseClient
+                    .from('actas_creditos_tupakra')
+                    .select('acta')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                    
+                if (error) {
+                    console.error('Error consultando actas:', error);
+                    return '000001';
+                }
+                
+                let proximoNumero = 1;
+                if (data && data.length > 0 && data[0].acta) {
+                    const ultimoNumero = parseInt(data[0].acta);
+                    if (!isNaN(ultimoNumero)) {
+                        proximoNumero = ultimoNumero + 1;
+                    }
+                }
+                
+                return proximoNumero.toString().padStart(6, '0');
+                
+            } catch (error) {
+                console.error('Error obteniendo número de acta:', error);
+                return '000001';
+            }
+        }
+
+        // Función para obtener el próximo número de sesión del día
+        async function obtenerProximoNumeroSesion(fecha) {
+            try {
+                // Consulta real a Supabase para contar sesiones del día actual
+                const fechaInicio = fecha + 'T00:00:00';
+                const fechaFin = fecha + 'T23:59:59';
+                
+                const { data, error } = await supabaseClient
+                    .from('actas_creditos_tupakra')
+                    .select('sesion')
+                    .gte('fecha_hora', fechaInicio)
+                    .lte('fecha_hora', fechaFin)
+                    .order('sesion', { ascending: false })
+                    .limit(1);
+                    
+                if (error) {
+                    console.error('Error consultando sesiones del día:', error);
+                    return '001';
+                }
+                
+                let proximoNumero = 1;
+                if (data && data.length > 0 && data[0].sesion) {
+                    const ultimoNumero = parseInt(data[0].sesion);
+                    if (!isNaN(ultimoNumero)) {
+                        proximoNumero = ultimoNumero + 1;
+                    }
+                }
+                
+                return proximoNumero.toString().padStart(3, '0');
+                
+            } catch (error) {
+                console.error('Error obteniendo número de sesión:', error);
+                return '001';
+            }
+        }
+
+        // Función para guardar en Supabase
+        async function guardarActaEnSupabase(datos) {
+            try {
+                console.log('💾 Guardando acta en Supabase...', datos);
+                
+                const { data, error } = await supabaseClient
+                    .from('actas_creditos_tupakra')
+                    .insert([datos])
+                    .select();
+                
+                if (error) {
+                    console.error('❌ Error guardando acta:', error);
+                    return false;
+                }
+                
+                console.log('✅ Acta guardada exitosamente:', data);
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Error guardando acta:', error);
+                return false;
+            }
+        }
+
+        // Sistema mejorado para detectar impresión vs cancelar
+        let timeoutDeteccion = null;
+        let estadoImpresion = 'esperando'; // 'esperando', 'imprimiendo', 'finalizado'
+
+        // Event listeners para detectar impresión
+        window.addEventListener('beforeprint', function() {
+            console.log('🖨️ Abriendo diálogo de impresión...');
+            esperandoImpresion = true;
+        });
+        
+        // Sistema de detección de impresión simplificado - eliminado
+        // Ahora usamos confirmación explícita del usuario
+
+        async function generarActa() {
+            // Obtener valores del formulario
+            const form = document.getElementById('acta-form');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Mostrar loading
+            const btnGenerar = document.querySelector('[onclick="generarActa()"]');
+            const textoOriginal = btnGenerar.innerHTML;
+            btnGenerar.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
+            btnGenerar.disabled = true;
+
+            try {
+                const fecha = document.getElementById('fechaActaForm').value;
+                const hora = document.getElementById('horaActaForm').value;
+                
+                // Obtener números automáticos consultando la base de datos real
+                const numeroActa = await obtenerProximoNumeroActa();
+                const numeroSesion = await obtenerProximoNumeroSesion(fecha);
+                
+                // Actualizar números en el documento
+                document.getElementById('numeroActa').textContent = numeroActa;
+                document.getElementById('numeroSesion').textContent = numeroSesion;
+
+                const datos = {
+                    nombreCompleto: document.getElementById('nombreCompleto').value,
+                    identificacion: document.getElementById('identificacion').value,
+                    telefono: document.getElementById('telefono').value,
+                    montoAprobado: document.getElementById('montoAprobado').value,
+                    tasaInteres: document.getElementById('tasaInteres').value,
+                    plazoPago: document.getElementById('plazoPago').value,
+                    formaPago: document.getElementById('formaPago').value,
+                    destinoCredito: document.getElementById('destinoCredito').value,
+                    observaciones: document.getElementById('observaciones').value || 'Sin observaciones adicionales'
+                };
+
+                // Llenar el documento con los datos
+                document.getElementById('preview-nombre').textContent = datos.nombreCompleto;
+                document.getElementById('preview-identificacion').textContent = datos.identificacion;
+                document.getElementById('preview-telefono').textContent = datos.telefono;
+                document.getElementById('preview-monto').textContent = '$' + parseFloat(datos.montoAprobado).toLocaleString('es-EC', {minimumFractionDigits: 2});
+                document.getElementById('preview-tasa').textContent = datos.tasaInteres + '%';
+                document.getElementById('preview-plazo').textContent = datos.plazoPago;
+                document.getElementById('preview-forma').textContent = datos.formaPago;
+                document.getElementById('preview-destino').textContent = datos.destinoCredito;
+                document.getElementById('preview-observaciones').textContent = datos.observaciones;
+
+                // Actualizar fecha formateada
+                actualizarFechaFormateada();
+
+                // Preparar datos para Supabase
+                datosActaParaGuardar = {
+                    acta: numeroActa,
+                    sesion: numeroSesion,
+                    nombre_socio: datos.nombreCompleto,
+                    cedula_socio: datos.identificacion,
+                    monto_aprobado: datos.montoAprobado,
+                    interes: datos.tasaInteres,
+                    plazo: datos.plazoPago,
+                    observaciones: datos.observaciones,
+                    telefono_socio: datos.telefono,
+                    frecuencia_pago: datos.formaPago,
+                    destino_credito: datos.destinoCredito,
+                    fecha_hora: fecha + 'T' + hora + ':00'
+                };
+
+                // Scroll suave hacia el documento generado
+                document.getElementById('acta-preview').scrollIntoView({ behavior: 'smooth' });
+                
+                // Mostrar primera alerta personalizada
+                const resultado = await mostrarCustomAlert(
+                    'Documento Generado',
+                    'Por favor asegúrate de revisar muy bien antes de imprimir. Una vez impreso, el acta se guardará permanentemente en la base de datos.',
+                    [
+                        { texto: 'Entendido', valor: 'ok', clase: 'bg-blue-600 hover:bg-blue-700 text-white' }
+                    ],
+                    'fa-file-check',
+                    'text-green-500'
+                );
+
+            } catch (error) {
+                console.error('Error generando acta:', error);
+                await mostrarCustomAlert(
+                    'Error',
+                    'Error generando el acta. Verifica la conexión con Supabase.',
+                    [
+                        { texto: 'Cerrar', valor: 'cerrar', clase: 'bg-red-600 hover:bg-red-700 text-white' }
+                    ],
+                    'fa-exclamation-triangle',
+                    'text-red-500'
+                );
+            } finally {
+                // Restaurar botón
+                btnGenerar.innerHTML = textoOriginal;
+                btnGenerar.disabled = false;
+            }
+        }
+
+        async function imprimirActa() {
+            if (!datosActaParaGuardar) {
+                await mostrarCustomAlert(
+                    'Error',
+                    'No hay datos para imprimir. Primero debe generar el acta.',
+                    [
+                        { texto: 'Cerrar', valor: 'cerrar', clase: 'bg-red-600 hover:bg-red-700 text-white' }
+                    ],
+                    'fa-exclamation-triangle',
+                    'text-red-500'
+                );
+                return;
+            }
+
+            // Mostrar segunda alerta de confirmación
+            const confirmacion = await mostrarCustomAlert(
+                'Confirmación',
+                '¿Estás 100% seguro(a) de que la información del acta es correcta?',
+                [
+                    { texto: 'Deseo revisar nuevamente', valor: 'revisar', clase: 'bg-yellow-600 hover:bg-yellow-700 text-white' },
+                    { texto: 'Es correcto, imprimir', valor: 'imprimir', clase: 'bg-green-600 hover:bg-green-700 text-white' }
+                ],
+                'fa-question-circle',
+                'text-blue-500'
+            );
+
+            if (confirmacion === 'revisar') {
+                // Hacer scroll al inicio de la previsualización
+                document.getElementById('acta-preview').scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start' 
+                });
+                return;
+            }
+
+            if (confirmacion === 'imprimir') {
+                // Guardar en base de datos antes de imprimir
+                console.log('💾 Guardando acta en Supabase antes de imprimir...');
+                
+                const guardado = await guardarActaEnSupabase(datosActaParaGuardar);
+                
+                if (guardado) {
+                    // Si se guardó exitosamente, proceder a imprimir
+                    window.print();
+                    
+                    await mostrarCustomAlert(
+                        'Éxito',
+                        'Acta guardada exitosamente en la base de datos e impresa.',
+                        [
+                            { texto: 'Perfecto', valor: 'ok', clase: 'bg-green-600 hover:bg-green-700 text-white' }
+                        ],
+                        'fa-check-circle',
+                        'text-green-500'
+                    );
+                } else {
+                    await mostrarCustomAlert(
+                        'Error',
+                        'Hubo un error al guardar el acta en la base de datos. No se imprimirá hasta que se guarde correctamente.',
+                        [
+                            { texto: 'Reintentar', valor: 'reintentar', clase: 'bg-red-600 hover:bg-red-700 text-white' }
+                        ],
+                        'fa-exclamation-triangle',
+                        'text-red-500'
+                    );
+                }
+                
+                // Limpiar datos después de intentar guardar/imprimir
+                datosActaParaGuardar = null;
+            }
+        }
+
+        // Limpiar formulario y resetear valores del documento
+        document.getElementById('acta-form').addEventListener('reset', function() {
+            // Limpiar datos pendientes de guardar
+            datosActaParaGuardar = null;
+            esperandoImpresion = false;
+            
+            setTimeout(() => {
+                // Usar funciones para fecha y hora local
+                document.getElementById('fechaActaForm').value = obtenerFechaLocal();
+                document.getElementById('horaActaForm').value = obtenerHoraLocal();
+                
+                document.getElementById('preview-nombre').textContent = '---';
+                document.getElementById('preview-identificacion').textContent = '---';
+                document.getElementById('preview-telefono').textContent = '---';
+                document.getElementById('preview-monto').textContent = '---';
+                document.getElementById('preview-tasa').textContent = '---';
+                document.getElementById('preview-plazo').textContent = '---';
+                document.getElementById('preview-forma').textContent = '---';
+                document.getElementById('preview-destino').textContent = '---';
+                document.getElementById('preview-observaciones').textContent = '---';
+                
+                actualizarFechaFormateada();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
