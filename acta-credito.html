@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Acta de Crédito</title>
+    <title>Imprimibles</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -213,16 +213,88 @@
             font-size: 10px; 
             color: var(--muted); 
         }
+
+        /* Estilos para pestañas */
+        .tab-content {
+            display: block;
+        }
+        .tab-content.hidden {
+            display: none;
+        }
+
+        /* Estilos para área de comprobante */
+        #upload-area.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+
+        .a4-comprobante {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 20mm;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .comprobante-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .comprobante-img {
+            height: 800px;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 0px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        @media print {
+            .print-area-comprobante {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .a4-comprobante {
+                width: 100% !important;
+                min-height: auto !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                padding: 10mm !important;
+            }
+            .comprobante-img {
+                height: 800px !important;
+                width: auto !important;
+                max-width: 100% !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
     <div class="container mx-auto p-4 max-w-6xl">
+        <!-- Pestañas directas -->
+        <div class="no-print bg-white rounded-lg shadow-lg mb-6">
+            <div class="flex border-b bg-gray-50">
+                <button onclick="mostrarPestana('acta')" id="tab-acta" class="flex-1 py-3 px-4 text-center font-medium transition-colors border-b-2 border-blue-600 text-blue-600 bg-white">
+                    <i class="fas fa-file-signature mr-2"></i>Generador de Acta
+                </button>
+                <button onclick="mostrarPestana('comprobante')" id="tab-comprobante" class="flex-1 py-3 px-4 text-center font-medium transition-colors border-b-2 border-transparent text-gray-600 hover:text-blue-600">
+                    <i class="fas fa-print mr-2"></i>Impresión de Comprobante
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenido de la pestaña de Acta -->
+        <div id="content-acta" class="tab-content">
         <!-- Formulario de entrada -->
         <div id="form-section" class="no-print bg-white rounded-lg shadow-lg p-6 mb-6">
-            <div class="flex items-center mb-6">
-                <i class="fas fa-file-signature text-2xl text-blue-600 mr-3"></i>
-                <h1 class="text-2xl font-bold text-gray-800">Generador de Acta de Crédito</h1>
-            </div>
 
             <form id="acta-form" class="grid md:grid-cols-2 gap-6">
                 <div class="space-y-4">
@@ -430,6 +502,37 @@
                 </div>
             </div>
         </div>
+        </div> <!-- Fin content-acta -->
+
+        <!-- Contenido de la pestaña de Comprobante -->
+        <div id="content-comprobante" class="tab-content hidden">
+            <div class="no-print bg-white rounded-lg shadow-lg p-6 mb-6">
+                <div class="text-center mb-6">
+                    <i class="fas fa-print text-4xl text-blue-600 mb-3"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Impresión Rápida de Comprobante</h2>
+                    <p class="text-gray-600">Arrastra tu comprobante o haz clic para seleccionarlo</p>
+                </div>
+                
+                <!-- Zona de Drop/Upload -->
+                <div id="upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer transition-colors hover:border-blue-400 hover:bg-blue-50">
+                    <input type="file" id="file-input" class="hidden" accept="image/*">
+                    <div id="upload-content">
+                        <i class="fas fa-cloud-upload-alt text-6xl text-gray-400 mb-4"></i>
+                        <p class="text-lg font-medium text-gray-700 mb-2">Haz clic aquí o arrastra tu comprobante</p>
+                        <p class="text-sm text-gray-500">Formatos soportados: JPG, PNG, GIF, WebP</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Área de impresión A4 -->
+            <div id="comprobante-preview" class="print-area-comprobante hidden">
+                <div class="a4-comprobante">
+                    <div class="comprobante-container">
+                        <img id="comprobante-image" src="" alt="Comprobante" class="comprobante-img">
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Custom Alert Modal -->
@@ -458,6 +561,97 @@
         // Variables para controlar el proceso de impresión
         let datosActaParaGuardar = null;
         let esperandoImpresion = false;
+
+        // ========== FUNCIONES PARA PESTAÑAS ==========
+        function mostrarPestana(pestana) {
+            // Ocultar todas las pestañas
+            document.getElementById('content-acta').classList.add('hidden');
+            document.getElementById('content-comprobante').classList.add('hidden');
+            
+            // Remover clases activas de todos los tabs
+            document.getElementById('tab-acta').className = document.getElementById('tab-acta').className.replace('border-blue-600 text-blue-600 bg-white', 'border-transparent text-gray-600 hover:text-blue-600');
+            document.getElementById('tab-comprobante').className = document.getElementById('tab-comprobante').className.replace('border-blue-600 text-blue-600 bg-white', 'border-transparent text-gray-600 hover:text-blue-600');
+            
+            // Mostrar pestaña seleccionada
+            if (pestana === 'acta') {
+                document.getElementById('content-acta').classList.remove('hidden');
+                document.getElementById('tab-acta').className = document.getElementById('tab-acta').className.replace('border-transparent text-gray-600 hover:text-blue-600', 'border-blue-600 text-blue-600 bg-white');
+            } else if (pestana === 'comprobante') {
+                document.getElementById('content-comprobante').classList.remove('hidden');
+                document.getElementById('tab-comprobante').className = document.getElementById('tab-comprobante').className.replace('border-transparent text-gray-600 hover:text-blue-600', 'border-blue-600 text-blue-600 bg-white');
+            }
+        }
+
+        // ========== FUNCIONALIDAD DE COMPROBANTE ==========
+        function initComprobanteUpload() {
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('file-input');
+            const comprobantePreview = document.getElementById('comprobante-preview');
+            const comprobanteImage = document.getElementById('comprobante-image');
+
+            // Evento click para seleccionar archivo
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            // Evento change del input file
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    procesarImagenComprobante(file);
+                }
+            });
+
+            // Eventos drag & drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    procesarImagenComprobante(file);
+                }
+            });
+        }
+
+        function procesarImagenComprobante(file) {
+            // Validar tipo de archivo
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor selecciona una imagen válida (JPG, PNG, GIF, WebP)');
+                return;
+            }
+
+            // Crear URL para la imagen
+            const imageUrl = URL.createObjectURL(file);
+            
+            // Mostrar la imagen en el área de previsualización
+            const comprobanteImage = document.getElementById('comprobante-image');
+            const comprobantePreview = document.getElementById('comprobante-preview');
+            
+            comprobanteImage.src = imageUrl;
+            comprobantePreview.classList.remove('hidden');
+            
+            // Scroll automático hacia la previsualización
+            setTimeout(() => {
+                comprobantePreview.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start' 
+                });
+            }, 100);
+
+            // Abrir diálogo de impresión automáticamente después de cargar la imagen
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
 
         // Configuración de Supabase
         const SUPABASE_URL = 'https://lpsupabase.luispinta.com'
@@ -537,6 +731,9 @@
             
             // Establecer fecha formateada inicial
             actualizarFechaFormateada();
+            
+            // Inicializar funcionalidad de comprobante upload
+            initComprobanteUpload();
         });
 
         // Función para formatear fecha en español
