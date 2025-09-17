@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autorización PDF - CAJA DE AHORRO TUPAK RANTINA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #001749;
+            color: #3787c6;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        .logo {
+            max-width: 200px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #015cd0;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+        #status {
+            font-size: 20px;
+            margin-top: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+        #downloadBtn {
+            background-color: #015cd0;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            font-weight: 700;
+            display: none;
+        }
+        #downloadBtn:hover {
+            background-color: #001749;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(1, 92, 208, 0.3);
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            .logo {
+                max-width: 150px;
+            }
+            h1 {
+                font-size: 28px;
+            }
+            #status {
+                font-size: 18px;
+            }
+            #downloadBtn {
+                padding: 12px 25px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://i.postimg.cc/zBPmbxNT/TRANSPARENTE-min.png" alt="Logo CAJA DE AHORRO TUPAK RANTINA" class="logo">
+        <h1>Generar Autorización PDF</h1>
+        <div id="status">Cargando...</div>
+        <button id="downloadBtn">Descargar Autorización PDF</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        let userData = null;
+
+        // Función para obtener parámetros de la URL
+        function getParameterByName(name) {
+            const url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+            const results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        // Obtener el ID de la URL
+        const id = getParameterByName('ID');
+
+        if (id) {
+            // Enviar POST al webhook
+            fetch('https://lpwebhook.luispinta.com/webhook/1e0664f0-4e2e-4d14-b563-f5eee32e48e5', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    userData = data[0];
+                    const respuesta = userData.RESPUESTA;
+                    if (respuesta === 'AUTORIZADO') {
+                        document.getElementById('status').innerHTML = `El socio <strong>${userData.NOMBRE}</strong> ha autorizado la revisión.`;
+                        document.getElementById('downloadBtn').style.display = 'block';
+                    } else if (respuesta === 'PENDIENTE') {
+                        document.getElementById('status').innerHTML = 'El documento aún no está disponible.';
+                    } else {
+                        document.getElementById('status').innerHTML = 'Estado desconocido.';
+                    }
+                } else {
+                    document.getElementById('status').innerHTML = 'Datos no encontrados.';
+                }
+            })
+            .catch(error => {
+                document.getElementById('status').innerHTML = 'Error: ' + error.message;
+            });
+        } else {
+            document.getElementById('status').innerHTML = 'No se encontró el parámetro ID en la URL.';
+        }
+
+        // Función para generar PDF
+        async function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Título
+            doc.setFontSize(18);
+            doc.text('AUTORIZACIÓN DE REVISIÓN DE BURÓ CREDITICIO', 105, 20, { align: 'center' });
+
+            // Texto de autorización
+            doc.setFontSize(12);
+            const text = `En los procesos judiciales y financieros, las entidades suelen requerir la verificación del historial crediticio de los ciudadanos. Esta autorización permite al Titular otorgar su consentimiento explícito para dicha consulta, garantizando transparencia y legalidad en la evaluación de solicitudes de crédito u otros trámites.
+
+Yo, ${userData.NOMBRE}, con cédula de identidad No. ${userData.CEDULA}, por medio de la presente, solicito y autorizo de manera expresa e irrevocable a CAJA DE AHORRO TUPAK RANTINA, con RUC No. 1793222612001, y domicilio en Av. Amazonas O3-248 y Manuel German, para que, por conducto de su representante legal o personal debidamente autorizado, solicite y obtenga mi historial de crédito, historial financiero y cualquier otra información relacionada que se encuentre registrada en la Central de Riesgos o en cualquier otra base de datos de información crediticia, pública o privada, que opere en la República del Ecuador.
+
+La presente autorización se otorga con el fin de evaluar mi solicitud de crédito y/o cualquier otra relación contractual o comercial futura. Declaro que conozco el alcance y el tipo de información que será consultada y entiendo que el resultado de dicha consulta servirá para la toma de decisiones por parte de CAJA DE AHORRO TUPAK RANTINA.
+
+Vigencia: Esta autorización tendrá vigencia indeterminada y se mantendrá válida mientras subsista la relación con la entidad, y solo podrá ser revocada mediante comunicación escrita dirigida a la institución.
+
+Este documento fue generado en Estados Unidos utilizando un código OTP (${userData.OTP}) enviado a mi número de WhatsApp ${userData.WHATSAPP}.
+
+Como constancia de que he sido yo quien realiza este trámite, adjunto una selfie tomada durante el proceso.`;
+
+            const lines = doc.splitTextToSize(text, 180);
+            doc.text(lines, 15, 40);
+
+            // Agregar imagen de selfie
+            try {
+                const response = await fetch(userData.SELFIE);
+                const blob = await response.blob();
+                const dataUrl = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+                doc.addImage(dataUrl, 'JPEG', 15, 200, 50, 50);
+                doc.text('Selfie adjunta:', 15, 195);
+            } catch (error) {
+                console.log('Error loading image:', error);
+                doc.text('Selfie no disponible', 15, 200);
+            }
+
+            // Generar QR
+            try {
+                const qrData = JSON.stringify({
+                    otp: userData.OTP,
+                    fecha: userData.FECHAHORA,
+                    nombre: userData.NOMBRE,
+                    cedula: userData.CEDULA
+                });
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=${encodeURIComponent(qrData)}`;
+                const qrResponse = await fetch(qrUrl);
+                const qrBlob = await qrResponse.blob();
+                const qrDataUrl = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(qrBlob);
+                });
+                doc.addImage(qrDataUrl, 'PNG', 140, 200, 50, 50);
+                doc.text('Firma electrónica (QR):', 140, 195);
+            } catch (error) {
+                console.log('Error generating QR:', error);
+                doc.text('QR no disponible', 140, 200);
+            }
+
+            // Fecha
+            const fecha = new Date(userData.FECHAHORA);
+            const fechaStr = fecha.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+            const horaStr = fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            doc.text(`Estados Unidos a los ${fecha.getDate()} días del mes de ${fecha.toLocaleDateString('es-ES', { month: 'long' })} del año ${fecha.getFullYear()}, a las ${horaStr}.`, 15, 270);
+
+            // Descargar PDF
+            doc.save(`Autorizacion_${userData.NOMBRE.replace(/\s+/g, '_')}.pdf`);
+        }
+
+        // Event listener para el botón
+        document.getElementById('downloadBtn').addEventListener('click', generatePDF);
+    </script>
+</body>
+</html>
