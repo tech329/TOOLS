@@ -359,6 +359,7 @@
         let generatedOTP = '';
         let userName = '';
         let userWhatsApp = '';
+        let userData = null;
 
         // Función para obtener parámetros de la URL
         function getParameterByName(name) {
@@ -568,12 +569,20 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data && data.length > 0 && data[0].NOMBRE && data[0].CEDULA) {
-                    userName = data[0].NOMBRE;
-                    userWhatsApp = data[0].WHATSAPP || data[0].TELEFONO || ''; // Asumiendo que viene el WhatsApp en los datos
-
-                    document.getElementById('status').innerHTML = `Hola <strong style="color: #015cd0; font-weight: 700;">${userName}</strong>, este formulario es para solicitar tu autorización de revisión de tu buró crediticio por parte de la CAJA DE AHORRO TUPAK RANTINA.`;
-                    document.getElementById('iniciarBtn').style.display = 'block';
+                if (data && data.length > 0) {
+                    userData = data[0];
+                    const respuesta = userData.RESPUESTA;
+                    if (respuesta === 'AUTORIZADO') {
+                        document.getElementById('status').innerHTML = `Ya has autorizado la revisión de tu buró crediticio. <a href="https://tools.tupakrantina.com/autorizacionpdf.html?ID=${id}" target="_blank">Descargar PDF de autorización</a>`;
+                        document.getElementById('iniciarBtn').style.display = 'none';
+                    } else if (respuesta === 'PENDIENTE') {
+                        userName = userData.NOMBRE;
+                        userWhatsApp = userData.WHATSAPP || userData.TELEFONO || '';
+                        document.getElementById('status').innerHTML = `Hola <strong style="color: #015cd0; font-weight: 700;">${userName}</strong>, este formulario es para solicitar tu autorización de revisión de tu buró crediticio por parte de la CAJA DE AHORRO TUPAK RANTINA.`;
+                        document.getElementById('iniciarBtn').style.display = 'block';
+                    } else {
+                        document.getElementById('status').innerHTML = 'Estado desconocido.';
+                    }
                 } else {
                     document.getElementById('status').innerText = 'Datos incompletos en la respuesta.';
                 }
@@ -745,6 +754,9 @@
                                         step2.classList.remove('active');
                                         step2.classList.add('completed');
                                     }
+                                    // Enviar WhatsApp a Delia
+                                    const whatsappMessage = `Hola Delia Gualli te informamos que el socio ${userName} ha terminado su proceso de autorizacion, por favor descarga el pdf de autorización aquí: https://tools.tupakrantina.com/autorizacionpdf.html?ID=${id}`;
+                                    await sendWhatsAppMessage('593985266876', whatsappMessage);
                                 } else {
                                     const status = document.getElementById('status');
                                     const cameraSection = document.getElementById('cameraSection');
