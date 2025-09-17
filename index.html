@@ -218,6 +218,22 @@
         .tab-button:hover {
             color: #001749;
         }
+        
+        /* Estilos para menú móvil */
+        .mobile-tab-button {
+            color: #374151;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .mobile-tab-button:hover {
+            color: #001749;
+            background-color: #f9fafb;
+        }
+        .mobile-tab-button.active {
+            color: #001749;
+            background-color: #eff6ff;
+        }
+        
         .tab-content {
             display: none;
             flex: 1;
@@ -382,10 +398,43 @@
 
         <!-- Tab Navigation -->
         <div class="tab-container bg-white">
-            <button class="tab-button active" onclick="switchTab(0)">Calculadora</button>
-            <button class="tab-button" onclick="switchTab(1)">Herramientas de Consulta</button>
-            <button class="tab-button" onclick="switchTab(2)">Documentación</button>
-            <button class="tab-button" onclick="switchTab(3)">Imprimibles</button>
+            <!-- Botón hamburguesa a la izquierda y título único (solo móvil) -->
+            <div class="md:hidden flex items-center p-4 relative" style="min-height:48px;">
+                <button id="mobile-menu-btn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" style="position:relative; left:10px; z-index:20;">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <span class="font-semibold text-gray-800 ml-4 truncate w-full text-center" id="current-tab-title" style="margin-left:44px;">Calculadora</span>
+            </div>
+            
+            <!-- Menú móvil (oculto por defecto) - Sin Imprimibles -->
+            <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-gray-200 absolute left-0 top-0 mt-12 w-full z-50 shadow-lg" style="min-width:200px;">
+                <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100" onclick="switchTab(0, 'Calculadora', true)">
+                    <i class="fas fa-calculator mr-3 text-blue-600"></i>Calculadora
+                </button>
+                <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100" onclick="switchTab(1, 'Herramientas de Consulta', true)">
+                    <i class="fas fa-search mr-3 text-green-600"></i>Herramientas de Consulta
+                </button>
+                <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100" onclick="switchTab(2, 'Documentación', true)">
+                    <i class="fas fa-book mr-3 text-purple-600"></i>Documentación
+                </button>
+                <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100" onclick="switchTab(3, 'Imprimibles', true)">
+                    <i class="fas fa-print mr-3 text-red-600"></i>Imprimibles
+                </button>
+                <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors" onclick="switchTab(4, 'Autorización Exterior', true)">
+                    <i class="fas fa-user-check mr-3 text-orange-600"></i>Autorización Exterior
+                </button>
+            </div>
+            
+            <!-- Pestañas desktop (ocultas en móvil) -->
+            <div class="hidden md:flex">
+                <button class="tab-button active" onclick="switchTab(0, 'Calculadora')">Calculadora</button>
+                <button class="tab-button" onclick="switchTab(1, 'Herramientas de Consulta')">Herramientas de Consulta</button>
+                <button class="tab-button" onclick="switchTab(2, 'Documentación')">Documentación</button>
+                <button class="tab-button" onclick="switchTab(3, 'Imprimibles')">Imprimibles</button>
+                <button class="tab-button" onclick="switchTab(4, 'Autorización Exterior')">Autorización Exterior</button>
+            </div>
         </div>
 
         <!-- Tab Content -->
@@ -863,7 +912,7 @@
                                 <div class="bg-gray-50 px-4 py-3 flex items-center justify-between">
                                     <h3 class="text-lg font-semibold text-brand-dark-blue">Documentos Requeridos (en orden)</h3>
                                     <div class="text-sm text-gray-600">
-                                        <span id="completedCount">0</span> de <span id="totalCount">13</span> completados
+                                        <span id="completedCount">0</span> de <span id="totalCount">14</span> completados
                                     </div>
                                 </div>
                                 <div class="divide-y divide-gray-200">
@@ -951,8 +1000,8 @@
                                             <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">6</span>
                                             <div class="flex-1">
                                                 <label for="doc6" class="cursor-pointer">
-                                                    <h4 class="font-semibold text-gray-900">Cartilla de Servicios Básicos</h4>
-                                                    <p class="text-sm text-gray-600">Planilla de luz o agua (últimos 3 meses)</p>
+                                                    <h4 class="font-semibold text-gray-900">Informe de Ingresos y Egresos</h4>
+                                                    <p class="text-sm text-gray-600">Detalle financiero del solicitante</p>
                                                 </label>
                                             </div>
                                         </div>
@@ -966,8 +1015,8 @@
                                             <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">7</span>
                                             <div class="flex-1">
                                                 <label for="doc7" class="cursor-pointer">
-                                                    <h4 class="font-semibold text-gray-900">Informe de Ingresos y Egresos</h4>
-                                                    <p class="text-sm text-gray-600">Detalle financiero del solicitante</p>
+                                                    <h4 class="font-semibold text-gray-900">Hoja de Costos</h4>
+                                                    <p class="text-sm text-gray-600">Cálculo de costos de producción (opcional)</p>
                                                 </label>
                                             </div>
                                         </div>
@@ -981,8 +1030,8 @@
                                             <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">8</span>
                                             <div class="flex-1">
                                                 <label for="doc8" class="cursor-pointer">
-                                                    <h4 class="font-semibold text-gray-900">Certificado de Trabajo</h4>
-                                                    <p class="text-sm text-gray-600 italic">(Si aplica - para empleados en relación de dependencia)</p>
+                                                    <h4 class="font-semibold text-gray-900">Facturas de Compra/Venta</h4>
+                                                    <p class="text-sm text-gray-600 italic">(Si aplica - para actividades comerciales)</p>
                                                 </label>
                                             </div>
                                         </div>
@@ -1020,8 +1069,8 @@
                                             <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">10</span>
                                             <div class="flex-1">
                                                 <label for="doc10" class="cursor-pointer">
-                                                    <h4 class="font-semibold text-gray-900">Impuesto Predial</h4>
-                                                    <p class="text-sm text-gray-600 italic">(Si aplica - para propietarios de bienes inmuebles)</p>
+                                                    <h4 class="font-semibold text-gray-900">Certificado de Trabajo</h4>
+                                                    <p class="text-sm text-gray-600 italic">(Si aplica - para empleados en relación de dependencia)</p>
                                                 </label>
                                             </div>
                                         </div>
@@ -1035,8 +1084,8 @@
                                             <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">11</span>
                                             <div class="flex-1">
                                                 <label for="doc11" class="cursor-pointer">
-                                                    <h4 class="font-semibold text-gray-900">Facturas de Compra/Venta</h4>
-                                                    <p class="text-sm text-gray-600 italic">(Si aplica - para actividades comerciales)</p>
+                                                    <h4 class="font-semibold text-gray-900">Referencias Comerciales</h4>
+                                                    <p class="text-sm text-gray-600">(Opcional - cartas de proveedores o clientes)</p>
                                                 </label>
                                             </div>
                                         </div>
@@ -1050,8 +1099,8 @@
                                             <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">12</span>
                                             <div class="flex-1">
                                                 <label for="doc12" class="cursor-pointer">
-                                                    <h4 class="font-semibold text-gray-900">Referencias Comerciales</h4>
-                                                    <p class="text-sm text-gray-600">(Opcional - cartas de proveedores o clientes)</p>
+                                                    <h4 class="font-semibold text-gray-900">Matrícula de Vehículo</h4>
+                                                    <p class="text-sm text-gray-600 italic">(Si aplica - para créditos vehiculares o como garantía)</p>
                                                 </label>
                                             </div>
                                         </div>
@@ -1065,8 +1114,23 @@
                                             <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">13</span>
                                             <div class="flex-1">
                                                 <label for="doc13" class="cursor-pointer">
-                                                    <h4 class="font-semibold text-gray-900">Matrícula de Vehículo</h4>
-                                                    <p class="text-sm text-gray-600 italic">(Si aplica - para créditos vehiculares o como garantía)</p>
+                                                    <h4 class="font-semibold text-gray-900">Impuesto Predial</h4>
+                                                    <p class="text-sm text-gray-600 italic">(Si aplica - para propietarios de bienes inmuebles)</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc14" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="14">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">14</span>
+                                            <div class="flex-1">
+                                                <label for="doc14" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Cartilla de Servicios Básicos</h4>
+                                                    <p class="text-sm text-gray-600">Planilla de luz o agua (últimos 3 meses)</p>
                                                 </label>
                                             </div>
                                         </div>
@@ -1104,13 +1168,22 @@
             </div>
         </div>
 
-        <div id="tab3" class="tab-content">
+    <div id="tab3" class="tab-content hidden">
             <div class="flex flex-col h-full bg-gray-50">
                 <div class="p-6">
                     <iframe src="acta-credito.html" width="100%" height="800" frameborder="0"></iframe>
                 </div>
             </div>
         </div>
+
+        <div id="tab5" class="tab-content hidden">
+            <div class="flex flex-col h-full bg-gray-50">
+                <div class="p-6">
+                    <iframe src="authform.html" width="100%" height="800" frameborder="0"></iframe>
+                </div>
+            </div>
+        </div>
+
         <div id="customAlertModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
             <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
                 <div class="p-6">
@@ -1147,18 +1220,36 @@
 
     <script>
         // Tab switching function
-        function switchTab(tabIndex) {
+        function switchTab(tabIndex, tabTitle = null) {
+            // En móvil, evitar acceso a pestaña de Imprimibles
+            if (window.innerWidth < 768 && tabIndex === 3) {
+                return;
+            }
+            
             const tabs = document.querySelectorAll('.tab-content');
             const buttons = document.querySelectorAll('.tab-button');
+            const mobileButtons = document.querySelectorAll('.mobile-tab-button');
+            const currentTabTitle = document.getElementById('current-tab-title');
+            const mobileMenu = document.getElementById('mobile-menu');
             
+            // Cambiar contenido de las pestañas
             tabs.forEach((tab, index) => {
                 if (index === tabIndex) {
                     tab.classList.add('active');
+                    tab.classList.remove('hidden');
+                    if (window.innerWidth < 768) {
+                        tab.classList.add('flex');
+                    } else {
+                        tab.classList.remove('flex');
+                    }
                 } else {
                     tab.classList.remove('active');
+                    tab.classList.add('hidden');
+                    tab.classList.remove('flex');
                 }
             });
             
+            // Actualizar botones de desktop
             buttons.forEach((button, index) => {
                 if (index === tabIndex) {
                     button.classList.add('active');
@@ -1166,7 +1257,64 @@
                     button.classList.remove('active');
                 }
             });
+            
+            // Actualizar botones de móvil
+            mobileButtons.forEach((button, index) => {
+                if (index === tabIndex) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+            
+            // Actualizar título en móvil y cerrar menú
+            if (currentTabTitle) {
+                // Definir títulos según el índice
+                const titles = ['Calculadora', 'Herramientas de Consulta', 'Documentación', 'Imprimibles', 'Autorización Exterior'];
+                currentTabTitle.textContent = tabTitle || titles[tabIndex];
+            }
+            // Siempre cerrar menú móvil al seleccionar una opción
+            if (window.innerWidth < 768 && mobileMenu) {
+                mobileMenu.classList.add('hidden');
+            }
         }
+
+        // Funcionalidad del menú hamburguesa
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    mobileMenu.classList.toggle('hidden');
+                });
+                // Cerrar menú al hacer clic fuera
+                document.addEventListener('click', function(e) {
+                    if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                });
+            }
+            
+            // Manejar cambios de tamaño de pantalla
+            window.addEventListener('resize', function() {
+                const tab3 = document.getElementById('tab3');
+                if (window.innerWidth < 768) {
+                    // En móvil, ocultar Imprimibles
+                    tab3.classList.add('hidden');
+                    tab3.classList.remove('flex');
+                    // Si estaba activa la pestaña 3, cambiar a la 0
+                    if (tab3.classList.contains('active')) {
+                        switchTab(0, 'Calculadora');
+                    }
+                } else {
+                    // En desktop, mostrar Imprimibles
+                    tab3.classList.remove('hidden');
+                    tab3.classList.add('flex');
+                }
+            });
+        });
 
         // --- DOM Element References ---
         const netAmountInput = document.getElementById('netAmount');

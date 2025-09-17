@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autorización Exterior - Caja de Ahorro y Crédito Tupak Rantina</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Custom Styles and Tailwind Config -->
+    <style>
+        html {
+            scrollbar-gutter: stable;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: auto;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+            background-color: #f9fafb; /* bg-gray-50 */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Tailwind Brand Colors */
+        .brand-dark-blue { background-color: #001749; }
+        .brand-orange { background-color: #e48410; }
+        .brand-light-blue { background-color: #3787c6; }
+        .brand-accent-blue { background-color: #015cd0; }
+        .text-brand-dark-blue { color: #001749; }
+        .text-brand-orange { color: #e48410; }
+        .text-brand-light-blue { color: #3787c6; }
+        .text-brand-accent-blue { color: #015cd0; }
+        .border-brand-dark-blue { border-color: #001749; }
+        .border-brand-orange { border-color: #e48410; }
+        .border-brand-light-blue { border-color: #3787c6; }
+        .border-brand-accent-blue { border-color: #015cd0; }
+        .bg-brand-dark-blue { background-color: #001749; }
+        .bg-brand-orange { background-color: #e48410; }
+        .bg-brand-light-blue { background-color: #3787c6; }
+        .bg-brand-accent-blue { background-color: #015cd0; }
+
+        /* Form Styles */
+        .auth-form-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: auto;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-input {
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            border-color: #015cd0;
+            box-shadow: 0 0 0 3px rgba(1, 92, 208, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e48410 0%, #d97706 100%);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px -1px rgba(228, 132, 16, 0.1);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px -2px rgba(228, 132, 16, 0.2);
+        }
+
+        .btn-primary:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            border-color: #9ca3af;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .link-container {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        /* Estilos para mensajes de error de campos */
+        .field-error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .link-text {
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            background: #f1f5f9;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Animación de carga */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fa-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Estilos para el modal de alerta */
+        #customAlertModal {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Estados del campo WhatsApp */
+        .whatsapp-validating {
+            color: #f59e0b;
+        }
+
+        .whatsapp-valid {
+            color: #10b981;
+        }
+
+        .whatsapp-valid {
+            color: #10b981;
+            animation: checkPulse 0.6s ease-in-out;
+        }
+
+        @keyframes checkPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .whatsapp-field-valid {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .whatsapp-field-invalid {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        /* Estilos para campos con error */
+        .field-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+            background-color: #fef2f2 !important;
+        }
+
+        .field-error:focus {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto">
+        <div class="min-h-full max-w-4xl mx-auto p-2">
+            <!-- Form Container -->
+            <div class="auth-form-container min-h-full overflow-auto flex flex-col">
+                <div class="bg-brand-accent-blue text-white p-4 flex-shrink-0">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-user-check text-xl"></i>
+                        <div>
+                            <h2 class="text-xl font-bold">Formulario de Autorización Exterior</h2>
+                            <p class="text-blue-100 text-sm mt-1">Complete los datos para generar el enlace de autorización</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-3">
+                    <form id="authForm" class="space-y-4">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <!-- Nombre -->
+                            <div class="form-group">
+                                <label for="nombre" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-user mr-2 text-brand-accent-blue"></i>
+                                    Nombre Completo
+                                </label>
+                                <input type="text" id="nombre" name="nombre" required
+                                       class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-accent-blue focus:border-transparent"
+                                       placeholder="Ingrese el nombre completo">
+                                <div id="nombre-error" class="field-error-message">
+                                    Ingrese el nombre COMPLETO
+                                </div>
+                            </div>
+
+                            <!-- Número de Cédula -->
+                            <div class="form-group">
+                                <label for="cedula" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-id-card mr-2 text-brand-accent-blue"></i>
+                                    Número de Cédula
+                                </label>
+                                <input type="text" id="cedula" name="cedula" required
+                                       class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-accent-blue focus:border-transparent"
+                                       placeholder="Ingrese el número de cédula">
+                                <div id="cedula-error" class="field-error-message">
+                                    Ingrese una cédula válida
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Número de WhatsApp -->
+                        <div class="form-group">
+                            <label for="whatsapp" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fab fa-whatsapp mr-2 text-green-600"></i>
+                                Número de WhatsApp
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">+</span>
+                                <input type="tel" id="whatsapp" name="whatsapp" required
+                                       class="form-input w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-accent-blue focus:border-transparent"
+                                       placeholder="15551234567"
+                                       maxlength="11"
+                                       pattern="[0-9]{11}">
+                                <div id="whatsappStatus" class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    <i id="whatsappIcon" class="fas fa-question-circle text-gray-400 text-sm"></i>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Ingrese 11 dígitos comenzando con 1 (ej: 15551234567). Se verificará automáticamente al completar el número.
+                            </p>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="flex space-x-3 pt-3">
+                            <button type="submit" disabled class="btn-primary flex-1 flex items-center justify-center opacity-50 cursor-not-allowed">
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                Generar Autorización
+                            </button>
+                            <button type="button" onclick="document.getElementById('authForm').reset(); document.getElementById('message').innerHTML=''; document.getElementById('linkContainer').style.display='none'; updateWhatsAppStatus('default'); clearFieldErrors(); if(window.whatsappValidationTimeout){clearTimeout(window.whatsappValidationTimeout);} isValidatingWhatsApp=false; updateSubmitButtonState();" class="btn-secondary">
+                                <i class="fas fa-undo mr-2"></i>
+                                Limpiar
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Messages -->
+                    <div id="message" style="display: none;"></div>
+
+                    <!-- Link Container -->
+                    <div id="linkContainer" class="link-container" style="display: none;">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i class="fas fa-link text-brand-accent-blue text-xl"></i>
+                            <h3 class="text-lg font-semibold text-gray-800">Enlace Generado</h3>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Listo
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">Copie y comparta este enlace con el solicitante:</p>
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-brand-accent-blue border-dashed rounded-lg p-4 mb-4 shadow-inner">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-external-link-alt text-brand-accent-blue mr-2"></i>
+                                <span class="text-xs font-medium text-brand-accent-blue uppercase tracking-wide">Enlace de Autorización</span>
+                            </div>
+                            <div class="link-text text-sm font-mono break-all bg-white p-3 rounded border" id="linkText"></div>
+                        </div>
+                        <button id="copyBtn" class="btn-primary w-full flex items-center justify-center transform hover:scale-105 transition-all duration-200">
+                            <i class="fas fa-copy mr-2"></i>
+                            <span id="copyBtnText">Copiar Enlace al Portapapeles</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Section -->
+            <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-brand-accent-blue p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-brand-accent-blue text-xl"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-blue-800 mb-2">Información Importante</h3>
+                            <div class="text-sm text-blue-700 space-y-2">
+                                <div class="flex items-start">
+                                    <i class="fas fa-clock text-blue-500 mr-2 mt-0.5"></i>
+                                    <span>El enlace generado será válido por 24 horas</span>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-shield-alt text-blue-500 mr-2 mt-0.5"></i>
+                                    <span>El enlace es único y seguro para cada solicitud</span>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fab fa-whatsapp text-green-500 mr-2 mt-0.5"></i>
+                                    <span>El número de WhatsApp se verifica automáticamente al completar 11 dígitos (debe comenzar con 1)</span>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-share text-blue-500 mr-2 mt-0.5"></i>
+                                    <span>Comparta el enlace con el solicitante para que complete su información</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="authform.js"></script>
+</body>
+</html>

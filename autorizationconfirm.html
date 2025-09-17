@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autorización de Buró Crediticio - CAJA DE AHORRO TUPAK RANTINA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #001749;
+            color: #3787c6;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        .logo {
+            max-width: 200px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #015cd0;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+        #status {
+            font-size: 20px;
+            margin-top: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+        #iniciarBtn {
+            background-color: #015cd0;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            font-weight: 700;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            overflow: hidden;
+        }
+        #iniciarBtn:hover {
+            background-color: #001749;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(1, 92, 208, 0.3);
+        }
+        #iniciarBtn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Animación del spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff40;
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Animación de vibración para inputs incorrectos */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .shake {
+            animation: shake 0.6s ease-in-out;
+        }
+
+        .error-input {
+            border-color: #dc3545 !important;
+            background-color: #fff5f5 !important;
+            color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
+        }
+
+        .fade-out {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+
+        .otp-section { margin-top: 20px; display: none; }
+        .otp-instruction { color: #333; margin-bottom: 8px; }
+        .otp-container { display: flex; justify-content: center; gap: 18px; margin-top: 10px; }
+        .otp-group { display: flex; gap: 10px; }
+        .otp-input {
+            width: 48px;
+            height: 56px;
+            border: 2px solid #015cd0;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: 700;
+            color: #001749;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .otp-input:focus {
+            border-color: #001749;
+            box-shadow: 0 0 0 3px rgba(1, 92, 208, 0.15);
+            transform: scale(1.05);
+        }
+        #otpFeedback { margin-top: 12px; font-weight: 700; }
+        .success { color: #0a8a3a; }
+        .error { color: #b00020; }
+
+        /* Estilos para los pasos */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+            gap: 20px;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        .step.active {
+            background-color: #015cd0;
+            color: white;
+        }
+        .step.completed {
+            background-color: #28a745;
+            color: white;
+        }
+        .step.inactive {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+        .step-number {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        /* Estilos para la sección de cámara */
+        .camera-section {
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+        .camera-instruction {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .camera-container {
+            position: relative;
+            display: inline-block;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        #videoElement {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            object-fit: cover;
+            display: block;
+        }
+        #canvas {
+            display: none;
+        }
+        .camera-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .camera-btn {
+            background-color: #015cd0;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .camera-btn:hover {
+            background-color: #001749;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(1, 92, 208, 0.3);
+        }
+        .camera-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .capture-btn {
+            background-color: #dc3545;
+            font-size: 18px;
+            padding: 15px 30px;
+        }
+        .capture-btn:hover {
+            background-color: #c82333;
+        }
+        .photo-preview {
+            max-width: 400px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin: 20px auto;
+            display: none;
+        }
+        .upload-status {
+            margin-top: 15px;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            .logo {
+                max-width: 150px;
+            }
+            h1 {
+                font-size: 28px;
+            }
+            #status {
+                font-size: 18px;
+            }
+            #iniciarBtn {
+                padding: 12px 25px;
+                font-size: 16px;
+            }
+            .camera-container {
+                max-width: 100%;
+            }
+            #videoElement {
+                width: 100%;
+                height: auto;
+                max-width: none;
+            }
+            .photo-preview {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://i.postimg.cc/zBPmbxNT/TRANSPARENTE-min.png" alt="Logo CAJA DE AHORRO TUPAK RANTINA" class="logo">
+        <h1>Autorización de Revisión de Buró Crediticio</h1>
+        <div class="step-indicator">
+            <div class="step active" id="step1">
+                <div class="step-number">1</div>
+                <span>OTP</span>
+            </div>
+            <div class="step inactive" id="step2">
+                <div class="step-number">2</div>
+                <span>Foto</span>
+            </div>
+        </div>
+        <div id="status">Cargando...</div>
+        <button id="iniciarBtn" style="display: none;">Iniciar Proceso</button>
+
+        <!-- Sección para ingresar código OTP -->
+        <div class="otp-section" id="otpSection" style="display: none;">
+            <div class="otp-instruction">Ingresa el código OTP que recibiste por WhatsApp:</div>
+            <div class="otp-container">
+                <div class="otp-group">
+                    <input type="text" class="otp-input" maxlength="1" id="otp1" inputmode="text" autocomplete="one-time-code">
+                    <input type="text" class="otp-input" maxlength="1" id="otp2" inputmode="text" autocomplete="one-time-code">
+                    <input type="text" class="otp-input" maxlength="1" id="otp3" inputmode="text" autocomplete="one-time-code">
+                </div>
+                <div class="otp-group">
+                    <input type="text" class="otp-input" maxlength="1" id="otp4" inputmode="text" autocomplete="one-time-code">
+                    <input type="text" class="otp-input" maxlength="1" id="otp5" inputmode="text" autocomplete="one-time-code">
+                    <input type="text" class="otp-input" maxlength="1" id="otp6" inputmode="text" autocomplete="one-time-code">
+                </div>
+            </div>
+            <div id="otpFeedback"></div>
+        </div>
+
+        <!-- Sección para la cámara -->
+        <div class="camera-section" id="cameraSection" style="display: none;">
+            <div class="camera-instruction">Por favor, toma una foto clara de tu documento de identidad.</div>
+            <div class="camera-container">
+                <video id="videoElement" autoplay></video>
+                <canvas id="canvas"></canvas>
+            </div>
+            <div class="camera-controls">
+                <button class="camera-btn" id="captureBtn"><i class="fas fa-camera"></i> Capturar Foto</button>
+                <button class="camera-btn" id="retakeBtn" style="display: none;"><i class="fas fa-redo"></i> Tomar de Nuevo</button>
+                <button class="camera-btn capture-btn" id="sendBtn" style="display: none;"><i class="fas fa-paper-plane"></i> Enviar Foto</button>
+            </div>
+            <img id="photoPreview" class="photo-preview" alt="Vista previa de la foto">
+            <div class="upload-status" id="uploadStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        let generatedOTP = '';
+        let userName = '';
+        let userWhatsApp = '';
+
+        // Función para obtener parámetros de la URL
+        function getParameterByName(name) {
+            const url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+            const results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        // Función para generar código OTP aleatorio (formato AAA 111 por ejemplo)
+        function generateOTP() {
+            const letters = 'ABCDEFGHJKMNPQRTUVWXYZ';
+            const digits = '13456789';
+            let part1 = '';
+            let part2 = '';
+            for (let i = 0; i < 3; i++) {
+                part1 += letters.charAt(Math.floor(Math.random() * letters.length));
+                part2 += digits.charAt(Math.floor(Math.random() * digits.length));
+            }
+            // Mezclar para obtener 6 caracteres alfanuméricos pero mostrar con espacio medio
+            const combined = (part1 + part2).split('').sort(() => 0.5 - Math.random()).join('').toUpperCase();
+            return combined.substring(0, 3) + ' ' + combined.substring(3, 6);
+        }
+
+        // Función para enviar webhook / mensaje por WhatsApp
+        // Función para escapar caracteres especiales en JSON
+        function escapeJsonString(str) {
+            return str.replace(/\\/g, '\\\\')
+                     .replace(/"/g, '\\"')
+                     .replace(/\n/g, '\\n')
+                     .replace(/\r/g, '\\r')
+                     .replace(/\t/g, '\\t');
+        }
+
+        // Función para enviar webhook
+        async function sendWhatsAppMessage(whatsapp, message) {
+            const url = 'https://api.luispinta.com/message/sendText/CajaGerencia';
+            const escapedMessage = escapeJsonString(message);
+            const options = {
+                method: 'POST',
+                headers: {
+                    'apikey': 'smaksnaHG',
+                    'Content-Type': 'application/json'
+                },
+                body: `{"number":"${whatsapp}","text":"${escapedMessage}"}`
+            };
+
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+                console.log('Mensaje enviado:', data);
+                return true;
+            } catch (error) {
+                console.error('Error enviando mensaje:', error);
+                return false;
+            }
+        }
+
+        // Configurar inputs OTP
+        function setupOTPInputs() {
+            const inputs = Array.from(document.querySelectorAll('.otp-input'));
+
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', function(e) {
+                    const value = e.target.value.toUpperCase();
+
+                    // Solo permitir letras y números
+                    if (!/^[A-Z0-9]$/.test(value) && value !== '') {
+                        e.target.value = '';
+                        return;
+                    }
+
+                    e.target.value = value;
+
+                    // Mover al siguiente input si hay valor
+                    if (value && index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    }
+
+                    // Verificar si el código está completo
+                    checkOTPComplete();
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    // Mover al input anterior con backspace
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
+
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const paste = (e.clipboardData || window.clipboardData).getData('text').toUpperCase().replace(/\s+/g, '');
+                    if (!/^[A-Z0-9]{1,6}$/.test(paste)) return;
+                    // Pegar caracteres en los inputs secuencialmente
+                    for (let i = 0; i < paste.length && index + i < inputs.length; i++) {
+                        inputs[index + i].value = paste.charAt(i);
+                    }
+                    // After paste, check completion
+                    checkOTPComplete();
+                });
+            });
+        }
+
+        // Verificar si el código OTP está completo
+        function checkOTPComplete() {
+            const inputs = Array.from(document.querySelectorAll('.otp-input'));
+            let enteredOTP = '';
+
+            inputs.forEach((input, index) => {
+                enteredOTP += input.value || '';
+                if (index === 2) enteredOTP += ' '; // Agregar espacio después del tercer dígito
+            });
+
+            if (enteredOTP.replace(/\s/g, '').length === 6) {
+                const feedback = document.getElementById('otpFeedback');
+
+                if (enteredOTP === generatedOTP) {
+                    // Código correcto - animación de éxito
+                    inputs.forEach(input => {
+                        input.style.borderColor = '#28a745';
+                        input.style.backgroundColor = '#f8fff9';
+                        input.disabled = true;
+                    });
+                    feedback.innerHTML = '<span class="success">✓ Código correcto. Pasando al Paso 2...</span>';
+
+                    // Paso 1 completado, activar Paso 2
+                    setTimeout(() => {
+                        const step1 = document.getElementById('step1');
+                        const step2 = document.getElementById('step2');
+                        const otpSection = document.getElementById('otpSection');
+                        const cameraSection = document.getElementById('cameraSection');
+                        const status = document.getElementById('status');
+                        if (step1) {
+                            step1.classList.remove('active');
+                            step1.classList.add('completed');
+                        }
+                        if (step2) {
+                            step2.classList.remove('inactive');
+                            step2.classList.add('active');
+                        }
+                        if (otpSection) {
+                            otpSection.style.display = 'none';
+                        }
+                        if (cameraSection) {
+                            cameraSection.style.display = 'block';
+                        }
+                        if (status) {
+                            status.innerHTML = 'Paso 1 completado exitosamente. Ahora, por favor toma una foto para continuar con la autorización.';
+                        }
+
+                        // Inicializar cámara
+                        initializeCamera();
+                    }, 2000);
+                } else {
+                    // Código incorrecto - animaciones de error
+                    feedback.innerHTML = '<span class="error">✗ Código incorrecto. Por favor verifica e intenta nuevamente.</span>';
+
+                    // Agregar clases de error y vibración
+                    inputs.forEach(input => {
+                        input.classList.add('error-input', 'shake');
+                    });
+
+                    // Vibración del contenedor (si el dispositivo lo soporta)
+                    if (navigator.vibrate) {
+                        navigator.vibrate([100, 50, 100, 50, 100]);
+                    }
+
+                    // Limpiar inputs con animación después de 1.5 segundos
+                    setTimeout(() => {
+                        // Agregar efecto de fade out
+                        inputs.forEach(input => {
+                            input.classList.add('fade-out');
+                        });
+
+                        // Limpiar y restaurar después del fade out
+                        setTimeout(() => {
+                            inputs.forEach(input => {
+                                input.value = '';
+                                input.disabled = false;
+                                input.classList.remove('error-input', 'shake', 'fade-out');
+                                input.style.borderColor = '';
+                                input.style.backgroundColor = '';
+                            });
+                            inputs[0].focus();
+                            feedback.innerHTML = '';
+                        }, 300);
+                    }, 1500);
+                }
+            }
+        }
+
+        // Obtener el ID de la URL
+        const id = getParameterByName('ID');
+
+        if (id) {
+            // Enviar POST al webhook
+            fetch('https://lpwebhook.luispinta.com/webhook/1e0664f0-4e2e-4d14-b563-f5eee32e48e5', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0 && data[0].NOMBRE && data[0].CEDULA) {
+                    userName = data[0].NOMBRE;
+                    userWhatsApp = data[0].WHATSAPP || data[0].TELEFONO || ''; // Asumiendo que viene el WhatsApp en los datos
+
+                    document.getElementById('status').innerHTML = `Hola <strong style="color: #015cd0; font-weight: 700;">${userName}</strong>, este formulario es para solicitar tu autorización de revisión de tu buró crediticio por parte de la CAJA DE AHORRO TUPAK RANTINA.`;
+                    document.getElementById('iniciarBtn').style.display = 'block';
+                } else {
+                    document.getElementById('status').innerText = 'Datos incompletos en la respuesta.';
+                }
+            })
+            .catch(error => {
+                document.getElementById('status').innerText = 'Error: ' + error.message;
+            });
+        } else {
+            document.getElementById('status').innerText = 'No se encontró el parámetro ID en la URL.';
+        }
+
+        // Event listener para el botón
+        // Event listener para el botón
+        document.getElementById('iniciarBtn').addEventListener('click', async function() {
+            // Cambiar botón a estado de carga
+            const originalText = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<span class="loading-spinner"></span>Iniciando...';
+
+            // Generar código OTP
+            generatedOTP = generateOTP();
+
+            // Crear mensaje para WhatsApp
+            const message = `*${generatedOTP}*\n\n${userName}, este es tu código OTP para ingresar en la autorización de revisión de tu buró crediticio, si estás de acuerdo por favor ingrésalo en la plataforma, NO LO COMPARTAS CON NADIE`;
+
+            // Enviar mensaje por WhatsApp
+            const messageSent = await sendWhatsAppMessage(userWhatsApp, message);
+
+            if (messageSent) {
+                document.getElementById('status').innerHTML = `Código OTP enviado a tu WhatsApp. <br><strong>Por favor revisa tu WhatsApp e ingresa el código a continuación:</strong>`;
+                this.style.display = 'none';
+                document.getElementById('otpSection').style.display = 'block';
+
+                // Configurar inputs OTP
+                setupOTPInputs();
+
+                // Enfocar primer input
+                document.getElementById('otp1').focus();
+            } else {
+                // Restaurar botón en caso de error
+                this.disabled = false;
+                this.innerHTML = originalText;
+                document.getElementById('status').innerHTML = 'Error al enviar el código OTP. Por favor intenta nuevamente.';
+            }
+        });
+        // Camera functionality
+        let stream;
+
+        async function initializeCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                const videoElement = document.getElementById('videoElement');
+                if (videoElement) {
+                    videoElement.srcObject = stream;
+                    videoElement.muted = true; // Para permitir autoplay en algunos navegadores
+                    videoElement.play().catch(e => console.log('Error playing video:', e));
+                }
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                const uploadStatus = document.getElementById('uploadStatus');
+                if (uploadStatus) {
+                    uploadStatus.innerHTML = '<span class="error">Error al acceder a la cámara. Asegúrate de permitir el acceso.</span>';
+                }
+            }
+        }
+
+        const captureBtn = document.getElementById('captureBtn');
+        if (captureBtn) {
+            captureBtn.addEventListener('click', () => {
+                const canvas = document.getElementById('canvas');
+                const video = document.getElementById('videoElement');
+                const photoPreview = document.getElementById('photoPreview');
+                const retakeBtn = document.getElementById('retakeBtn');
+                const sendBtn = document.getElementById('sendBtn');
+                if (canvas && video && photoPreview && retakeBtn && sendBtn) {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0);
+                    const photoDataUrl = canvas.toDataURL('image/jpeg');
+                    photoPreview.src = photoDataUrl;
+                    photoPreview.style.display = 'block';
+                    video.style.display = 'none';
+                    captureBtn.style.display = 'none';
+                    retakeBtn.style.display = 'inline-block';
+                    sendBtn.style.display = 'inline-block';
+                }
+            });
+        }
+
+        const retakeBtn = document.getElementById('retakeBtn');
+        if (retakeBtn) {
+            retakeBtn.addEventListener('click', () => {
+                const photoPreview = document.getElementById('photoPreview');
+                const video = document.getElementById('videoElement');
+                const captureBtn = document.getElementById('captureBtn');
+                const sendBtn = document.getElementById('sendBtn');
+                if (photoPreview && video && captureBtn && sendBtn) {
+                    photoPreview.style.display = 'none';
+                    video.style.display = 'block';
+                    captureBtn.style.display = 'inline-block';
+                    retakeBtn.style.display = 'none';
+                    sendBtn.style.display = 'none';
+                }
+            });
+        }
+
+        const sendBtn = document.getElementById('sendBtn');
+        if (sendBtn) {
+            sendBtn.addEventListener('click', async () => {
+                const canvas = document.getElementById('canvas');
+                const uploadStatus = document.getElementById('uploadStatus');
+                const step2 = document.getElementById('step2');
+                if (canvas && uploadStatus) {
+                    canvas.toBlob(async (blob) => {
+                        const formData = new FormData();
+                        formData.append('file', blob, 'photo.jpg');
+                        const fecha = new Date().toISOString().split('T')[0];
+                        const path = `/AutorizacionExterior/${userName}/${fecha}/`;
+                        formData.append('path', path);
+                        try {
+                            const response = await fetch('https://lpwebhook.luispinta.com/webhook/87f1603e-86ad-4547-8a87-a5d9f9b02115', {
+                                method: 'POST',
+                                body: formData
+                            });
+                            if (response.ok) {
+                                const data = await response.json();
+                                // Enviar la respuesta al segundo webhook
+                                const secondWebhookUrl = 'https://lpwebhook.luispinta.com/webhook/dda68c18-bc4d-4a74-b78f-c966699f0c75';
+                                const secondResponse = await fetch(secondWebhookUrl, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        response: data,
+                                        idsolicitud: id,
+                                        otp: generatedOTP
+                                    })
+                                });
+                                if (secondResponse.ok) {
+                                    uploadStatus.innerHTML = '<span class="success">Foto enviada exitosamente. Proceso completado.</span>';
+                                    if (stream) {
+                                        stream.getTracks().forEach(track => track.stop());
+                                    }
+                                    if (step2) {
+                                        step2.classList.remove('active');
+                                        step2.classList.add('completed');
+                                    }
+                                } else {
+                                    uploadStatus.innerHTML = '<span class="error">Foto enviada, pero error al procesar la respuesta. Contacta soporte.</span>';
+                                }
+                            } else {
+                                uploadStatus.innerHTML = '<span class="error">Error al enviar la foto. Intenta nuevamente.</span>';
+                            }
+                        } catch (error) {
+                            console.error('Error sending photo:', error);
+                            uploadStatus.innerHTML = '<span class="error">Error al enviar la foto. Verifica tu conexión.</span>';
+                        }
+                    }, 'image/jpeg');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
