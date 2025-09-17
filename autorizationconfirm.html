@@ -690,7 +690,9 @@
                 if (canvas && uploadStatus) {
                     canvas.toBlob(async (blob) => {
                         const formData = new FormData();
-                        formData.append('file', blob, 'photo.jpg');
+                        const now = new Date();
+                        const filename = now.toISOString().replace(/[:.]/g, '-').slice(0, -5) + '.jpg';
+                        formData.append('file', blob, filename);
                         const fecha = new Date().toISOString().split('T')[0];
                         const path = `/AutorizacionExterior/${userName}/${fecha}/`;
                         formData.append('path', path);
@@ -715,7 +717,7 @@
                                     })
                                 });
                                 if (secondResponse.ok) {
-                                    uploadStatus.innerHTML = '<span class="success">Foto enviada exitosamente. Proceso completado.</span>';
+                                    uploadStatus.innerHTML = '<i class="fas fa-check-circle" style="font-size: 48px; color: #28a745;"></i><br><strong>¡Gracias por tu autorización!</strong><br>El proceso se ha completado exitosamente.';
                                     if (stream) {
                                         stream.getTracks().forEach(track => track.stop());
                                     }
