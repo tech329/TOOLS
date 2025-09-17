@@ -648,7 +648,7 @@
                 const photoPreview = document.getElementById('photoPreview');
                 const retakeBtn = document.getElementById('retakeBtn');
                 const sendBtn = document.getElementById('sendBtn');
-                if (canvas && video && photoPreview && retakeBtn && sendBtn) {
+                if (canvas && video && photoPreview && retakeBtn && sendBtn && video.readyState >= 2) {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     const ctx = canvas.getContext('2d');
@@ -717,7 +717,27 @@
                                     })
                                 });
                                 if (secondResponse.ok) {
-                                    uploadStatus.innerHTML = '<i class="fas fa-check-circle" style="font-size: 48px; color: #28a745;"></i><br><strong>¡Gracias por tu autorización!</strong><br>El proceso se ha completado exitosamente.';
+                                    const status = document.getElementById('status');
+                                    const cameraSection = document.getElementById('cameraSection');
+                                    const stepIndicator = document.querySelector('.step-indicator');
+                                    const logo = document.querySelector('.logo');
+                                    const h1 = document.querySelector('h1');
+                                    const step2 = document.getElementById('step2');
+                                    if (status) {
+                                        status.innerHTML = '<i class="fas fa-check-circle" style="font-size: 48px; color: #28a745;"></i><br><strong>¡Gracias por tu autorización!</strong><br>El proceso se ha completado exitosamente.';
+                                    }
+                                    if (cameraSection) {
+                                        cameraSection.style.display = 'none';
+                                    }
+                                    if (stepIndicator) {
+                                        stepIndicator.style.display = 'none';
+                                    }
+                                    if (logo) {
+                                        logo.style.display = 'none';
+                                    }
+                                    if (h1) {
+                                        h1.style.display = 'none';
+                                    }
                                     if (stream) {
                                         stream.getTracks().forEach(track => track.stop());
                                     }
@@ -726,7 +746,14 @@
                                         step2.classList.add('completed');
                                     }
                                 } else {
-                                    uploadStatus.innerHTML = '<span class="error">Foto enviada, pero error al procesar la respuesta. Contacta soporte.</span>';
+                                    const status = document.getElementById('status');
+                                    const cameraSection = document.getElementById('cameraSection');
+                                    if (status) {
+                                        status.innerHTML = '<span class="error">Foto enviada, pero error al procesar la respuesta. Contacta soporte.</span>';
+                                    }
+                                    if (cameraSection) {
+                                        cameraSection.style.display = 'none';
+                                    }
                                 }
                             } else {
                                 uploadStatus.innerHTML = '<span class="error">Error al enviar la foto. Intenta nuevamente.</span>';
