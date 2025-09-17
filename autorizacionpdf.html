@@ -157,7 +157,7 @@ La presente autorización se otorga con el fin de evaluar mi solicitud de crédi
 
 Vigencia: Esta autorización tendrá vigencia indeterminada y se mantendrá válida mientras subsista la relación con la entidad, y solo podrá ser revocada mediante comunicación escrita dirigida a la institución.
 
-Este documento fue generado en Estados Unidos utilizando un código OTP (${userData.OTP}) enviado a mi número de WhatsApp ${userData.WHATSAPP}.
+Este documento fue generado en Estados Unidos utilizando un código OTP (${userData.OTP}) enviado a mi número de WhatsApp +${userData.WHATSAPP}.
 
 Como constancia de que he sido yo quien realiza este trámite, adjunto una selfie tomada durante el proceso.`;
 
@@ -166,7 +166,8 @@ Como constancia de que he sido yo quien realiza este trámite, adjunto una selfi
 
             // Agregar imagen de selfie
             try {
-                const response = await fetch(userData.SELFIE);
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(userData.SELFIE)}`;
+                const response = await fetch(proxyUrl);
                 const blob = await response.blob();
                 const dataUrl = await new Promise((resolve) => {
                     const reader = new FileReader();
