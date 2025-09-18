@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Catastros - Municipio de Mejía</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Iframe Container */
+        .iframe-container {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .iframe-content {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Material Icons Enhancement */
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+        }
+
+        /* Message Animation */
+        #instruction-message {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .scale-x-out {
+            transform-origin: right;
+            transform: scaleX(0);
+        }
+
+        /* Progress Line */
+        .progress-line {
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ffffff 0%, #ffffff 100%);
+            border-radius: 2px;
+            transform-origin: right;
+            transform: scaleX(1);
+            transition: transform 10s linear;
+        }
+
+        .progress-line.hide {
+            transform: scaleX(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Iframe Container -->
+    <div class="iframe-container">
+        <iframe
+            src="https://portal-ciudadano.municipiodemejia.gob.ec/"
+            class="iframe-content"
+            title="Verificación de Catastros - Portal Ciudadano Municipio de Mejía">
+        </iframe>
+    </div>
+
+    <!-- JavaScript para mostrar mensaje instructivo -->
+    <script>
+        // Función para mostrar instrucción adicional de IPRUS (scope global)
+        function showIprusInstruction() {
+            // Remover mensaje anterior si existe
+            const existingIprusMessage = document.getElementById('iprus-instruction-message');
+            if (existingIprusMessage) {
+                existingIprusMessage.remove();
+            }
+
+            // Crear mensaje de instrucción IPRUS
+            const iprusMessageDiv = document.createElement('div');
+            iprusMessageDiv.id = 'iprus-instruction-message';
+            iprusMessageDiv.className = `fixed top-4 left-4 p-4 rounded-lg shadow-xl z-50 max-w-xs text-left bg-red-500 text-white font-medium`;
+
+            iprusMessageDiv.innerHTML = `
+                <div class="mb-2">
+                    <span class="text-base">¡Busca aquí!</span>
+                </div>
+                <p class="text-sm mb-3">
+                    Debes buscar el botón aquí abajo
+                </p>
+                <div class="flex justify-center">
+                    <span class="material-icons text-4xl text-white animate-bounce">keyboard_arrow_down</span>
+                </div>
+            `;
+
+            document.body.appendChild(iprusMessageDiv);
+
+            // Auto-remover después de 5 segundos
+            setTimeout(() => {
+                if (iprusMessageDiv.parentElement) {
+                    iprusMessageDiv.classList.add('opacity-0');
+                    setTimeout(() => {
+                        if (iprusMessageDiv.parentElement) {
+                            iprusMessageDiv.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Función para mostrar mensaje instructivo
+            function showInstructionMessage() {
+                // Remover mensaje anterior si existe
+                const existingMessage = document.getElementById('instruction-message');
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+
+                // Crear mensaje instructivo
+                const messageDiv = document.createElement('div');
+                messageDiv.id = 'instruction-message';
+                messageDiv.className = `fixed top-16 right-4 p-4 rounded-lg shadow-lg z-50 max-w-md transform transition-all duration-300 ease-in-out bg-blue-500 text-white`;
+
+                messageDiv.innerHTML = `
+                    <div class="relative">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="flex-shrink-0">
+                                <span class="material-icons text-2xl text-blue-200">info</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">
+                                    Verificación de Catastros
+                                </p>
+                                <p class="text-xs opacity-100 mt-1">
+                                    Para verificar catastros por favor pulsa el botón:
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center">
+                            <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2 flex items-center space-x-5 hover:bg-opacity-30 transition-colors duration-200 cursor-pointer" onclick="showIprusInstruction()">
+                                <span class="material-icons text-lg">home_work</span>
+                                <span class="text-sm font-medium">Iprus</span>
+                            </div>
+                        </div>
+                        <p class="text-xs opacity-100 mt-1 text-center">
+                                    En la parte izquierda de la pantalla
+                                </p>
+
+                        <div class="progress-line"></div>
+                    </div>
+                `;
+
+                document.body.appendChild(messageDiv);
+
+                // Iniciar animación de la línea de progreso
+                const progressLine = messageDiv.querySelector('.progress-line');
+                setTimeout(() => {
+                    progressLine.classList.add('hide');
+                }, 100);
+
+                // Auto-remover después de 10 segundos
+                setTimeout(() => {
+                    if (messageDiv.parentElement) {
+                        messageDiv.classList.add('opacity-0', 'scale-x-out');
+                        setTimeout(() => {
+                            if (messageDiv.parentElement) {
+                                messageDiv.remove();
+                            }
+                        }, 300);
+                    }
+                }, 10100);
+            }
+
+            // Mostrar mensaje instructivo después de 1 segundo
+            setTimeout(() => {
+                showInstructionMessage();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
