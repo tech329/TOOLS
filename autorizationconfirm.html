@@ -340,15 +340,14 @@
 
         <!-- Sección para la cámara -->
         <div class="camera-section" id="cameraSection" style="display: none;">
-            <div class="camera-instruction">Por favor, toma una foto clara de tu documento de identidad.</div>
+            <div class="camera-instruction">Toma una foto de tu rostro claro con buena iluminación. Prepárate para la foto.</div>
             <div class="camera-container">
-                <video id="videoElement" autoplay></video>
+                <video id="videoElement" autoplay style="display: none;"></video>
                 <canvas id="canvas"></canvas>
             </div>
             <div class="camera-controls">
-                <button class="camera-btn" id="captureBtn"><i class="fas fa-camera"></i> Capturar Foto</button>
                 <button class="camera-btn" id="retakeBtn" style="display: none;"><i class="fas fa-redo"></i> Tomar de Nuevo</button>
-                <button class="camera-btn capture-btn" id="sendBtn" style="display: none;"><i class="fas fa-paper-plane"></i> Enviar Foto</button>
+                <button class="camera-btn capture-btn" id="sendBtn" style="display: none;"><i class="fas fa-camera"></i> Capturar Foto</button>
             </div>
             <img id="photoPreview" class="photo-preview" alt="Vista previa de la foto">
             <div class="upload-status" id="uploadStatus"></div>
@@ -360,6 +359,7 @@
         let userName = '';
         let userWhatsApp = '';
         let userData = null;
+        let startCameraBtn;
 
         // Función para obtener parámetros de la URL
         function getParameterByName(name) {
@@ -509,13 +509,45 @@
                         }
                         if (cameraSection) {
                             cameraSection.style.display = 'block';
+                            // Agregar botón para iniciar cámara
+                            startCameraBtn = document.createElement('button');
+                            startCameraBtn.innerHTML = '<i class="fas fa-camera"></i> ¡Tomarme la Selfie!';
+                            startCameraBtn.className = 'camera-btn';
+                            startCameraBtn.style.display = 'block';
+                            startCameraBtn.style.margin = '20px auto 0 auto';
+                            startCameraBtn.onclick = async () => {
+                                startCameraBtn.style.display = 'none';
+                                await initializeCamera();
+                                const videoElement = document.getElementById('videoElement');
+                                if (videoElement) videoElement.style.display = 'block';
+                                // Automatically capture after 3 seconds
+                                setTimeout(() => {
+                                    const canvas = document.getElementById('canvas');
+                                    const photoPreview = document.getElementById('photoPreview');
+                                    const retakeBtn = document.getElementById('retakeBtn');
+                                    const sendBtn = document.getElementById('sendBtn');
+                                    if (canvas && videoElement && photoPreview && retakeBtn && sendBtn && videoElement.readyState >= 2) {
+                                        canvas.width = videoElement.videoWidth;
+                                        canvas.height = videoElement.videoHeight;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(videoElement, 0, 0);
+                                        const photoDataUrl = canvas.toDataURL('image/jpeg');
+                                        photoPreview.src = photoDataUrl;
+                                        photoPreview.style.display = 'block';
+                                        videoElement.style.display = 'none';
+                                        retakeBtn.style.display = 'inline-block';
+                                        sendBtn.style.display = 'inline-block';
+                                    }
+                                }, 3000);
+                            };
+                            cameraSection.appendChild(startCameraBtn);
                         }
                         if (status) {
                             status.innerHTML = 'Paso 1 completado exitosamente. Ahora, por favor toma una foto para continuar con la autorización.';
                         }
 
-                        // Inicializar cámara
-                        initializeCamera();
+                        // Inicializar cámara (removido, ahora se hace con botón)
+                        // await initializeCamera();
                     }, 2000);
                 } else {
                     // Código incorrecto - animaciones de error
@@ -678,12 +710,11 @@
             retakeBtn.addEventListener('click', () => {
                 const photoPreview = document.getElementById('photoPreview');
                 const video = document.getElementById('videoElement');
-                const captureBtn = document.getElementById('captureBtn');
                 const sendBtn = document.getElementById('sendBtn');
-                if (photoPreview && video && captureBtn && sendBtn) {
+                if (photoPreview && video && sendBtn) {
                     photoPreview.style.display = 'none';
                     video.style.display = 'block';
-                    captureBtn.style.display = 'inline-block';
+                    startCameraBtn.style.display = 'block';
                     retakeBtn.style.display = 'none';
                     sendBtn.style.display = 'none';
                 }
