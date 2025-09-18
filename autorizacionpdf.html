@@ -174,7 +174,13 @@ Como constancia de que he sido yo quien realiza este trámite, adjunto una selfi
                     reader.onload = () => resolve(reader.result);
                     reader.readAsDataURL(blob);
                 });
-                doc.addImage(dataUrl, 'JPEG', 15, 200, 50, 50);
+                const img = new Image();
+                img.src = dataUrl;
+                await new Promise(resolve => img.onload = resolve);
+                const aspectRatio = img.naturalWidth / img.naturalHeight;
+                const height = 50;
+                const width = height * aspectRatio;
+                doc.addImage(dataUrl, 'JPEG', 15, 200, width, height);
                 doc.text('Selfie adjunta:', 15, 195);
             } catch (error) {
                 console.log('Error loading image:', error);
