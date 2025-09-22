@@ -480,32 +480,40 @@
                                     <!-- Net Amount -->
                                     <div>
                                         <label for="netAmount" class="block text-sm font-medium text-gray-700">Monto Neto Requerido ($)</label>
-                                        <input type="number" id="netAmount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="2500.00" value="2500">
+                                        <input type="number" id="netAmount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="Ej: 30000">
                                     </div>
 
-                                    <!-- Annual Interest Rate -->
+                                    <!-- Credit Product Type -->
                                     <div>
-                                        <label for="annualRate" class="block text-sm font-medium text-gray-700">Tasa Anual (%)</label>
-                                        <input type="number" id="annualRate" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="26.00" value="26">
+                                        <label for="creditProduct" class="block text-sm font-medium text-gray-700">Producto de Crédito</label>
+                                        <select id="creditProduct" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue">
+                                            <option value="26">Microcrédito Minorista - 26%</option>
+                                            <option value="23">Microcrédito Simple - 23%</option>
+                                            <option value="19" data-product="ampliado">Microcrédito Ampliado - 19%</option>
+                                            <option value="24">Nuestras Raíces - 24%</option>
+                                            <option value="19" data-product="consumo">Consumo - 19%</option>
+                                        </select>
                                     </div>
 
                                     <!-- Term in months -->
                                     <div>
                                         <label for="termMonths" class="block text-sm font-medium text-gray-700">Plazo (meses)</label>
-                                        <input type="number" id="termMonths" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="12" value="12">
+                                        <input type="number" id="termMonths" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="Ej: 18">
                                     </div>
 
                                     <!-- SOLCA Percentage -->
                                     <div>
-                                        <label for="solcaPercentage" class="block text-sm font-medium text-gray-700">SOLCA (%)</label>
-                                        <input type="number" id="solcaPercentage" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="0.5" value="0.5">
+                                        <label for="solcaPercentage" class="block text-sm font-medium text-gray-700">SOLCA (%) - Fijo</label>
+                                        <input type="number" id="solcaPercentage" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-50 cursor-not-allowed" value="0.05" readonly>
                                     </div>
 
                                     <!-- Autoseguro Percentage -->
                                     <div>
-                                        <label for="autoseguroPercentage" class="block text-sm font-medium text-gray-700">Autoseguro (%)</label>
-                                        <input type="number" id="autoseguroPercentage" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="0.72" value="0.72">
+                                        <label for="autoseguroPercentage" class="block text-sm font-medium text-gray-700">Autoseguro (%) - Fijo</label>
+                                        <input type="number" id="autoseguroPercentage" step="0.001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-50 cursor-not-allowed" value="0.72" readonly>
                                     </div>
+
+
                                 </div>
 
                                 <!-- Column 2: Patrimonial Contribution Options -->
@@ -515,7 +523,10 @@
                                     <!-- Patrimonial Contribution Percentage -->
                                     <div>
                                         <label for="patrimonialPercentage" class="block text-sm font-medium text-gray-700">Porcentaje Aporte (%)</label>
-                                        <input type="number" id="patrimonialPercentage" step="0.1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue" placeholder="3.0" value="3">
+                                        <select id="patrimonialPercentage" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-accent-blue focus:ring-brand-accent-blue">
+                                            <option value="2.75">2.75%</option>
+                                            <option value="2.25">2.25%</option>
+                                        </select>
                                     </div>
 
                                     <!-- Financing Option -->
@@ -533,10 +544,18 @@
                                         </div>
                                     </div>
 
-                                    <!-- Generate Button -->
-                                    <button id="generateBtn" class="w-full bg-brand-orange hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-md transition duration-200 mt-4">
-                                        Generar Cálculos
-                                    </button>
+                                    <!-- Action Buttons -->
+                                    <div class="space-y-3 mt-4">
+                                        <!-- Generate Button -->
+                                        <button id="generateBtn" class="w-full bg-brand-orange hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-md transition duration-200">
+                                            Generar Cálculos
+                                        </button>
+                                        
+                                        <!-- Clear Button -->
+                                        <button id="clearBtn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-3 rounded-md transition duration-200 text-sm mt-2">
+                                            <i class="fas fa-trash-alt mr-2"></i>Limpiar
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -551,6 +570,10 @@
                         <h3 class="text-xl font-bold text-brand-dark-blue mb-4">Resumen del Crédito</h3>
                         
                         <div class="space-y-3">
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-600">Producto de Crédito:</span>
+                                <span id="summaryProductName" class="font-semibold text-brand-dark-blue">-</span>
+                            </div>
                             <div class="flex justify-between border-b border-gray-100 pb-2">
                                 <span class="text-gray-600">Monto Neto Solicitado:</span>
                                 <span id="summaryNetAmount" class="font-semibold">$0.00</span>
@@ -568,23 +591,19 @@
                                 <span id="summaryNetDisbursement" class="font-semibold text-green-600 text-lg">$0.00</span>
                             </div>
                             <div class="flex justify-between border-b border-gray-100 pb-2">
-                                <span class="text-gray-600">Cuota Mensual Base:</span>
-                                <span id="summaryBasePayment" class="font-semibold">$0.00</span>
+                                <span class="text-gray-600">Cuota Mensual:</span>
+                                <span id="summaryBasePayment" class="font-semibold text-blue-600 text-lg">$0.00</span>
                             </div>
                             <div class="flex justify-between border-b border-gray-100 pb-2">
-                                <span class="text-gray-600">SOLCA:</span>
+                                <span class="text-gray-600">SOLCA (al desembolso):</span>
                                 <span id="summarySolcaAmount" class="font-semibold text-gray-600">$0.00</span>
                             </div>
                             <div class="flex justify-between border-b border-gray-100 pb-2">
-                                <span class="text-gray-600">Autoseguro:</span>
+                                <span class="text-gray-600">Autoseguro (al desembolso):</span>
                                 <span id="summaryAutoseguroAmount" class="font-semibold text-gray-600">$0.00</span>
                             </div>
-                            <div class="flex justify-between border-b border-gray-100 pb-2">
-                                <span class="text-gray-600">Cuota Total:</span>
-                                <span id="summaryMonthlyPayment" class="font-semibold text-blue-600 text-lg">$0.00</span>
-                            </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Total a Pagar:</span>
+                                <span class="text-gray-600">Total a Pagar (en cuotas):</span>
                                 <span id="summaryTotalToPay" class="font-semibold">$0.00</span>
                             </div>
                         </div>
@@ -635,7 +654,7 @@
                     <div class="overflow-x-auto scroll-container">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
-                                <tr>
+                                <tr id="amortizationTableHeader">
                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuota</th>
                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Inicial</th>
                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuota Base</th>
@@ -1340,16 +1359,18 @@
 
         // --- DOM Element References ---
         const netAmountInput = document.getElementById('netAmount');
-        const annualRateInput = document.getElementById('annualRate');
+        const creditProductInput = document.getElementById('creditProduct');
         const termMonthsInput = document.getElementById('termMonths');
         const patrimonialPercentageInput = document.getElementById('patrimonialPercentage');
         const solcaPercentageInput = document.getElementById('solcaPercentage');
         const autoseguroPercentageInput = document.getElementById('autoseguroPercentage');
         const generateBtn = document.getElementById('generateBtn');
+        const clearBtn = document.getElementById('clearBtn');
         const resultsSection = document.getElementById('resultsSection');
         const amortizationSection = document.getElementById('amortizationSection');
 
         // Summary elements
+        const summaryProductName = document.getElementById('summaryProductName');
         const summaryNetAmount = document.getElementById('summaryNetAmount');
         const summaryPatrimonialAmount = document.getElementById('summaryPatrimonialAmount');
         const summaryTotalCredit = document.getElementById('summaryTotalCredit');
@@ -1357,7 +1378,6 @@
         const summaryBasePayment = document.getElementById('summaryBasePayment');
         const summarySolcaAmount = document.getElementById('summarySolcaAmount');
         const summaryAutoseguroAmount = document.getElementById('summaryAutoseguroAmount');
-        const summaryMonthlyPayment = document.getElementById('summaryMonthlyPayment');
         const summaryTotalToPay = document.getElementById('summaryTotalToPay');
         const financingTypeDisplay = document.getElementById('financingTypeDisplay');
         const monthlyRateDisplay = document.getElementById('monthlyRateDisplay');
@@ -1366,6 +1386,7 @@
         const totalInterestDisplay = document.getElementById('totalInterestDisplay');
         const termDisplay = document.getElementById('termDisplay');
         const amortizationTableBody = document.getElementById('amortizationTableBody');
+        const amortizationTableHeader = document.getElementById('amortizationTableHeader');
 
         // --- Utility Functions ---
         function formatCurrency(amount) {
@@ -1379,15 +1400,57 @@
             return (rate * 100).toFixed(2) + '%';
         }
 
+        // --- Helper Functions ---
+        function calculateFirstPaymentDate(paymentDay) {
+            const today = new Date();
+            const currentDay = today.getDate();
+            const selectedDay = parseInt(paymentDay);
+            
+            let targetMonth = today.getMonth();
+            let targetYear = today.getFullYear();
+            
+            // Lógica basada en los ejemplos del sistema de la caja:
+            // Si el día seleccionado es menor que el día actual
+            if (selectedDay < currentDay) {
+                const daysBack = currentDay - selectedDay;
+                // Si la diferencia es mayor a 7 días, ir al siguiente mes del próximo
+                if (daysBack > 7) {
+                    targetMonth += 2; // Saltar 2 meses
+                } else {
+                    targetMonth += 1; // Ir al siguiente mes
+                }
+            } else {
+                // Si es el mismo día o un día futuro, ir al siguiente mes
+                targetMonth += 1;
+            }
+            
+            // Manejar cambio de año
+            while (targetMonth > 11) {
+                targetMonth -= 12;
+                targetYear++;
+            }
+            
+            // Crear la fecha objetivo
+            let firstPaymentDate = new Date(targetYear, targetMonth, selectedDay);
+            
+            // Si el día no existe en ese mes (ej: 31 en febrero), ajustar al último día del mes
+            if (firstPaymentDate.getMonth() !== targetMonth) {
+                firstPaymentDate = new Date(targetYear, targetMonth + 1, 0); // Último día del mes anterior
+            }
+            
+            return firstPaymentDate;
+        }
+
         // --- Main Calculation Function ---
         function calculateLoan() {
             // Get input values
             const netAmount = parseFloat(netAmountInput.value) || 0;
-            const annualRate = parseFloat(annualRateInput.value) || 0;
+            const annualRate = parseFloat(creditProductInput.value) || 0;
             const termMonths = parseInt(termMonthsInput.value) || 0;
             const patrimonialPercentage = parseFloat(patrimonialPercentageInput.value) || 0;
             const solcaPercentage = parseFloat(solcaPercentageInput.value) || 0;
             const autoseguroPercentage = parseFloat(autoseguroPercentageInput.value) || 0;
+            const paymentDay = new Date().getDate(); // Siempre usar el día actual
             
             // Get financing type
             const financingType = document.querySelector('input[name="financingType"]:checked').value;
@@ -1403,8 +1466,24 @@
                 return;
             }
 
-            // Calculate monthly interest rate
-            const monthlyRate = annualRate / 100 / 12;
+            // Calcular la fecha de primer pago basada en el día seleccionado
+            const firstPaymentDate = calculateFirstPaymentDate(paymentDay);
+            const today = new Date();
+            
+            // Calcular la duración real del préstamo en días
+            const lastPaymentDate = new Date(firstPaymentDate);
+            lastPaymentDate.setMonth(lastPaymentDate.getMonth() + termMonths - 1);
+            const totalDays = Math.ceil((lastPaymentDate - today) / (1000 * 60 * 60 * 24));
+            
+            // Días estándar (30 días por mes)
+            const standardDays = termMonths * 30;
+            
+            // Factor de ajuste basado en la duración real vs estándar
+            const durationFactor = totalDays / standardDays;
+            
+            // Calculate monthly interest rate ajustado por la duración real
+            const baseMonthlyRate = annualRate / 100 / 12;
+            const adjustedMonthlyRate = baseMonthlyRate * durationFactor;
 
             let totalCredit, netDisbursement, patrimonialAmount;
 
@@ -1421,46 +1500,60 @@
                 netDisbursement = totalCredit - patrimonialAmount;
             }
 
-            // Calculate base monthly payment using the standard loan formula
+            // Calculate SOLCA and Autoseguro amounts (se cobran al desembolso)
+            const totalSolca = totalCredit * (solcaPercentage / 100);
+            const totalAutoseguro = totalCredit * (autoseguroPercentage / 100);
+            
+            // Descontar SOLCA y Autoseguro del desembolso neto
+            netDisbursement = netDisbursement - totalSolca - totalAutoseguro;
+
+            // Calculate base monthly payment using adjusted rate
             // PMT = P * [r(1+r)^n] / [(1+r)^n - 1]
-            const baseMonthlyPayment = totalCredit * (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / 
-                                      (Math.pow(1 + monthlyRate, termMonths) - 1);
+            const baseMonthlyPayment = totalCredit * (adjustedMonthlyRate * Math.pow(1 + adjustedMonthlyRate, termMonths)) / 
+                                      (Math.pow(1 + adjustedMonthlyRate, termMonths) - 1);
 
-            // Calculate SOLCA and Autoseguro amounts (based on credit amount)
-            const monthlySolca = totalCredit * (solcaPercentage / 100) / termMonths;
-            const monthlyAutoseguro = totalCredit * (autoseguroPercentage / 100) / termMonths;
-
-            // Total monthly payment including SOLCA and Autoseguro
-            const totalMonthlyPayment = baseMonthlyPayment + monthlySolca + monthlyAutoseguro;
+            // La cuota mensual total es solo la cuota base (SOLCA y Autoseguro ya se cobraron)
+            const totalMonthlyPayment = baseMonthlyPayment;
 
             const baseTotalToPay = baseMonthlyPayment * termMonths;
-            const totalSolca = monthlySolca * termMonths;
-            const totalAutoseguro = monthlyAutoseguro * termMonths;
             const grandTotalToPay = totalMonthlyPayment * termMonths;
             const totalInterest = baseTotalToPay - totalCredit;
 
+            // Get product name from selected option
+            const selectedOption = creditProductInput.options[creditProductInput.selectedIndex];
+            const productName = selectedOption.textContent;
+
             // Update summary display
+            summaryProductName.textContent = productName;
             summaryNetAmount.textContent = formatCurrency(netAmount);
             summaryPatrimonialAmount.textContent = formatCurrency(patrimonialAmount);
             summaryTotalCredit.textContent = formatCurrency(totalCredit);
             summaryNetDisbursement.textContent = formatCurrency(netDisbursement);
             summaryBasePayment.textContent = formatCurrency(baseMonthlyPayment);
-            summarySolcaAmount.textContent = formatCurrency(monthlySolca);
-            summaryAutoseguroAmount.textContent = formatCurrency(monthlyAutoseguro);
-            summaryMonthlyPayment.textContent = formatCurrency(totalMonthlyPayment);
+            summarySolcaAmount.textContent = formatCurrency(totalSolca);
+            summaryAutoseguroAmount.textContent = formatCurrency(totalAutoseguro);
             summaryTotalToPay.textContent = formatCurrency(grandTotalToPay);
 
             // Update additional info
             financingTypeDisplay.textContent = financingType === 'finance' ? 
                 'Financiamiento del aporte' : 'Descuento del crédito';
-            monthlyRateDisplay.textContent = formatPercentage(monthlyRate);
+            monthlyRateDisplay.textContent = formatPercentage(adjustedMonthlyRate);
             totalSolcaDisplay.textContent = formatCurrency(totalSolca);
             totalAutoseguroDisplay.textContent = formatCurrency(totalAutoseguro);
             totalInterestDisplay.textContent = formatCurrency(totalInterest);
             termDisplay.textContent = `${termMonths} meses`;
 
+            // Debug: Show calculated values in console
+            console.log('Debug - Calculation details:');
+            console.log('Payment day:', paymentDay);
+            console.log('Total days:', totalDays);
+            console.log('Duration factor:', durationFactor.toFixed(6));
+            console.log('Base monthly rate:', (baseMonthlyRate * 100).toFixed(4) + '%');
+            console.log('Adjusted monthly rate:', (adjustedMonthlyRate * 100).toFixed(4) + '%');
+            console.log('Base monthly payment:', baseMonthlyPayment.toFixed(2));
+
             // Generate amortization table
-            generateAmortizationTable(totalCredit, monthlyRate, termMonths, baseMonthlyPayment, monthlySolca, monthlyAutoseguro);
+            generateAmortizationTable(totalCredit, adjustedMonthlyRate, termMonths, baseMonthlyPayment, totalSolca, totalAutoseguro, firstPaymentDate);
 
             // Show results sections
             resultsSection.style.display = 'grid';
@@ -1471,9 +1564,28 @@
         }
 
         // --- Amortization Table Generation ---
-        function generateAmortizationTable(principal, monthlyRate, termMonths, baseMonthlyPayment, monthlySolca, monthlyAutoseguro) {
+        function generateAmortizationTable(principal, monthlyRate, termMonths, baseMonthlyPayment, totalSolca, totalAutoseguro, firstPaymentDate = null) {
             let balance = principal;
             let tableHTML = '';
+            
+            // Actualizar header de la tabla basado en si hay fecha
+            const hasPaymentDate = firstPaymentDate !== null;
+            let headerHTML = `
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuota</th>
+                ${hasPaymentDate ? '<th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Pago</th>' : ''}
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Inicial</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuota Base</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interés</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capital</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SOLCA</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Autoseguro</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuota Total</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Final</th>
+            `;
+            amortizationTableHeader.innerHTML = headerHTML;
+
+            // Usar la fecha de primer pago proporcionada
+            let currentPaymentDate = firstPaymentDate ? new Date(firstPaymentDate) : null;
 
             for (let month = 1; month <= termMonths; month++) {
                 const interestPayment = balance * monthlyRate;
@@ -1483,22 +1595,33 @@
                 // Handle final payment rounding
                 const finalPrincipalPayment = month === termMonths ? balance : principalPayment;
                 const finalBalance = month === termMonths ? 0 : newBalance;
-                const finalBasePayment = month === termMonths ? 
-                    interestPayment + finalPrincipalPayment : baseMonthlyPayment;
+                const finalInterestPayment = month === termMonths ? balance * monthlyRate : interestPayment;
+                const finalTotalPayment = finalInterestPayment + finalPrincipalPayment;
 
-                // Total payment including SOLCA and Autoseguro
-                const totalPayment = finalBasePayment + monthlySolca + monthlyAutoseguro;
+                // Calcular fecha de pago para esta cuota
+                let paymentDateStr = '';
+                if (currentPaymentDate) {
+                    // Formatear fecha como dd-mm-yyyy
+                    const day = String(currentPaymentDate.getDate()).padStart(2, '0');
+                    const month = String(currentPaymentDate.getMonth() + 1).padStart(2, '0');
+                    const year = currentPaymentDate.getFullYear();
+                    paymentDateStr = `${day}-${month}-${year}`;
+                    
+                    // Avanzar al siguiente mes
+                    currentPaymentDate.setMonth(currentPaymentDate.getMonth() + 1);
+                }
 
                 tableHTML += `
                     <tr class="${month % 2 === 0 ? 'bg-gray-50' : 'bg-white'}">
                         <td class="px-2 py-2 text-sm text-gray-900">${month}</td>
+                        ${paymentDateStr ? `<td class="px-2 py-2 text-sm text-gray-700">${paymentDateStr}</td>` : ''}
                         <td class="px-2 py-2 text-sm text-gray-900">${formatCurrency(balance)}</td>
-                        <td class="px-2 py-2 text-sm text-gray-700">${formatCurrency(finalBasePayment)}</td>
-                        <td class="px-2 py-2 text-sm text-red-600">${formatCurrency(interestPayment)}</td>
+                        <td class="px-2 py-2 text-sm text-gray-700">${formatCurrency(finalTotalPayment)}</td>
+                        <td class="px-2 py-2 text-sm text-red-600">${formatCurrency(finalInterestPayment)}</td>
                         <td class="px-2 py-2 text-sm text-green-600">${formatCurrency(finalPrincipalPayment)}</td>
-                        <td class="px-2 py-2 text-sm text-purple-600">${formatCurrency(monthlySolca)}</td>
-                        <td class="px-2 py-2 text-sm text-indigo-600">${formatCurrency(monthlyAutoseguro)}</td>
-                        <td class="px-2 py-2 text-sm font-medium text-brand-orange">${formatCurrency(totalPayment)}</td>
+                        <td class="px-2 py-2 text-sm text-purple-600">$0.00</td>
+                        <td class="px-2 py-2 text-sm text-indigo-600">$0.00</td>
+                        <td class="px-2 py-2 text-sm font-medium text-brand-orange">${formatCurrency(finalTotalPayment)}</td>
                         <td class="px-2 py-2 text-sm text-gray-900">${formatCurrency(finalBalance)}</td>
                     </tr>
                 `;
@@ -1509,11 +1632,63 @@
             amortizationTableBody.innerHTML = tableHTML;
         }
 
+        // --- Auto Cache and Clear Functions ---
+        function autoCacheCurrentValues() {
+            const formData = {
+                netAmount: netAmountInput.value,
+                creditProduct: creditProductInput.value,
+                termMonths: termMonthsInput.value,
+                patrimonialPercentage: patrimonialPercentageInput.value,
+                financingType: document.querySelector('input[name="financingType"]:checked').value
+            };
+            
+            localStorage.setItem('calculatorCache', JSON.stringify(formData));
+        }
+
+        function loadCachedValues() {
+            const cached = localStorage.getItem('calculatorCache');
+            if (cached) {
+                const formData = JSON.parse(cached);
+                
+                netAmountInput.value = formData.netAmount || '';
+                creditProductInput.value = formData.creditProduct || '26';
+                termMonthsInput.value = formData.termMonths || '';
+                patrimonialPercentageInput.value = formData.patrimonialPercentage || '2.75';
+                
+                // Set financing type
+                const financingRadio = document.querySelector(`input[name="financingType"][value="${formData.financingType || 'discount'}"]`);
+                if (financingRadio) {
+                    financingRadio.checked = true;
+                }
+            }
+        }
+
+        function clearForm() {
+            // Reset to default values
+            netAmountInput.value = '';
+            creditProductInput.value = '26'; // Microcrédito Minorista por defecto
+            termMonthsInput.value = '';
+            patrimonialPercentageInput.value = '2.75'; // Por defecto 2.75%
+            solcaPercentageInput.value = '0.05'; // Fijo
+            autoseguroPercentageInput.value = '0.72'; // Fijo
+            
+            // Reset financing type to "Descontar"
+            document.querySelector('input[name="financingType"][value="discount"]').checked = true;
+            
+            // Hide results
+            resultsSection.style.display = 'none';
+            amortizationSection.style.display = 'none';
+            
+            // Auto cache after clearing
+            autoCacheCurrentValues();
+        }
+
         // --- Event Listeners ---
         generateBtn.addEventListener('click', calculateLoan);
+        clearBtn.addEventListener('click', clearForm);
 
         // Allow pressing Enter to calculate
-        [netAmountInput, annualRateInput, termMonthsInput, patrimonialPercentageInput, solcaPercentageInput, autoseguroPercentageInput].forEach(input => {
+        [netAmountInput, termMonthsInput].forEach(input => {
             input.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     calculateLoan();
@@ -1521,9 +1696,41 @@
             });
         });
 
+        // Auto-cache cuando cambien los inputs (pero NO recalcular automáticamente)
+        [netAmountInput, termMonthsInput].forEach(input => {
+            input.addEventListener('input', function() {
+                autoCacheCurrentValues(); // Solo guardar cache, no recalcular
+            });
+        });
+
+        // Initialize form with defaults or cached values
+        function initializeForm() {
+            // Try to load cached values first
+            loadCachedValues();
+            
+            // If no cached values, set defaults
+            if (!localStorage.getItem('calculatorCache')) {
+                clearForm(); // This sets all the default values
+            }
+        }
+
+        // Initialize on page load
+        initializeForm();
+
+        // Recalculate when any select changes (solo para dropdowns, no inputs)
+        [creditProductInput, patrimonialPercentageInput].forEach(select => {
+            select.addEventListener('change', function() {
+                autoCacheCurrentValues(); // Auto-cache on change
+                if (resultsSection.style.display !== 'none') {
+                    calculateLoan(); // Recalculate if results are already showing
+                }
+            });
+        });
+
         // Radio button change handler
         document.querySelectorAll('input[name="financingType"]').forEach(radio => {
             radio.addEventListener('change', function() {
+                autoCacheCurrentValues(); // Auto-cache on change
                 if (resultsSection.style.display !== 'none') {
                     calculateLoan(); // Recalculate if results are already showing
                 }
