@@ -3,226 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificación de Catastros - Municipio de Mejía</title>
-
-    <!-- Tailwind CSS -->
+    <title>Consulta de Predios - GAD Mejía</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <!-- Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-    <!-- Custom Styles -->
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            overflow: hidden;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
             font-family: 'Inter', sans-serif;
         }
-
-        /* Iframe Container */
-        .iframe-container {
-            width: 100vw;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            margin: 0;
-            padding: 0;
-        }
-
-        .iframe-content {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Material Icons Enhancement */
-        .material-icons {
-            font-family: 'Material Icons';
-            font-weight: normal;
-            font-style: normal;
-            font-size: 24px;
-            line-height: 1;
-            letter-spacing: normal;
-            text-transform: none;
-            display: inline-block;
-            white-space: nowrap;
-            word-wrap: normal;
-            direction: ltr;
-        }
-
-        /* Message Animation */
-        #instruction-message {
-            animation: slideInRight 0.3s ease-out;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .scale-x-out {
-            transform-origin: right;
-            transform: scaleX(0);
-        }
-
-        /* Progress Line */
-        .progress-line {
-            position: absolute;
-            bottom: -8px;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #ffffff 0%, #ffffff 100%);
-            border-radius: 2px;
-            transform-origin: right;
-            transform: scaleX(1);
-            transition: transform 10s linear;
-        }
-
-        .progress-line.hide {
-            transform: scaleX(0);
+        /* Style for disabled buttons */
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
     </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Iframe Container -->
-    <div class="iframe-container">
-        <iframe
-            src="https://portal-ciudadano.municipiodemejia.gob.ec/"
-            class="iframe-content"
-            title="Verificación de Catastros - Portal Ciudadano Municipio de Mejía">
-        </iframe>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-3xl">
+        <!-- Disclaimer -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        <strong>Aviso Legal:</strong> Este servicio web es propiedad del GAD Municipal del Cantón Mejía. 
+                        Esta interfaz se utiliza únicamente con fines de consulta no comerciales. Los datos mostrados 
+                        provienen directamente de los servicios oficiales del municipio.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Consulta de Predios</h1>
+                <p class="text-gray-500 mt-2">Servicio del GAD Municipal del Cantón Mejía</p>
+            </div>
+
+            <!-- Input and Search Button -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input
+                    id="cedulaInput"
+                    type="text"
+                    placeholder="Ingrese el número de cédula o RUC"
+                    class="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                    onkeypress="if(event.key === 'Enter') document.getElementById('searchButton').click()"
+                >
+                <button
+                    id="searchButton"
+                    class="w-full sm:w-auto px-6 py-3 text-lg font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-transform transform active:scale-95"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Buscar
+                </button>
+            </div>
+
+            <!-- Status and Results Area -->
+            <div id="status" class="mt-6 text-center"></div>
+            <div id="results" class="mt-6 space-y-4"></div>
+        </div>
+        <footer class="text-center mt-4 text-sm text-gray-500">
+            <p>Esta es una interfaz no oficial para consumir el servicio web público del GAD Mejía.</p>
+        </footer>
     </div>
 
-    <!-- JavaScript para mostrar mensaje instructivo -->
     <script>
-        // Función para mostrar instrucción adicional de IPRUS (scope global)
-        function showIprusInstruction() {
-            // Remover mensaje anterior si existe
-            const existingIprusMessage = document.getElementById('iprus-instruction-message');
-            if (existingIprusMessage) {
-                existingIprusMessage.remove();
+        const cedulaInput = document.getElementById('cedulaInput');
+        const searchButton = document.getElementById('searchButton');
+        const resultsDiv = document.getElementById('results');
+        const statusDiv = document.getElementById('status');
+
+        // Main function to trigger the search
+        const performSearch = async () => {
+            const cedula = cedulaInput.value.trim();
+            if (!cedula) {
+                showStatus('<p class="text-yellow-600">Por favor, ingrese un número de cédula.</p>', 'warning');
+                return;
             }
 
-            // Crear mensaje de instrucción IPRUS
-            const iprusMessageDiv = document.createElement('div');
-            iprusMessageDiv.id = 'iprus-instruction-message';
-            iprusMessageDiv.className = `fixed top-4 left-4 p-4 rounded-lg shadow-xl z-50 max-w-xs text-left bg-red-500 text-white font-medium`;
+            showStatus('<div class="flex items-center justify-center text-blue-600"><svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Buscando...</span></div>', 'info');
+            resultsDiv.innerHTML = '';
 
-            iprusMessageDiv.innerHTML = `
-                <div class="mb-2">
-                    <span class="text-base">¡Busca aquí!</span>
-                </div>
-                <p class="text-sm mb-3">
-                    Debes buscar el botón aquí abajo
-                </p>
-                <div class="flex justify-center">
-                    <span class="material-icons text-4xl text-white animate-bounce">keyboard_arrow_down</span>
-                </div>
-            `;
+            const apiUrl = `https://servicios.municipiodemejia.gob.ec/planificacionTerritorial/rest/irm/buscarPredioPorCedula/${cedula}`;
 
-            document.body.appendChild(iprusMessageDiv);
+            try {
+                const response = await fetch(apiUrl, { method: 'POST' });
+                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+                const data = await response.json();
+                statusDiv.innerHTML = ''; 
+                displayResults(data);
+            } catch (error) {
+                showCORSorNetworkError();
+            }
+        };
 
-            // Auto-remover después de 5 segundos
-            setTimeout(() => {
-                if (iprusMessageDiv.parentElement) {
-                    iprusMessageDiv.classList.add('opacity-0');
-                    setTimeout(() => {
-                        if (iprusMessageDiv.parentElement) {
-                            iprusMessageDiv.remove();
-                        }
-                    }, 300);
-                }
-            }, 5000);
-        }
+        searchButton.addEventListener('click', performSearch);
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Función para mostrar mensaje instructivo
-            function showInstructionMessage() {
-                // Remover mensaje anterior si existe
-                const existingMessage = document.getElementById('instruction-message');
-                if (existingMessage) {
-                    existingMessage.remove();
-                }
+        // Renders the results from the API
+        const displayResults = (data) => {
+            const predios = data && data.lista ? data.lista : [];
 
-                // Crear mensaje instructivo
-                const messageDiv = document.createElement('div');
-                messageDiv.id = 'instruction-message';
-                messageDiv.className = `fixed top-16 right-4 p-4 rounded-lg shadow-lg z-50 max-w-md transform transition-all duration-300 ease-in-out bg-blue-500 text-white`;
+            if (predios.length === 0) {
+                showStatus('<p class="text-gray-600">No se encontraron predios asociados a la cédula o RUC ingresado.</p>', 'info');
+                return;
+            }
 
-                messageDiv.innerHTML = `
-                    <div class="relative">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <div class="flex-shrink-0">
-                                <span class="material-icons text-2xl text-blue-200">info</span>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium">
-                                    Verificación de Catastros
-                                </p>
-                                <p class="text-xs opacity-100 mt-1">
-                                    Para verificar catastros por favor pulsa el botón:
-                                </p>
-                            </div>
+            let htmlContent = '';
+            predios.forEach((predio, index) => {
+                htmlContent += `
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm transition-all hover:shadow-md">
+                        <div class="flex justify-between items-center mb-4 border-b pb-2">
+                            <h3 class="text-xl font-semibold text-blue-800">Resultado ${index + 1}</h3>
+                            <button onclick="downloadPdf('${predio.preId}', this)" class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                <span>Descargar PDF</span>
+                            </button>
                         </div>
-
-                        <div class="flex justify-center">
-                            <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2 flex items-center space-x-5 hover:bg-opacity-30 transition-colors duration-200 cursor-pointer" onclick="showIprusInstruction()">
-                                <span class="material-icons text-lg">home_work</span>
-                                <span class="text-sm font-medium">Iprus</span>
-                            </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-1 gap-y-3">
+                            ${formatProperty('Predio ID', predio.preId)}
+                            ${formatProperty('Código Catastral', predio.codigoCatastral)}
+                            ${formatProperty('Propietario', predio.nombrePropietario)}
+                            ${formatProperty('Cédula Propietario', predio.identificacionPropietario)}
                         </div>
-                        <p class="text-xs opacity-100 mt-1 text-center">
-                                    En la parte izquierda de la pantalla
-                                </p>
-
-                        <div class="progress-line"></div>
                     </div>
                 `;
+            });
+            resultsDiv.innerHTML = htmlContent;
+        };
 
-                document.body.appendChild(messageDiv);
+        // Function to download the PDF report for a given preId
+        const downloadPdf = async (preId, buttonElement) => {
+            const originalButtonContent = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = `
+                <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <span>Descargando...</span>`;
 
-                // Iniciar animación de la línea de progreso
-                const progressLine = messageDiv.querySelector('.progress-line');
-                setTimeout(() => {
-                    progressLine.classList.add('hide');
-                }, 100);
+            const pdfApiUrl = `https://servicios.municipiodemejia.gob.ec/planificacionTerritorial/rest/irm/consultarInformePreliminarPdf/${preId}`;
 
-                // Auto-remover después de 10 segundos
-                setTimeout(() => {
-                    if (messageDiv.parentElement) {
-                        messageDiv.classList.add('opacity-0', 'scale-x-out');
-                        setTimeout(() => {
-                            if (messageDiv.parentElement) {
-                                messageDiv.remove();
-                            }
-                        }, 300);
-                    }
-                }, 10100);
+            try {
+                const response = await fetch(pdfApiUrl, { method: 'POST' });
+                if (!response.ok) throw new Error(`El servidor respondió con un error: ${response.status}`);
+                
+                const data = await response.json();
+
+                // Extract the base64 string from data.irm.pdf
+                const base64Pdf = data && data.irm ? data.irm.pdf : null;
+
+                if (!base64Pdf) throw new Error("La respuesta del servidor no contiene los datos del PDF en el formato esperado.");
+
+                // Convert base64 string to a Blob
+                const byteCharacters = atob(base64Pdf);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+
+                // Create a temporary link to trigger the download
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `informe-predio-${preId}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+
+            } catch (error) {
+                showStatus(`<p class="font-bold">Error al descargar el PDF.</p><p class="mt-2">${error.message}</p>`, 'error');
+            } finally {
+                buttonElement.innerHTML = originalButtonContent;
+                buttonElement.disabled = false;
             }
+        };
+        
+        const formatProperty = (label, value) => {
+            const displayValue = (value === null || value === undefined || value === '') ? '<span class="italic text-gray-400">No disponible</span>' : value;
+            return `<div class="flex flex-col"><strong class="text-sm font-medium text-gray-500">${label}</strong><span class="text-gray-800 break-words">${displayValue}</span></div>`;
+        };
 
-            // Mostrar mensaje instructivo después de 1 segundo
-            setTimeout(() => {
-                showInstructionMessage();
-            }, 1000);
-        });
+        const showStatus = (message, type) => {
+            const colors = {
+                error: 'bg-red-100 border-red-500 text-red-700',
+                warning: 'bg-yellow-100 border-yellow-500 text-yellow-700',
+                info: 'bg-blue-100 border-blue-500 text-blue-700'
+            };
+            statusDiv.innerHTML = `<div class="${colors[type] || colors.info} border-l-4 p-4" role="alert">${message}</div>`;
+        };
+
+        const showCORSorNetworkError = () => {
+             showStatus(`
+                <p class="font-bold">No se pudo conectar con el servicio.</p>
+                <p class="mt-2">Esto puede ocurrir por un problema de conexión o porque el servidor del Municipio no está respondiendo.</p>`, 'error');
+        }
+
     </script>
 </body>
 </html>
