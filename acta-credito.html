@@ -274,6 +274,81 @@
                 width: auto !important;
                 max-width: 100% !important;
             }
+            #content-caratulas {
+                display: none !important;
+            }
+        }
+
+        /* Galería de carátulas */
+        .caratulas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .caratula-card {
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .caratula-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+        }
+
+        .caratula-preview {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(160deg, #e0f2fe, #fff7ed);
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .caratula-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .caratula-card:hover .caratula-preview img {
+            transform: scale(1.02);
+        }
+
+        .caratula-overlay {
+            position: absolute;
+            inset: auto 0 0 0;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.7) 100%);
+            color: #f8fafc;
+            font-size: 0.75rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .aspect-a4 {
+            aspect-ratio: 210 / 297;
+        }
+
+        .caratula-actions {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .caratula-download[disabled] {
+            opacity: 0.75;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 640px) {
+            .caratulas-grid {
+                gap: 1rem;
+            }
         }
     </style>
 </head>
@@ -287,6 +362,9 @@
                 </button>
                 <button onclick="mostrarPestana('comprobante')" id="tab-comprobante" class="flex-1 py-3 px-4 text-center font-medium transition-colors border-b-2 border-transparent text-gray-600 hover:text-blue-600">
                     <i class="fas fa-print mr-2"></i>Impresión de Comprobante
+                </button>
+                <button onclick="mostrarPestana('caratulas')" id="tab-caratulas" class="flex-1 py-3 px-4 text-center font-medium transition-colors border-b-2 border-transparent text-gray-600 hover:text-blue-600">
+                    <i class="fas fa-layer-group mr-2"></i>Carátulas
                 </button>
             </div>
         </div>
@@ -504,6 +582,108 @@
         </div>
         </div> <!-- Fin content-acta -->
 
+        <!-- Contenido de la pestaña de Carátulas -->
+        <div id="content-caratulas" class="tab-content hidden">
+            <div class="no-print bg-white rounded-lg shadow-lg p-6 mb-6">
+                <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Carátulas para expedientes</h2>
+                        <p class="text-sm text-gray-600">Diseños en formato A4 listos para imprimir y clasificar los expedientes crediticios.</p>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 text-sm text-blue-700 rounded-lg p-4 md:max-w-sm">
+                        <p class="font-semibold mb-1">Descarga automática</p>
+                        <p>Al presionar <strong>Descargar</strong> obtendrás el archivo directo de Google Drive sin abrir pestañas adicionales.</p>
+                    </div>
+                </div>
+
+                <div class="caratulas-grid">
+                    <article class="caratula-card">
+                        <div class="caratula-preview aspect-a4">
+                            <img src="https://lh3.googleusercontent.com/d/1Jnsfjz8QplHzUoAW3TRsQCl7wG5kp5FJ=w2048?name=INFORMACION%20PERSONAL.jpg" alt="Carátula Información Personal">
+                            <div class="caratula-overlay">Información Personal</div>
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <h3 class="text-lg font-semibold text-slate-900">Información Personal</h3>
+                                <p class="text-sm text-slate-600">Portada para la sección de datos generales y documentos de identidad.</p>
+                            </div>
+                            <div class="caratula-actions">
+                                <button class="caratula-download inline-flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors" onclick="downloadCaratula('1hK7jpJfuO8oKpvAie7KnBxRY8AM6EUS1', 'Caratula - Informacion Personal.pdf', this)">
+                                    <i class="fas fa-download mr-2"></i>Descargar
+                                </button>
+                                <a href="https://lh3.googleusercontent.com/d/1Jnsfjz8QplHzUoAW3TRsQCl7wG5kp5FJ=w2048?name=INFORMACION%20PERSONAL.jpg" target="_blank" rel="noopener" class="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                                    <i class="fas fa-eye mr-2"></i>Ver vista previa
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="caratula-card">
+                        <div class="caratula-preview aspect-a4">
+                            <img src="https://lh3.googleusercontent.com/d/1-HgN4hDsbSoDVt0rLWjhZ8JDSCWx1H9I=w2048?name=INFORMACION%20DE%20CONSULTA.jpg" alt="Carátula Información de Consulta">
+                            <div class="caratula-overlay">Información de Consulta</div>
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <h3 class="text-lg font-semibold text-slate-900">Información de Consulta</h3>
+                                <p class="text-sm text-slate-600">Ideal para anexar reportes del buró, consultas judiciales y demás verificaciones.</p>
+                            </div>
+                            <div class="caratula-actions">
+                                <button class="caratula-download inline-flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors" onclick="downloadCaratula('1Dd5GGjUkITOOKv1nT1qDwjni7bc-3qTS', 'Caratula - Informacion de Consulta.pdf', this)">
+                                    <i class="fas fa-download mr-2"></i>Descargar
+                                </button>
+                                <a href="https://lh3.googleusercontent.com/d/1-HgN4hDsbSoDVt0rLWjhZ8JDSCWx1H9I=w2048?name=INFORMACION%20DE%20CONSULTA.jpg" target="_blank" rel="noopener" class="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                                    <i class="fas fa-eye mr-2"></i>Ver vista previa
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="caratula-card">
+                        <div class="caratula-preview aspect-a4">
+                            <img src="https://lh3.googleusercontent.com/d/11AMlscze4653YF-4i01gQelbV1PhtF04=w2048?name=INFORMACION%20ECONOMICA.jpg" alt="Carátula Información Económica">
+                            <div class="caratula-overlay">Información Económica</div>
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <h3 class="text-lg font-semibold text-slate-900">Información Económica</h3>
+                                <p class="text-sm text-slate-600">Perfecta para resguardar balances, flujos de caja y respaldos contables.</p>
+                            </div>
+                            <div class="caratula-actions">
+                                <button class="caratula-download inline-flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors" onclick="downloadCaratula('1pvgoootzAKuO1A7Z-G1KcSAbH1XfHpBN', 'Caratula - Informacion Economica.pdf', this)">
+                                    <i class="fas fa-download mr-2"></i>Descargar
+                                </button>
+                                <a href="https://lh3.googleusercontent.com/d/11AMlscze4653YF-4i01gQelbV1PhtF04=w2048?name=INFORMACION%20ECONOMICA.jpg" target="_blank" rel="noopener" class="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                                    <i class="fas fa-eye mr-2"></i>Ver vista previa
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="caratula-card">
+                        <div class="caratula-preview aspect-a4">
+                            <img src="https://lh3.googleusercontent.com/d/1XK1GZsNeitG5kH1W24VNabgeGHQQH3TD=w2048?name=ANEXOS.jpg" alt="Carátula Anexos">
+                            <div class="caratula-overlay">Anexos</div>
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <h3 class="text-lg font-semibold text-slate-900">Anexos y respaldos</h3>
+                                <p class="text-sm text-slate-600">Organiza documentación adicional, contratos y soportes complementarios.</p>
+                            </div>
+                            <div class="caratula-actions">
+                                <button class="caratula-download inline-flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors" onclick="downloadCaratula('1ZkXRLyUAW1cRmh1AOnu2Ax8hPGxw7PCQ', 'Caratula - Anexos.pdf', this)">
+                                    <i class="fas fa-download mr-2"></i>Descargar
+                                </button>
+                                <a href="https://lh3.googleusercontent.com/d/1XK1GZsNeitG5kH1W24VNabgeGHQQH3TD=w2048?name=ANEXOS.jpg" target="_blank" rel="noopener" class="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                                    <i class="fas fa-eye mr-2"></i>Ver vista previa
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+
         <!-- Contenido de la pestaña de Comprobante -->
         <div id="content-comprobante" class="tab-content hidden">
             <div class="no-print bg-white rounded-lg shadow-lg p-6 mb-6">
@@ -564,21 +744,94 @@
 
         // ========== FUNCIONES PARA PESTAÑAS ==========
         function mostrarPestana(pestana) {
-            // Ocultar todas las pestañas
-            document.getElementById('content-acta').classList.add('hidden');
-            document.getElementById('content-comprobante').classList.add('hidden');
-            
-            // Remover clases activas de todos los tabs
-            document.getElementById('tab-acta').className = document.getElementById('tab-acta').className.replace('border-blue-600 text-blue-600 bg-white', 'border-transparent text-gray-600 hover:text-blue-600');
-            document.getElementById('tab-comprobante').className = document.getElementById('tab-comprobante').className.replace('border-blue-600 text-blue-600 bg-white', 'border-transparent text-gray-600 hover:text-blue-600');
-            
-            // Mostrar pestaña seleccionada
-            if (pestana === 'acta') {
-                document.getElementById('content-acta').classList.remove('hidden');
-                document.getElementById('tab-acta').className = document.getElementById('tab-acta').className.replace('border-transparent text-gray-600 hover:text-blue-600', 'border-blue-600 text-blue-600 bg-white');
-            } else if (pestana === 'comprobante') {
-                document.getElementById('content-comprobante').classList.remove('hidden');
-                document.getElementById('tab-comprobante').className = document.getElementById('tab-comprobante').className.replace('border-transparent text-gray-600 hover:text-blue-600', 'border-blue-600 text-blue-600 bg-white');
+            const tabs = [
+                { key: 'acta', buttonId: 'tab-acta', contentId: 'content-acta' },
+                { key: 'comprobante', buttonId: 'tab-comprobante', contentId: 'content-comprobante' },
+                { key: 'caratulas', buttonId: 'tab-caratulas', contentId: 'content-caratulas' }
+            ];
+
+            tabs.forEach(({ buttonId, contentId }) => {
+                const content = document.getElementById(contentId);
+                const button = document.getElementById(buttonId);
+
+                if (content) {
+                    content.classList.add('hidden');
+                }
+
+                if (button) {
+                    button.classList.remove('border-blue-600', 'text-blue-600', 'bg-white');
+                    button.classList.add('border-transparent', 'text-gray-600');
+                    if (!button.classList.contains('hover:text-blue-600')) {
+                        button.classList.add('hover:text-blue-600');
+                    }
+                }
+            });
+
+            const activeTab = tabs.find(tab => tab.key === pestana);
+            if (activeTab) {
+                const activeContent = document.getElementById(activeTab.contentId);
+                const activeButton = document.getElementById(activeTab.buttonId);
+
+                if (activeContent) {
+                    activeContent.classList.remove('hidden');
+                }
+
+                if (activeButton) {
+                    activeButton.classList.remove('border-transparent', 'text-gray-600');
+                    activeButton.classList.add('border-blue-600', 'text-blue-600', 'bg-white');
+                }
+            }
+        }
+
+        // ========== DESCARGAS DE CARÁTULAS ==========
+        async function downloadCaratula(fileId, filename, buttonEl) {
+            const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+            const button = buttonEl instanceof HTMLElement ? buttonEl : null;
+
+            if (button) {
+                button.dataset.originalLabel = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>Descargando...';
+            }
+
+            try {
+                const response = await fetch(downloadUrl, { mode: 'cors' });
+
+                if (!response.ok || response.type === 'opaqueredirect') {
+                    throw new Error('Respuesta no válida');
+                }
+
+                const contentType = response.headers.get('Content-Type') || '';
+                if (contentType.includes('text/html')) {
+                    throw new Error('Respuesta HTML recibida');
+                }
+
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+            } catch (error) {
+                console.warn('Descarga directa fallida, usando método alternativo:', error.message);
+                const fallbackLink = document.createElement('a');
+                fallbackLink.href = downloadUrl;
+                fallbackLink.download = filename;
+                fallbackLink.rel = 'noopener';
+                document.body.appendChild(fallbackLink);
+                fallbackLink.click();
+                document.body.removeChild(fallbackLink);
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = button.dataset.originalLabel || 'Descargar';
+                    delete button.dataset.originalLabel;
+                }
             }
         }
 
