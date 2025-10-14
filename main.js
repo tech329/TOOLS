@@ -243,6 +243,11 @@ async function logout() {
             try {
                 // Limpiar datos locales
                 localStorage.removeItem('tupak_remember_me');
+                
+                // Limpiar caché de cartera
+                if (typeof clearCarteraAccessCache === 'function') {
+                    clearCarteraAccessCache();
+                }
 
                 // Cerrar sesión en Supabase
                 const { error } = await supabase.auth.signOut();
@@ -277,6 +282,11 @@ async function logout() {
 // ===== ESCUCHAR CAMBIOS DE AUTENTICACIÓN =====
 supabase.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_OUT') {
+        // Limpiar caché de cartera al cerrar sesión
+        if (typeof clearCarteraAccessCache === 'function') {
+            clearCarteraAccessCache();
+        }
+        
         currentUser = null;
         isAuthenticated = false;
         hideUserInterface();
@@ -289,6 +299,11 @@ supabase.auth.onAuthStateChange((event, session) => {
             document.getElementById('app').style.display = 'block';
         }
         updateUserInterface();
+        
+        // Verificar acceso a cartera cuando el usuario inicia sesión
+        if (typeof toggleCarteraTab === 'function') {
+            setTimeout(() => toggleCarteraTab(), 100);
+        }
     }
 });
 

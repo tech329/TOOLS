@@ -234,6 +234,16 @@
             background-color: #eff6ff;
         }
         
+        /* Switch de Cartera - Botones grandes */
+        #switch-slider {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #btn-cobros:active,
+        #btn-general:active {
+            transform: scale(0.98);
+        }
+        
         .tab-content {
             display: none;
             flex: 1;
@@ -422,7 +432,10 @@
                 <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100" onclick="switchTab(3, 'Imprimibles', true)">
                     <i class="fas fa-print mr-3 text-red-600"></i>Imprimibles
                 </button>
-                <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors" onclick="switchTab(4, 'Autorización Exterior', true)">
+                <button id="mobile-cartera-tab" class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 hidden" onclick="switchTab(4, 'Cartera', true)">
+                    <i class="fas fa-wallet mr-3 text-indigo-600"></i>Cartera
+                </button>
+                <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors" onclick="switchTab(5, 'Autorización Exterior', true)">
                     <i class="fas fa-user-check mr-3 text-orange-600"></i>Autorización Exterior
                 </button>
             </div>
@@ -433,7 +446,8 @@
                 <button class="tab-button" onclick="switchTab(1, 'Herramientas de Consulta')">Herramientas de Consulta</button>
                 <button class="tab-button" onclick="switchTab(2, 'Documentación')">Documentación</button>
                 <button class="tab-button" onclick="switchTab(3, 'Imprimibles')">Imprimibles</button>
-                <button class="tab-button" onclick="switchTab(4, 'Autorización Exterior')">Autorización Exterior</button>
+                <button id="desktop-cartera-tab" class="tab-button hidden" onclick="switchTab(4, 'Cartera')">Cartera</button>
+                <button class="tab-button" onclick="switchTab(5, 'Autorización Exterior')">Autorización Exterior</button>
             </div>
         </div>
 
@@ -730,7 +744,7 @@
                         
                         <!-- Equifax Card -->
                         <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer group max-w-sm mx-auto w-full" 
-                             onclick="window.open('https://www.equifax.com.ec/sso-web/', '_blank')">
+                             onclick="window.open('https://interactivereports.equifax.com/ir/report', '_blank')">
                             <div class="aspect-video bg-gray-200 relative overflow-hidden">
                                 <img src="https://lh3.googleusercontent.com/d/1fVSs_tfen9B9XtDa1NzZErbUfNkgRXlw=w2048?name=Screenshot%202025-09-10%20165545.png" 
                                      alt="Equifax Buró de Crédito" 
@@ -1207,6 +1221,397 @@
             </div>
         </div>
 
+        <div id="tab4" class="tab-content hidden">
+            <div class="flex flex-col h-full bg-gray-50">
+                <div class="p-6 max-w-7xl mx-auto w-full">
+                    <!-- Loading State del Switch -->
+                    <div id="cartera-switch-loading" class="bg-gray-100 rounded-lg shadow-md mb-6 border border-gray-200 p-6">
+                        <div class="flex items-center justify-center gap-3">
+                            <i class="fas fa-spinner fa-spin text-2xl text-indigo-600"></i>
+                            <p class="text-gray-700 font-medium">Cargando cartera...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Switch de Vistas: Cobros Próximos / General -->
+                    <div id="cartera-switch-container" class="bg-gray-100 rounded-lg shadow-md mb-6 border border-gray-200 p-2 hidden">
+                        <div class="flex items-center justify-center">
+                            <div class="relative inline-flex bg-white rounded-lg p-1 shadow-inner w-full max-w-3xl">
+                                <!-- Background slider animado -->
+                                <div id="switch-slider" class="absolute top-1 left-1 h-[calc(100%-8px)] w-[calc(33.333%-4px)] bg-gradient-to-r from-red-500 to-red-600 rounded-md shadow-md transition-transform duration-300 ease-in-out"></div>
+                                
+                                <!-- Botón Atrasados -->
+                                <button 
+                                    id="btn-atrasados" 
+                                    onclick="setCarteraView('atrasados')"
+                                    class="relative z-10 flex-1 px-6 py-3 text-sm font-semibold rounded-md transition-all duration-300 text-white"
+                                >
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    Atrasados
+                                </button>
+                                
+                                <!-- Botón Cobros Próximos -->
+                                <button 
+                                    id="btn-cobros" 
+                                    onclick="setCarteraView('cobros')"
+                                    class="relative z-10 flex-1 px-6 py-3 text-sm font-medium rounded-md transition-all duration-300 text-gray-600 hover:text-gray-800"
+                                >
+                                    <i class="fas fa-calendar-check mr-2"></i>
+                                    Cobros Próximos
+                                </button>
+                                
+                                <!-- Botón General -->
+                                <button 
+                                    id="btn-general" 
+                                    onclick="setCarteraView('general')"
+                                    class="relative z-10 flex-1 px-6 py-3 text-sm font-medium rounded-md transition-all duration-300 text-gray-600 hover:text-gray-800"
+                                >
+                                    <i class="fas fa-th-list mr-2"></i>
+                                    General
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vista Atrasados -->
+                    <div id="cartera-view-atrasados" class="hidden">
+                        <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                            <!-- Header -->
+                            <div class="bg-gradient-to-r from-red-500 to-red-600 p-6">
+                                <h2 class="text-2xl font-bold text-white flex items-center">
+                                    <i class="fas fa-exclamation-triangle mr-3"></i>
+                                    Pagos Atrasados
+                                </h2>
+                                <p class="text-red-100 mt-2">Créditos con pagos vencidos y pendientes</p>
+                            </div>
+
+                            <!-- Stats -->
+                            <div class="p-6 bg-gray-50 border-b">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="bg-white p-4 rounded-lg shadow-sm border border-red-200">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm text-gray-600">Pagos Atrasados</p>
+                                                <p class="text-2xl font-bold text-red-600" id="atrasados-count">0</p>
+                                            </div>
+                                            <i class="fas fa-exclamation-circle text-3xl text-red-200"></i>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white p-4 rounded-lg shadow-sm border border-red-200">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm text-gray-600">Monto en Mora</p>
+                                                <p class="text-2xl font-bold text-red-600" id="atrasados-monto-total">$0</p>
+                                            </div>
+                                            <i class="fas fa-hand-holding-usd text-3xl text-red-200"></i>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white p-4 rounded-lg shadow-sm border border-red-200">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm text-gray-600">Usuario</p>
+                                                <p class="text-lg font-semibold text-gray-700" id="atrasados-user-email">-</p>
+                                            </div>
+                                            <i class="fas fa-user text-3xl text-gray-200"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Table -->
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-100 border-b-2 border-red-300">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                <i class="fas fa-calendar-times mr-1"></i>Fecha Vencida
+                                            </th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Días Retraso</th>
+                                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Acta</th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Socio</th>
+                                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Cédula</th>
+                                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Monto</th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Teléfono</th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asesor</th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="atrasados-table-body" class="bg-white divide-y divide-gray-200">
+                                        <!-- Loading state -->
+                                        <tr>
+                                            <td colspan="9" class="px-4 py-8 text-center">
+                                                <i class="fas fa-spinner fa-spin text-3xl text-red-600 mb-2"></i>
+                                                <p class="text-gray-600">Cargando pagos atrasados...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vista Cobros Próximos -->
+                    <div id="cartera-view-cobros" class="hidden">
+                        <!-- Tabla de Créditos Sin Fecha Asignada (arriba) -->
+                        <div id="sin-fecha-container" class="hidden mb-6">
+                            <div class="bg-white rounded-lg shadow-xl overflow-hidden border-l-4 border-yellow-500">
+                                <!-- Header -->
+                                <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 p-4">
+                                    <h3 class="text-lg font-bold text-white flex items-center">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                                        Créditos Pendientes de Configurar
+                                        <span id="sin-fecha-count" class="ml-2 bg-white text-yellow-700 px-3 py-1 rounded-full text-sm font-bold">0</span>
+                                    </h3>
+                                </div>
+
+                                <!-- Table -->
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-yellow-50 border-b-2 border-yellow-300">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Socio</th>
+                                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Cédula</th>
+                                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Monto</th>
+                                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="sin-fecha-table-body" class="bg-white divide-y divide-gray-200">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                            <!-- Header -->
+                            <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-6">
+                                <h2 class="text-2xl font-bold text-white flex items-center">
+                                    <i class="fas fa-calendar-check mr-3"></i>
+                                    Cobros Próximos (5 días)
+                                </h2>
+                                <p class="text-orange-100 mt-2">Créditos con día de pago en los próximos 5 días</p>
+                            </div>
+
+                            <!-- Stats -->
+                            <div class="p-6 bg-gray-50 border-b">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm text-gray-600">Cobros Pendientes</p>
+                                                <p class="text-2xl font-bold text-orange-600" id="cobros-pendientes-count">0</p>
+                                            </div>
+                                            <i class="fas fa-clock text-3xl text-orange-200"></i>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm text-gray-600">Monto a Cobrar</p>
+                                                <p class="text-2xl font-bold text-green-600" id="cobros-monto-total">$0</p>
+                                            </div>
+                                            <i class="fas fa-money-bill-wave text-3xl text-green-200"></i>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm text-gray-600">Usuario</p>
+                                                <p class="text-lg font-semibold text-gray-700" id="cobros-user-email">-</p>
+                                            </div>
+                                            <i class="fas fa-user text-3xl text-gray-200"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Table -->
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-100 border-b-2 border-gray-300">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                <i class="fas fa-calendar mr-1"></i>Día Pago
+                                            </th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Días Restantes</th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Socio</th>
+                                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Cédula</th>
+                                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Monto</th>
+                                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asesor</th>
+                                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cobros-table-body" class="bg-white divide-y divide-gray-200">
+                                        <!-- Loading state -->
+                                        <tr>
+                                            <td colspan="7" class="px-4 py-8 text-center">
+                                                <i class="fas fa-spinner fa-spin text-3xl text-orange-600 mb-2"></i>
+                                                <p class="text-gray-600">Cargando cobros próximos...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vista General -->
+                    <div id="cartera-view-general" class="hidden">
+                        <!-- Admin Dashboard (solo para contacto@tupakrantina.com) -->
+                    <div id="admin-dashboard" class="mb-6 hidden">
+                        <div class="bg-white rounded-lg shadow-xl overflow-hidden mb-6">
+                            <div class="bg-gradient-to-r from-purple-600 to-pink-600 p-6">
+                                <h2 class="text-2xl font-bold text-white flex items-center">
+                                    <i class="fas fa-chart-line mr-3"></i>
+                                    Dashboard Administrativo
+                                </h2>
+                                <p class="text-purple-100 mt-2">Estadísticas generales de cartera</p>
+                            </div>
+                            
+                            <div class="p-6">
+                                <!-- Métricas principales -->
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-5 rounded-xl shadow-lg text-white">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <i class="fas fa-file-invoice-dollar text-3xl opacity-80"></i>
+                                            <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">Total</span>
+                                        </div>
+                                        <p class="text-sm opacity-90">Total Créditos</p>
+                                        <p class="text-3xl font-bold" id="dashboard-total-creditos">0</p>
+                                    </div>
+                                    
+                                    <div class="bg-gradient-to-br from-green-500 to-green-600 p-5 rounded-xl shadow-lg text-white">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <i class="fas fa-dollar-sign text-3xl opacity-80"></i>
+                                            <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">Global</span>
+                                        </div>
+                                        <p class="text-sm opacity-90">Monto Total</p>
+                                        <p class="text-2xl font-bold" id="dashboard-monto-total">$0</p>
+                                    </div>
+                                    
+                                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 p-5 rounded-xl shadow-lg text-white">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <i class="fas fa-chart-bar text-3xl opacity-80"></i>
+                                            <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">Promedio</span>
+                                        </div>
+                                        <p class="text-sm opacity-90">Promedio Monto</p>
+                                        <p class="text-2xl font-bold" id="dashboard-promedio-monto">$0</p>
+                                    </div>
+                                    
+                                    <div class="bg-gradient-to-br from-orange-500 to-orange-600 p-5 rounded-xl shadow-lg text-white">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <i class="fas fa-users text-3xl opacity-80"></i>
+                                            <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">Activos</span>
+                                        </div>
+                                        <p class="text-sm opacity-90">Asesores</p>
+                                        <p class="text-3xl font-bold" id="dashboard-total-asesores">0</p>
+                                    </div>
+                                </div>
+
+                                <!-- Gráfico de barras - Montos por Asesor -->
+                                <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                                        <i class="fas fa-chart-column mr-2 text-indigo-600"></i>
+                                        Montos Aprobados por Asesor
+                                    </h3>
+                                    <div id="asesores-chart" class="space-y-3">
+                                        <!-- Chart items will be inserted here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gestión de Cartera -->
+                    <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                        <!-- Header -->
+                        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6">
+                            <h2 class="text-2xl font-bold text-white flex items-center">
+                                <i class="fas fa-wallet mr-3"></i>
+                                Gestión de Cartera
+                            </h2>
+                            <p class="text-indigo-100 mt-2">Cartera de créditos según tu perfil</p>
+                        </div>
+
+                        <!-- Filters & Stats -->
+                        <div class="p-6 bg-gray-50 border-b">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm text-gray-600">Total Créditos</p>
+                                            <p class="text-2xl font-bold text-indigo-600" id="total-creditos">0</p>
+                                        </div>
+                                        <i class="fas fa-file-invoice-dollar text-3xl text-indigo-200"></i>
+                                    </div>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm text-gray-600">Monto Total Aprobado</p>
+                                            <p class="text-2xl font-bold text-green-600" id="monto-total">$0</p>
+                                        </div>
+                                        <i class="fas fa-dollar-sign text-3xl text-green-200"></i>
+                                    </div>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm text-gray-600">Usuario Actual</p>
+                                            <p class="text-lg font-semibold text-gray-700" id="current-user-email">Cargando...</p>
+                                        </div>
+                                        <i class="fas fa-user text-3xl text-gray-200"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Search -->
+                            <div class="flex flex-col md:flex-row gap-4">
+                                <div class="flex-1">
+                                    <input type="text" id="search-creditos" placeholder="Buscar en cartera: nombre, cédula, acta..." 
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                </div>
+                                <button onclick="loadCreditos()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors flex items-center justify-center">
+                                    <i class="fas fa-sync-alt mr-2"></i>
+                                    Actualizar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-100 border-b-2 border-gray-300">
+                                    <tr>
+                                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Acta</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Socio</th>
+                                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Cédula</th>
+                                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Monto</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Interés</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Plazo</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asesor</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Fecha</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="creditos-table-body" class="bg-white divide-y divide-gray-200">
+                                    <!-- Loading state -->
+                                    <tr>
+                                        <td colspan="9" class="px-4 py-8 text-center">
+                                            <i class="fas fa-spinner fa-spin text-3xl text-indigo-600 mb-2"></i>
+                                            <p class="text-gray-600">Cargando créditos...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Fin Vista General -->
+        </div>
+    </div>
+</div>
+
         <div id="tab5" class="tab-content hidden">
             <div class="flex flex-col h-full bg-gray-50">
                 <div class="p-6">
@@ -1301,12 +1706,29 @@
             // Actualizar título en móvil y cerrar menú
             if (currentTabTitle) {
                 // Definir títulos según el índice
-                const titles = ['Calculadora', 'Herramientas de Consulta', 'Documentación', 'Imprimibles', 'Autorización Exterior'];
+                const titles = ['Calculadora', 'Herramientas de Consulta', 'Documentación', 'Imprimibles', 'Cartera', 'Autorización Exterior'];
                 currentTabTitle.textContent = tabTitle || titles[tabIndex];
             }
             // Siempre cerrar menú móvil al seleccionar una opción
             if (window.innerWidth < 768 && mobileMenu) {
                 mobileMenu.classList.add('hidden');
+            }
+
+            // Load creditos when switching to creditos tab (index 4)
+            if (tabIndex === 4) {
+                setTimeout(() => {
+                    // Cargar vista general si no se ha cargado
+                    if (typeof loadCreditos === 'function' && !window.creditosLoaded) {
+                        loadCreditos();
+                        window.creditosLoaded = true;
+                    }
+                    
+                    // Verificar atrasados y ajustar switch (solo la primera vez)
+                    if (typeof checkAndAdjustCarteraSwitch === 'function' && !window.carteraSwitchAdjusted) {
+                        checkAndAdjustCarteraSwitch();
+                        window.carteraSwitchAdjusted = true;
+                    }
+                }, 100);
             }
         }
 
@@ -2013,8 +2435,1680 @@
                 fontCache: 'global'
             }
         };
+
+        // ===== GESTIÓN DE CARTERA =====
+        let creditosData = [];
+        let carteraDataCache = null; // Cache para todos los créditos
+        let filteredCreditos = [];
+        let hasCarteraAccess = false;
+        let currentCarteraView = 'cobros'; // 'atrasados', 'cobros' o 'general' (por defecto: cobros)
+        let hasAtrasados = false; // Flag para saber si hay créditos atrasados
+
+        // Función para verificar si hay atrasados y ajustar el switch
+        async function checkAndAdjustCarteraSwitch() {
+            try {
+                const carteraData = await loadAllCarteraData();
+                
+                // Contar créditos atrasados
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                
+                const atrasadosCount = (carteraData.data || []).filter(credito => {
+                    const mesAnioPrimerPago = getMesAnioPrimerPago(credito);
+                    if (!credito.dia_pago || !mesAnioPrimerPago) return false;
+                    
+                    const cuotaPagada = parseInt(credito.cuota_pagada) || 0;
+                    const plazo = parseInt(credito.plazo) || 0;
+                    
+                    if (plazo > 0 && cuotaPagada >= plazo) return false;
+                    
+                    const diasRestantes = diasHastaFecha(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
+                    return diasRestantes !== null && diasRestantes < 0;
+                }).length;
+                
+                hasAtrasados = atrasadosCount > 0;
+                
+                // Ajustar UI del switch
+                const btnAtrasados = document.getElementById('btn-atrasados');
+                const btnCobros = document.getElementById('btn-cobros');
+                const btnGeneral = document.getElementById('btn-general');
+                const slider = document.getElementById('switch-slider');
+                
+                // Ocultar loading y mostrar switch primero
+                const loadingElement = document.getElementById('cartera-switch-loading');
+                const switchContainer = document.getElementById('cartera-switch-container');
+                
+                if (loadingElement) loadingElement.classList.add('hidden');
+                if (switchContainer) switchContainer.classList.remove('hidden');
+                
+                if (!hasAtrasados) {
+                    // Ocultar botón de atrasados
+                    if (btnAtrasados) btnAtrasados.classList.add('hidden');
+                    
+                    // Ajustar ancho del slider para 2 botones (50%)
+                    if (slider) {
+                        slider.style.width = 'calc(50% - 4px)';
+                    }
+                    
+                    // Cargar vista de cobros por defecto
+                    currentCarteraView = 'cobros';
+                    setCarteraView('cobros');
+                } else {
+                    // Mostrar botón de atrasados
+                    if (btnAtrasados) btnAtrasados.classList.remove('hidden');
+                    
+                    // Ajustar ancho del slider para 3 botones (33.333%)
+                    if (slider) {
+                        slider.style.width = 'calc(33.333% - 4px)';
+                    }
+                    
+                    // Cargar vista de atrasados por defecto
+                    currentCarteraView = 'atrasados';
+                    setCarteraView('atrasados');
+                }
+                
+            } catch (error) {
+                console.error('Error al verificar atrasados:', error);
+                
+                // En caso de error, mostrar switch con mensaje de error
+                const loadingElement = document.getElementById('cartera-switch-loading');
+                if (loadingElement) {
+                    loadingElement.innerHTML = `
+                        <div class="flex items-center justify-center gap-3">
+                            <i class="fas fa-exclamation-triangle text-2xl text-red-600"></i>
+                            <p class="text-red-600 font-medium">Error al cargar cartera</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Función para cambiar entre vistas de cartera
+        function setCarteraView(view) {
+            const generalView = document.getElementById('cartera-view-general');
+            const cobrosView = document.getElementById('cartera-view-cobros');
+            const atrasadosView = document.getElementById('cartera-view-atrasados');
+            const btnGeneral = document.getElementById('btn-general');
+            const btnCobros = document.getElementById('btn-cobros');
+            const btnAtrasados = document.getElementById('btn-atrasados');
+            const slider = document.getElementById('switch-slider');
+            
+            currentCarteraView = view;
+            
+            // Ocultar todas las vistas
+            generalView.classList.add('hidden');
+            cobrosView.classList.add('hidden');
+            atrasadosView.classList.add('hidden');
+            
+            // Reset estilos de todos los botones
+            [btnAtrasados, btnCobros, btnGeneral].forEach(btn => {
+                btn.classList.remove('text-white', 'font-semibold');
+                btn.classList.add('text-gray-600', 'font-medium', 'hover:text-gray-800');
+            });
+            
+            if (view === 'atrasados') {
+                // Mostrar vista Atrasados
+                atrasadosView.classList.remove('hidden');
+                
+                // Mover slider a la izquierda (posición 1)
+                slider.style.transform = 'translateX(0)';
+                slider.className = 'absolute top-1 left-1 h-[calc(100%-8px)] w-[calc(33.333%-4px)] bg-gradient-to-r from-red-500 to-red-600 rounded-md shadow-md transition-transform duration-300 ease-in-out';
+                
+                // Actualizar botón activo
+                btnAtrasados.classList.remove('text-gray-600', 'font-medium', 'hover:text-gray-800');
+                btnAtrasados.classList.add('text-white', 'font-semibold');
+                
+                // Cargar atrasados cuando se cambia a esta vista
+                if (!window.atrasadosLoaded) {
+                    loadAtrasados();
+                    window.atrasadosLoaded = true;
+                }
+                
+            } else if (view === 'cobros') {
+                // Mostrar vista Cobros Próximos
+                cobrosView.classList.remove('hidden');
+                
+                // Posición del slider depende si hay atrasados o no
+                if (hasAtrasados) {
+                    // Con 3 botones: cobros está en el centro
+                    slider.style.transform = 'translateX(calc(100% + 4px))';
+                    slider.style.width = 'calc(33.333% - 4px)';
+                } else {
+                    // Con 2 botones: cobros está a la izquierda
+                    slider.style.transform = 'translateX(0)';
+                    slider.style.width = 'calc(50% - 4px)';
+                }
+                slider.className = 'absolute top-1 left-1 h-[calc(100%-8px)] bg-gradient-to-r from-orange-500 to-orange-600 rounded-md shadow-md transition-transform duration-300 ease-in-out';
+                
+                // Actualizar botón activo
+                btnCobros.classList.remove('text-gray-600', 'font-medium', 'hover:text-gray-800');
+                btnCobros.classList.add('text-white', 'font-semibold');
+                
+                // Cargar cobros próximos cuando se cambia a esta vista
+                if (!window.cobrosProximosLoaded) {
+                    loadCobrosProximos();
+                    window.cobrosProximosLoaded = true;
+                }
+                
+            } else if (view === 'general') {
+                // Mostrar vista General
+                generalView.classList.remove('hidden');
+                
+                // Posición del slider depende si hay atrasados o no
+                if (hasAtrasados) {
+                    // Con 3 botones: general está a la derecha
+                    slider.style.transform = 'translateX(calc(200% + 8px))';
+                    slider.style.width = 'calc(33.333% - 4px)';
+                } else {
+                    // Con 2 botones: general está a la derecha
+                    slider.style.transform = 'translateX(calc(100% + 4px))';
+                    slider.style.width = 'calc(50% - 4px)';
+                }
+                slider.className = 'absolute top-1 left-1 h-[calc(100%-8px)] bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-md shadow-md transition-transform duration-300 ease-in-out';
+                
+                // Actualizar botón activo
+                btnGeneral.classList.remove('text-gray-600', 'font-medium', 'hover:text-gray-800');
+                btnGeneral.classList.add('text-white', 'font-semibold');
+            }
+        }
+
+        // Función para calcular días restantes hasta una fecha
+        function diasHastaFecha(diaPago, mesAnioPrimerPago, cuotaPagada = 0) {
+            if (!diaPago || !mesAnioPrimerPago) return null;
+            
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            
+            try {
+                // Parsear mes/año_primer_pago (formato esperado: "10/2025" o "MM/YYYY")
+                const partes = mesAnioPrimerPago.split('/');
+                if (partes.length !== 2) return null;
+                
+                const mesPrimerPago = parseInt(partes[0]); // 1-12
+                const anioPrimerPago = parseInt(partes[1]); // ej: 2025
+                
+                if (isNaN(mesPrimerPago) || isNaN(anioPrimerPago)) return null;
+                if (mesPrimerPago < 1 || mesPrimerPago > 12) return null;
+                
+                // Crear fecha del primer pago
+                const primerPago = new Date(anioPrimerPago, mesPrimerPago - 1, parseInt(diaPago));
+                primerPago.setHours(0, 0, 0, 0);
+                
+                // Calcular fecha del próximo pago sumando las cuotas pagadas
+                const proximoPago = new Date(primerPago);
+                proximoPago.setMonth(primerPago.getMonth() + cuotaPagada);
+                
+                // Calcular diferencia en días (puede ser negativa si ya pasó)
+                const diferencia = Math.ceil((proximoPago - hoy) / (1000 * 60 * 60 * 24));
+                return diferencia;
+                
+            } catch (error) {
+                console.error('Error al calcular días hasta fecha:', error);
+                return null;
+            }
+        }
+        
+        // Función helper para obtener el valor de mes/año_primer_pago 
+        // (maneja diferentes formas en que puede venir de la BD)
+        function getMesAnioPrimerPago(credito) {
+            // Intentar diferentes variantes del nombre de columna
+            return credito['mes/año_primer_pago'] || 
+                   credito['mes / año_primer_pago'] ||
+                   credito.mes_año_primer_pago ||
+                   null;
+        }
+        
+        // Función para formatear la fecha del primer pago para mostrar
+        function formatearPrimerPago(mesAnioPrimerPago, diaPago) {
+            if (!mesAnioPrimerPago || !diaPago) return 'N/A';
+            
+            try {
+                const partes = mesAnioPrimerPago.split('/');
+                if (partes.length !== 2) return mesAnioPrimerPago;
+                
+                const mes = parseInt(partes[0]);
+                const anio = parseInt(partes[1]);
+                
+                if (isNaN(mes) || isNaN(anio)) return mesAnioPrimerPago;
+                
+                const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                const nombreMes = meses[mes - 1] || mes;
+                
+                return `${diaPago}/${nombreMes}/${anio}`;
+            } catch (error) {
+                return mesAnioPrimerPago;
+            }
+        }
+
+        // Función para obtener badge de urgencia según días restantes
+        function getUrgenciaBadge(diasRestantes) {
+            if (diasRestantes === 0) {
+                return '<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-600 text-white animate-pulse">¡HOY!</span>';
+            } else if (diasRestantes === 1) {
+                return '<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-500 text-white">Mañana</span>';
+            } else if (diasRestantes <= 2) {
+                return '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-orange-500 text-white">' + diasRestantes + ' días</span>';
+            } else {
+                return '<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-500 text-white">' + diasRestantes + ' días</span>';
+            }
+        }
+
+        // Función centralizada para cargar todos los créditos (una sola vez)
+        async function loadAllCarteraData(forceReload = false) {
+            // Si ya tenemos datos en cache y no forzamos recarga, retornar cache
+            if (carteraDataCache && !forceReload) {
+                return carteraDataCache;
+            }
+
+            try {
+                // Get current user
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                
+                if (userError || !user) {
+                    throw new Error('No se pudo obtener el usuario actual');
+                }
+
+                const userEmail = user.email;
+
+                // Query créditos based on user email
+                let query = supabase
+                    .from('actas_creditos_tupakra')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                // If user is NOT contacto@tupakrantina.com, filter by correo_asesor
+                const isAdmin = userEmail === 'contacto@tupakrantina.com';
+                if (!isAdmin) {
+                    query = query.eq('correo_asesor', userEmail);
+                }
+
+                const { data, error } = await query;
+
+                if (error) {
+                    throw error;
+                }
+
+                // Guardar en cache
+                carteraDataCache = {
+                    data: data || [],
+                    userEmail: userEmail,
+                    isAdmin: isAdmin,
+                    timestamp: Date.now()
+                };
+
+                return carteraDataCache;
+
+            } catch (error) {
+                console.error('Error al cargar datos de cartera:', error);
+                throw error;
+            }
+        }
+
+        // Función para cargar pagos atrasados
+        async function loadAtrasados() {
+            try {
+                const tableBody = document.getElementById('atrasados-table-body');
+                const userEmailElement = document.getElementById('atrasados-user-email');
+                
+                // Show loading state
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="px-4 py-8 text-center">
+                            <i class="fas fa-spinner fa-spin text-3xl text-red-600 mb-2"></i>
+                            <p class="text-gray-600">Cargando pagos atrasados...</p>
+                        </td>
+                    </tr>
+                `;
+
+                // Cargar todos los datos (usa cache si ya se cargó)
+                const carteraData = await loadAllCarteraData();
+                
+                if (userEmailElement) {
+                    userEmailElement.textContent = carteraData.userEmail;
+                }
+
+                // Filtrar solo los que tienen pagos atrasados (días negativos)
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                
+                const atrasados = (carteraData.data || []).filter(credito => {
+                    const mesAnioPrimerPago = getMesAnioPrimerPago(credito);
+                    if (!credito.dia_pago || !mesAnioPrimerPago) return false;
+                    
+                    const cuotaPagada = parseInt(credito.cuota_pagada) || 0;
+                    const plazo = parseInt(credito.plazo) || 0;
+                    
+                    // No mostrar si ya completó todas las cuotas
+                    if (plazo > 0 && cuotaPagada >= plazo) return false;
+                    
+                    const diasRestantes = diasHastaFecha(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
+                    
+                    // Solo mostrar si tiene días negativos (ya pasó la fecha)
+                    return diasRestantes !== null && diasRestantes < 0;
+                });
+
+                // Ordenar por días de retraso (más atrasados primero)
+                atrasados.sort((a, b) => {
+                    const cuotaPagadaA = parseInt(a.cuota_pagada) || 0;
+                    const cuotaPagadaB = parseInt(b.cuota_pagada) || 0;
+                    const mesAnioA = getMesAnioPrimerPago(a);
+                    const mesAnioB = getMesAnioPrimerPago(b);
+                    const diasA = diasHastaFecha(a.dia_pago, mesAnioA, cuotaPagadaA);
+                    const diasB = diasHastaFecha(b.dia_pago, mesAnioB, cuotaPagadaB);
+                    return diasA - diasB; // Más negativos primero
+                });
+
+                // Update stats
+                updateAtrasadosStats(atrasados);
+                
+                // Render table
+                renderAtrasadosTable(atrasados);
+
+                // Show success message
+                if (window.TupakAuth && window.TupakAuth.showToast) {
+                    window.TupakAuth.showToast(`${atrasados.length} pagos atrasados cargados`, 'info');
+                }
+
+            } catch (error) {
+                console.error('Error al cargar pagos atrasados:', error);
+                const tableBody = document.getElementById('atrasados-table-body');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="px-4 py-8 text-center">
+                            <i class="fas fa-exclamation-triangle text-3xl text-red-600 mb-2"></i>
+                            <p class="text-red-600">Error al cargar pagos atrasados</p>
+                            <p class="text-gray-600 text-sm">${error.message}</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Función para actualizar estadísticas de atrasados
+        function updateAtrasadosStats(atrasados) {
+            const countElement = document.getElementById('atrasados-count');
+            const montoElement = document.getElementById('atrasados-monto-total');
+            
+            if (countElement) {
+                countElement.textContent = atrasados.length;
+            }
+            
+            if (montoElement) {
+                const montoTotal = atrasados.reduce((sum, credito) => {
+                    return sum + (parseFloat(credito.monto_aprobado) || 0);
+                }, 0);
+                
+                montoElement.textContent = '$' + montoTotal.toLocaleString('es-ES', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+        }
+
+        // Función para renderizar tabla de atrasados
+        function renderAtrasadosTable(atrasados) {
+            const tableBody = document.getElementById('atrasados-table-body');
+            
+            if (atrasados.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="px-4 py-8 text-center">
+                            <i class="fas fa-check-circle text-4xl text-green-400 mb-3"></i>
+                            <p class="text-gray-600 font-semibold">¡No hay pagos atrasados!</p>
+                            <p class="text-gray-500 text-sm">Todos los pagos están al día</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const rows = atrasados.map(credito => {
+                const cuotaPagada = parseInt(credito.cuota_pagada) || 0;
+                const mesAnioPrimerPago = getMesAnioPrimerPago(credito);
+                const diasRestantes = diasHastaFecha(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
+                const diasRetraso = Math.abs(diasRestantes); // Convertir a positivo para mostrar
+                const fechaVencida = calcularFechaVencida(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
+                const montoFormateado = parseFloat(credito.monto_aprobado || 0).toLocaleString('es-ES', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                
+                // Badge de retraso según gravedad
+                let retrasoBadge;
+                if (diasRetraso >= 30) {
+                    retrasoBadge = `<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-700 text-white animate-pulse">${diasRetraso} días</span>`;
+                } else if (diasRetraso >= 15) {
+                    retrasoBadge = `<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-600 text-white">${diasRetraso} días</span>`;
+                } else if (diasRetraso >= 7) {
+                    retrasoBadge = `<span class="px-2 py-1 text-xs font-semibold rounded-full bg-orange-600 text-white">${diasRetraso} días</span>`;
+                } else {
+                    retrasoBadge = `<span class="px-2 py-1 text-xs font-medium rounded-full bg-orange-500 text-white">${diasRetraso} días</span>`;
+                }
+                
+                // Determinar color de fila según gravedad
+                let rowClass = 'hover:bg-gray-50';
+                if (diasRetraso >= 30) {
+                    rowClass = 'bg-red-100 hover:bg-red-200';
+                } else if (diasRetraso >= 15) {
+                    rowClass = 'bg-red-50 hover:bg-red-100';
+                } else if (diasRetraso >= 7) {
+                    rowClass = 'bg-orange-50 hover:bg-orange-100';
+                }
+                
+                return `
+                    <tr class="${rowClass} transition-colors">
+                        <td class="px-4 py-3 text-sm font-bold text-gray-900">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-calendar-times text-red-600"></i>
+                                <span>${fechaVencida}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-sm">
+                            ${retrasoBadge}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-900 font-medium text-right">${credito.acta || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${credito.nombre_socio || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700 text-right">${credito.cedula_socio || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900 font-semibold text-right">$${montoFormateado}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">
+                            <a href="tel:${credito.telefono_socio}" class="text-blue-600 hover:text-blue-800 hover:underline">
+                                <i class="fas fa-phone mr-1"></i>${credito.telefono_socio || 'N/A'}
+                            </a>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-xs" title="${credito.asesor_credito || 'N/A'}">${credito.asesor_credito || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm">
+                            <div class="flex gap-2 flex-wrap">
+                                <button onclick="enviarNotificacionWhatsApp(${JSON.stringify(credito).replace(/"/g, '&quot;')})" 
+                                        ${!canSendNotifications() ? 'disabled' : ''}
+                                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm inline-flex items-center ${!canSendNotifications() ? 'opacity-50 cursor-not-allowed' : ''}">
+                                    <i class="fab fa-whatsapp mr-1"></i>
+                                    Notificar
+                                </button>
+                                <button onclick="viewCreditoDetails(${credito.id})" 
+                                        class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded text-xs font-medium transition-colors">
+                                    <i class="fas fa-eye mr-1"></i>
+                                    Ver
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            tableBody.innerHTML = rows;
+        }
+
+        // Función para calcular la fecha vencida
+        function calcularFechaVencida(diaPago, mesAnioPrimerPago, cuotaPagada = 0) {
+            if (!diaPago || !mesAnioPrimerPago) return 'N/A';
+            
+            try {
+                const partes = mesAnioPrimerPago.split('/');
+                if (partes.length !== 2) return 'N/A';
+                
+                const mesPrimerPago = parseInt(partes[0]);
+                const anioPrimerPago = parseInt(partes[1]);
+                
+                if (isNaN(mesPrimerPago) || isNaN(anioPrimerPago)) return 'N/A';
+                
+                // Crear fecha del primer pago
+                const primerPago = new Date(anioPrimerPago, mesPrimerPago - 1, parseInt(diaPago));
+                
+                // Sumar cuotas pagadas
+                const fechaVencida = new Date(primerPago);
+                fechaVencida.setMonth(primerPago.getMonth() + cuotaPagada);
+                
+                const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                const dia = fechaVencida.getDate();
+                const mes = meses[fechaVencida.getMonth()];
+                const anio = fechaVencida.getFullYear();
+                
+                return `${dia}/${mes}/${anio}`;
+            } catch (error) {
+                return 'N/A';
+            }
+        }
+
+        // Función para cargar cobros próximos (próximos 5 días)
+        async function loadCobrosProximos() {
+            try {
+                const tableBody = document.getElementById('cobros-table-body');
+                const userEmailElement = document.getElementById('cobros-user-email');
+                
+                // Show loading state
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="px-4 py-8 text-center">
+                            <i class="fas fa-spinner fa-spin text-3xl text-orange-600 mb-2"></i>
+                            <p class="text-gray-600">Cargando cobros próximos...</p>
+                        </td>
+                    </tr>
+                `;
+
+                // Cargar todos los datos (usa cache si ya se cargó)
+                const carteraData = await loadAllCarteraData();
+                
+                if (userEmailElement) {
+                    userEmailElement.textContent = carteraData.userEmail;
+                }
+
+                // Separar créditos con fecha y sin fecha
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                
+                const cobrosProximos = [];
+                const sinFechaAsignada = [];
+                
+                (carteraData.data || []).forEach(credito => {
+                    const mesAnioPrimerPago = getMesAnioPrimerPago(credito);
+                    const cuotaPagada = parseInt(credito.cuota_pagada) || 0;
+                    const plazo = parseInt(credito.plazo) || 0;
+                    
+                    // Verificar si ya completó todas las cuotas
+                    if (plazo > 0 && cuotaPagada >= plazo) return;
+                    
+                    // Si no tiene fecha asignada, agregar a lista de sin fecha
+                    if (!credito.dia_pago || !mesAnioPrimerPago) {
+                        sinFechaAsignada.push(credito);
+                        return;
+                    }
+                    
+                    // Si tiene fecha, verificar si está en los próximos 5 días
+                    const diasRestantes = diasHastaFecha(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
+                    
+                    if (diasRestantes !== null && diasRestantes >= 0 && diasRestantes <= 5) {
+                        cobrosProximos.push(credito);
+                    }
+                });
+
+                // Ordenar cobros próximos por días restantes (más urgente primero)
+                cobrosProximos.sort((a, b) => {
+                    const cuotaPagadaA = parseInt(a.cuota_pagada) || 0;
+                    const cuotaPagadaB = parseInt(b.cuota_pagada) || 0;
+                    const mesAnioA = getMesAnioPrimerPago(a);
+                    const mesAnioB = getMesAnioPrimerPago(b);
+                    const diasA = diasHastaFecha(a.dia_pago, mesAnioA, cuotaPagadaA);
+                    const diasB = diasHastaFecha(b.dia_pago, mesAnioB, cuotaPagadaB);
+                    return diasA - diasB;
+                });
+
+                // Update stats
+                updateCobrosProximosStats(cobrosProximos);
+                
+                // Render tablas
+                renderSinFechaTable(sinFechaAsignada);
+                renderCobrosProximosTable(cobrosProximos);
+
+                // Show success message
+                if (window.TupakAuth && window.TupakAuth.showToast) {
+                    window.TupakAuth.showToast(
+                        `${cobrosProximos.length} cobro(s) próximo(s) encontrado(s)`, 
+                        'success'
+                    );
+                }
+
+            } catch (error) {
+                console.error('Error al cargar cobros próximos:', error);
+                const tableBody = document.getElementById('cobros-table-body');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="px-4 py-8 text-center">
+                            <i class="fas fa-exclamation-triangle text-3xl text-red-600 mb-2"></i>
+                            <p class="text-red-600 font-semibold">Error al cargar cobros próximos</p>
+                            <p class="text-gray-600 text-sm">${error.message}</p>
+                        </td>
+                    </tr>
+                `;
+                
+                if (window.TupakAuth && window.TupakAuth.showToast) {
+                    window.TupakAuth.showToast('Error al cargar cobros próximos: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Función para actualizar estadísticas de cobros próximos
+        function updateCobrosProximosStats(cobros) {
+            const totalCobros = cobros.length;
+            const montoTotal = cobros.reduce((sum, credito) => {
+                const monto = parseFloat(credito.monto_aprobado) || 0;
+                return sum + monto;
+            }, 0);
+
+            document.getElementById('cobros-pendientes-count').textContent = totalCobros;
+            document.getElementById('cobros-monto-total').textContent = '$' + montoTotal.toLocaleString('es-ES', { 
+                minimumFractionDigits: 2, 
+                maximumFractionDigits: 2 
+            });
+        }
+
+        // Función para renderizar tabla de créditos sin fecha
+        function renderSinFechaTable(sinFechaAsignada) {
+            const container = document.getElementById('sin-fecha-container');
+            const tableBody = document.getElementById('sin-fecha-table-body');
+            const countElement = document.getElementById('sin-fecha-count');
+            
+            if (sinFechaAsignada.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+            
+            container.classList.remove('hidden');
+            if (countElement) {
+                countElement.textContent = sinFechaAsignada.length;
+            }
+            
+            const rows = sinFechaAsignada.map(credito => {
+                const montoFormateado = parseFloat(credito.monto_aprobado || 0).toLocaleString('es-ES', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                
+                const numeroCreditoUrl = credito.acta ? 
+                    `https://cajatupakrantina.webcoopec.com/view/${credito.acta}` : '#';
+                
+                return `
+                    <tr class="bg-yellow-50 hover:bg-yellow-100 transition-colors">
+                        <td class="px-4 py-3 text-sm text-gray-900 font-medium">${credito.nombre_socio || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700 text-right">${credito.cedula_socio || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900 font-bold text-right">$${montoFormateado}</td>
+                        <td class="px-4 py-3 text-sm text-center">
+                            <div class="flex gap-2 justify-center">
+                                <button onclick="openAsignarFechaModal(${credito.id})" 
+                                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-md text-xs font-bold transition-colors shadow-sm">
+                                    <i class="fas fa-calendar-plus mr-1"></i>
+                                    Asignar Fecha
+                                </button>
+                                <a href="${numeroCreditoUrl}" 
+                                   target="_blank"
+                                   class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md text-xs font-bold transition-colors shadow-sm inline-flex items-center">
+                                    <i class="fas fa-table mr-1"></i>
+                                    Ver Tabla
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tableBody.innerHTML = rows;
+        }
+
+        // Función para renderizar tabla de cobros próximos
+        function renderCobrosProximosTable(cobros) {
+            const tableBody = document.getElementById('cobros-table-body');
+            
+            if (cobros.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-4 py-8 text-center">
+                            <i class="fas fa-check-circle text-4xl text-green-400 mb-3"></i>
+                            <p class="text-gray-600 font-semibold">¡No hay cobros próximos!</p>
+                            <p class="text-gray-500 text-sm">No hay créditos con fecha de pago en los próximos 5 días</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let rows = cobros.map(credito => {
+                const cuotaPagada = parseInt(credito.cuota_pagada) || 0;
+                const mesAnioPrimerPago = getMesAnioPrimerPago(credito);
+                const diasRestantes = diasHastaFecha(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
+                const urgenciaBadge = getUrgenciaBadge(diasRestantes);
+                const primerPagoFormateado = formatearPrimerPago(mesAnioPrimerPago, credito.dia_pago);
+                const montoFormateado = parseFloat(credito.monto_aprobado || 0).toLocaleString('es-ES', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                
+                const numeroCreditoUrl = credito.acta ? 
+                    `https://cajatupakrantina.webcoopec.com/view/${credito.acta}` : '#';
+                
+                // Determinar color de fila según urgencia
+                let rowClass = 'hover:bg-gray-50';
+                if (diasRestantes === 0) {
+                    rowClass = 'bg-red-50 hover:bg-red-100';
+                } else if (diasRestantes === 1) {
+                    rowClass = 'bg-orange-50 hover:bg-orange-100';
+                } else if (diasRestantes <= 2) {
+                    rowClass = 'bg-yellow-50 hover:bg-yellow-100';
+                }
+                
+                return `
+                    <tr class="${rowClass} transition-colors">
+                        <td class="px-4 py-3 text-sm font-bold text-gray-900">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-calendar-day text-orange-600"></i>
+                                <span>Día ${credito.dia_pago}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-sm">
+                            ${urgenciaBadge}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${credito.nombre_socio || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700 text-right">${credito.cedula_socio || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900 font-semibold text-right">$${montoFormateado}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-xs" title="${credito.asesor_credito || 'N/A'}">${credito.asesor_credito || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm">
+                            <div class="flex gap-2 justify-center flex-wrap">
+                                <button onclick="enviarNotificacionWhatsApp(${JSON.stringify(credito).replace(/"/g, '&quot;')})" 
+                                        ${!canSendNotifications() || diasRestantes > 3 ? 'disabled' : ''}
+                                        class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm inline-flex items-center ${!canSendNotifications() || diasRestantes > 3 ? 'opacity-50 cursor-not-allowed' : ''}"
+                                        title="${diasRestantes > 3 ? 'Solo se puede notificar cuando falten 3 días o menos' : 'Enviar recordatorio por WhatsApp'}">
+                                    <i class="fab fa-whatsapp mr-1"></i>
+                                    Notificar
+                                </button>
+                                <a href="tel:${credito.telefono_socio}" 
+                                   class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm inline-flex items-center">
+                                    <i class="fas fa-phone mr-1"></i>
+                                    Llamar
+                                </a>
+                                <a href="${numeroCreditoUrl}" 
+                                   target="_blank"
+                                   class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm inline-flex items-center">
+                                    <i class="fas fa-table mr-1"></i>
+                                    Ver Tabla
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            tableBody.innerHTML = rows;
+        }
+
+        // Constantes para el caché
+        const CARTERA_CACHE_KEY = 'tupak_cartera_access';
+        const CARTERA_CACHE_EMAIL_KEY = 'tupak_cartera_email';
+        const CARTERA_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
+
+        // Variables globales para notificaciones
+        let userNotificationConfig = {
+            user: null,
+            apikey: null,
+            instance: null,
+            active: false,
+            correo: null
+        };
+
+        // ===== FUNCIONES DE UI PARA NOTIFICACIONES =====
+        
+        // Mostrar loader de notificación
+        function showNotificationLoader(title = 'Enviando notificación...', message = 'Por favor espera mientras se envía el mensaje por WhatsApp') {
+            const loader = document.getElementById('notification-loader');
+            const titleEl = document.getElementById('notification-loader-title');
+            const messageEl = document.getElementById('notification-loader-message');
+            
+            if (titleEl) titleEl.textContent = title;
+            if (messageEl) messageEl.textContent = message;
+            if (loader) loader.classList.remove('hidden');
+        }
+        
+        // Ocultar loader de notificación
+        function hideNotificationLoader() {
+            const loader = document.getElementById('notification-loader');
+            if (loader) loader.classList.add('hidden');
+        }
+        
+        // Mostrar toast personalizado
+        function showCustomToast(message, type = 'info', duration = 4000) {
+            const container = document.getElementById('custom-toast-container');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            const icons = {
+                success: '<i class="fas fa-check-circle text-green-500 text-xl"></i>',
+                error: '<i class="fas fa-times-circle text-red-500 text-xl"></i>',
+                warning: '<i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>',
+                info: '<i class="fas fa-info-circle text-blue-500 text-xl"></i>'
+            };
+            
+            const colors = {
+                success: 'bg-green-50 border-green-200',
+                error: 'bg-red-50 border-red-200',
+                warning: 'bg-yellow-50 border-yellow-200',
+                info: 'bg-blue-50 border-blue-200'
+            };
+            
+            toast.className = `${colors[type]} border-l-4 rounded-lg shadow-lg p-4 flex items-start gap-3 max-w-md animate-slideIn`;
+            toast.innerHTML = `
+                ${icons[type]}
+                <div class="flex-1">
+                    <p class="text-gray-800 font-medium">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.style.transition = 'all 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+        
+        // Agregar estilos para animación
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            .animate-slideIn {
+                animation: slideIn 0.3s ease-out;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Función para obtener el caché de acceso a cartera
+        function getCarteraAccessCache(userEmail) {
+            try {
+                const cachedAccess = localStorage.getItem(CARTERA_CACHE_KEY);
+                const cachedEmail = localStorage.getItem(CARTERA_CACHE_EMAIL_KEY);
+                const cacheTimestamp = localStorage.getItem(CARTERA_CACHE_KEY + '_timestamp');
+
+                // Verificar si el caché es válido
+                if (cachedAccess !== null && cachedEmail === userEmail && cacheTimestamp) {
+                    const cacheAge = Date.now() - parseInt(cacheTimestamp);
+                    if (cacheAge < CARTERA_CACHE_DURATION) {
+                        return cachedAccess === 'true';
+                    }
+                }
+
+                return null; // No hay caché válido
+
+            } catch (error) {
+                console.error('Error al leer caché de cartera:', error);
+                return null;
+            }
+        }
+
+        // Función para guardar el caché de acceso a cartera
+        function setCarteraAccessCache(userEmail, hasAccess) {
+            try {
+                localStorage.setItem(CARTERA_CACHE_KEY, hasAccess.toString());
+                localStorage.setItem(CARTERA_CACHE_EMAIL_KEY, userEmail);
+                localStorage.setItem(CARTERA_CACHE_KEY + '_timestamp', Date.now().toString());
+            } catch (error) {
+                console.error('Error al guardar caché de cartera:', error);
+            }
+        }
+
+        // ===== SISTEMA DE NOTIFICACIONES =====
+        
+        // Función para cargar configuración de notificaciones del usuario
+        async function loadUserNotificationConfig(userEmail) {
+            try {
+                console.log('🔔 Cargando configuración de notificaciones para:', userEmail);
+                
+                const { data, error } = await supabase
+                    .from('usertr')
+                    .select('*')
+                    .eq('correo', userEmail)
+                    .single();
+                
+                if (error) {
+                    console.warn('No se encontró configuración de notificaciones:', error);
+                    userNotificationConfig = {
+                        user: null,
+                        apikey: null,
+                        instance: null,
+                        active: false,
+                        correo: userEmail
+                    };
+                    return;
+                }
+                
+                // Limpiar valores "no" y tratarlos como null
+                const apikey = (data.apikey && data.apikey.toLowerCase() !== 'no' && data.apikey.trim() !== '') 
+                    ? data.apikey 
+                    : null;
+                
+                const instance = (data.instance && data.instance.toLowerCase() !== 'no' && data.instance.trim() !== '') 
+                    ? data.instance 
+                    : null;
+                
+                userNotificationConfig = {
+                    user: data.user || null,
+                    apikey: apikey,
+                    instance: instance,
+                    active: data.active || false,
+                    correo: userEmail
+                };
+                
+                const canNotify = canSendNotifications();
+                
+                console.log('✅ Configuración de notificaciones cargada:', {
+                    user: userNotificationConfig.user,
+                    apikey: apikey ? '***' + apikey.slice(-4) : '❌ NO configurado',
+                    instance: instance || '❌ NO configurado',
+                    active: userNotificationConfig.active,
+                    canSendNotifications: canNotify ? '✅ SÍ' : '❌ NO'
+                });
+                
+                // Actualizar nombre de usuario en el header
+                if (userNotificationConfig.user && userNotificationConfig.user.toLowerCase() !== 'no') {
+                    const userInfoElement = document.getElementById('user-info');
+                    if (userInfoElement) {
+                        userInfoElement.textContent = userNotificationConfig.user;
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error al cargar configuración de notificaciones:', error);
+                userNotificationConfig = {
+                    user: null,
+                    apikey: null,
+                    instance: null,
+                    active: false,
+                    correo: userEmail
+                };
+            }
+        }
+
+        // Función para verificar si las notificaciones están habilitadas
+        function canSendNotifications() {
+            const hasApiKey = userNotificationConfig.apikey && 
+                            userNotificationConfig.apikey.toLowerCase() !== 'no' &&
+                            userNotificationConfig.apikey.trim() !== '';
+            
+            const hasInstance = userNotificationConfig.instance && 
+                              userNotificationConfig.instance.toLowerCase() !== 'no' &&
+                              userNotificationConfig.instance.trim() !== '';
+            
+            return userNotificationConfig.active && hasApiKey && hasInstance;
+        }
+
+        // Función para formatear fecha en texto (ejemplo: "22 de noviembre del 2025")
+        function formatearFechaTexto(diaPago, mesAnioPrimerPago, cuotaPagada) {
+            try {
+                const mesesTexto = [
+                    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+                    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+                ];
+                
+                const [mes, anio] = mesAnioPrimerPago.split('/');
+                const mesPrimerPago = parseInt(mes);
+                const anioPrimerPago = parseInt(anio);
+                
+                const primerPago = new Date(anioPrimerPago, mesPrimerPago - 1, parseInt(diaPago));
+                const proximoPago = new Date(primerPago);
+                proximoPago.setMonth(primerPago.getMonth() + parseInt(cuotaPagada));
+                
+                const dia = proximoPago.getDate();
+                const mesTexto = mesesTexto[proximoPago.getMonth()];
+                const anioProximo = proximoPago.getFullYear();
+                
+                return `${dia} de ${mesTexto} del ${anioProximo}`;
+            } catch (error) {
+                console.error('Error al formatear fecha:', error);
+                return 'próximamente';
+            }
+        }
+
+        // Función para enviar notificación de WhatsApp
+        async function enviarNotificacionWhatsApp(credito) {
+            try {
+                if (!canSendNotifications()) {
+                    let mensajeError = 'No puedes enviar notificaciones: ';
+                    let detalles = [];
+                    
+                    if (!userNotificationConfig.active) {
+                        detalles.push('Tu cuenta no está activa');
+                    }
+                    if (!userNotificationConfig.apikey || userNotificationConfig.apikey.toLowerCase() === 'no') {
+                        detalles.push('No tienes API Key configurado');
+                    }
+                    if (!userNotificationConfig.instance || userNotificationConfig.instance.toLowerCase() === 'no') {
+                        detalles.push('No tienes Instancia configurada');
+                    }
+                    
+                    mensajeError += detalles.join(', ') + '. Contacta al administrador.';
+                    showCustomToast(mensajeError, 'error', 6000);
+                    return;
+                }
+                
+                // Validar días restantes (solo permitir si faltan 3 días o menos, o ya está atrasado)
+                const cuotaPagadaValidacion = parseInt(credito.cuota_pagada) || 0;
+                const mesAnioPrimerPagoValidacion = getMesAnioPrimerPago(credito);
+                const diasRestantesValidacion = diasHastaFecha(credito.dia_pago, mesAnioPrimerPagoValidacion, cuotaPagadaValidacion);
+                
+                if (diasRestantesValidacion > 3) {
+                    showCustomToast(`Solo se pueden enviar notificaciones cuando falten 3 días o menos. Actualmente faltan ${diasRestantesValidacion} días.`, 'warning', 5000);
+                    return;
+                }
+                
+                // Validar y formatear teléfono
+                let telefono = credito.telefono_socio || '';
+                telefono = telefono.replace(/\D/g, ''); // Eliminar caracteres no numéricos
+                
+                if (!telefono || telefono.length < 9) {
+                    showCustomToast('El socio no tiene un teléfono válido registrado (mínimo 9 dígitos).', 'error', 4000);
+                    return;
+                }
+                
+                // Tomar los últimos 9 dígitos y agregar +593
+                const ultimosNueve = telefono.slice(-9);
+                telefono = `+593${ultimosNueve}`;
+                
+                console.log('📱 Teléfono formateado:', telefono);
+                
+                // Calcular fecha de pago
+                const cuotaPagada = parseInt(credito.cuota_pagada) || 0;
+                const mesAnioPrimerPago = getMesAnioPrimerPago(credito);
+                const fechaPagoTexto = formatearFechaTexto(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
+                
+                // Construir mensaje personalizado
+                const nombreSocio = credito.nombre_socio || 'Estimado socio';
+                const userName = userNotificationConfig.user || 'La Caja';
+                
+                const mensaje = `Hola *${nombreSocio}*, le saluda *${userName}* de la *CAJA DE AHORRO Y CRÉDITO TUPAK RANTINA*.
+
+El motivo de mi mensaje es solo para recordarle que el día *${fechaPagoTexto}* le toca el pago de su crédito.
+
+Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordatorio y no pretende causar molestia o inconvenientes.
+
+¡Que tenga un excelente día! 😊`;
+                
+                // URL del webhook
+                const url = `https://api.luispinta.com/message/sendMedia/${userNotificationConfig.instance}`;
+                
+                // Preparar payload
+                const payload = {
+                    number: telefono,
+                    mediatype: "image",
+                    mimetype: "image/png",
+                    caption: mensaje,
+                    media: "https://lh3.googleusercontent.com/d/1oMybBIAVHNJaxK-xwDVt379sl_eW0Qhi=w2048",
+                    fileName: "recordatorio_pago.png",
+                    delay: 0,
+                    linkPreview: false,
+                    mentionsEveryOne: false
+                };
+                
+                console.log('📤 Enviando notificación:', { telefono, userName });
+                
+                // Mostrar loader
+                showNotificationLoader(
+                    'Enviando notificación...',
+                    `Enviando recordatorio de pago a ${nombreSocio} vía WhatsApp`
+                );
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': userNotificationConfig.apikey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                console.log('📥 Respuesta del servidor:', data);
+                
+                // Ocultar loader
+                hideNotificationLoader();
+                
+                if (response.ok) {
+                    showCustomToast(`✅ Notificación enviada exitosamente a ${nombreSocio}`, 'success', 5000);
+                } else {
+                    throw new Error(data.message || 'Error al enviar mensaje');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error al enviar notificación:', error);
+                hideNotificationLoader();
+                showCustomToast(`Error al enviar notificación: ${error.message}`, 'error', 5000);
+            }
+        }
+
+        // Función para limpiar el caché de acceso a cartera
+        function clearCarteraAccessCache() {
+            try {
+                localStorage.removeItem(CARTERA_CACHE_KEY);
+                localStorage.removeItem(CARTERA_CACHE_EMAIL_KEY);
+                localStorage.removeItem(CARTERA_CACHE_KEY + '_timestamp');
+            } catch (error) {
+                console.error('Error al limpiar caché de cartera:', error);
+            }
+        }
+
+        // Función para verificar acceso a la pestaña de Cartera
+        async function checkCarteraAccess(userEmail = null, useCache = true) {
+            try {
+                // Get current user if not provided
+                if (!userEmail) {
+                    const { data: { user }, error: userError } = await supabase.auth.getUser();
+                    
+                    if (userError || !user) {
+                        return false;
+                    }
+                    userEmail = user.email;
+                }
+
+                // Intentar obtener desde caché primero
+                if (useCache) {
+                    const cachedAccess = getCarteraAccessCache(userEmail);
+                    if (cachedAccess !== null) {
+                        console.log('Usando acceso a cartera desde caché');
+                        return cachedAccess;
+                    }
+                }
+
+                // Admin siempre tiene acceso
+                if (userEmail === 'contacto@tupakrantina.com') {
+                    setCarteraAccessCache(userEmail, true);
+                    return true;
+                }
+
+                // Verificar si el usuario tiene créditos asignados
+                const { data, error } = await supabase
+                    .from('actas_creditos_tupakra')
+                    .select('id')
+                    .eq('correo_asesor', userEmail)
+                    .limit(1);
+
+                if (error) {
+                    console.error('Error verificando acceso a cartera:', error);
+                    return false;
+                }
+
+                // Tiene acceso si tiene al menos un crédito
+                const hasAccess = data && data.length > 0;
+                
+                // Guardar en caché
+                setCarteraAccessCache(userEmail, hasAccess);
+                
+                return hasAccess;
+
+            } catch (error) {
+                console.error('Error en checkCarteraAccess:', error);
+                return false;
+            }
+        }
+
+        // Función para mostrar/ocultar pestaña de Cartera (con aplicación inmediata del caché)
+        async function toggleCarteraTab(forceCheck = false) {
+            const desktopTab = document.getElementById('desktop-cartera-tab');
+            const mobileTab = document.getElementById('mobile-cartera-tab');
+
+            // Obtener email del usuario actual
+            let userEmail = null;
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    userEmail = user.email;
+                }
+            } catch (error) {
+                console.error('Error obteniendo usuario:', error);
+            }
+
+            if (!userEmail) {
+                // Sin usuario, ocultar pestaña
+                if (desktopTab) desktopTab.classList.add('hidden');
+                if (mobileTab) mobileTab.classList.add('hidden');
+                return;
+            }
+
+            // Aplicar caché inmediatamente para evitar pestañeo
+            const cachedAccess = getCarteraAccessCache(userEmail);
+            if (cachedAccess !== null && !forceCheck) {
+                // Aplicar estado cacheado inmediatamente
+                if (cachedAccess) {
+                    if (desktopTab) desktopTab.classList.remove('hidden');
+                    if (mobileTab) mobileTab.classList.remove('hidden');
+                } else {
+                    if (desktopTab) desktopTab.classList.add('hidden');
+                    if (mobileTab) mobileTab.classList.add('hidden');
+                }
+                hasCarteraAccess = cachedAccess;
+                
+                // Verificar en segundo plano si el acceso sigue siendo válido
+                checkCarteraAccess(userEmail, false).then(actualAccess => {
+                    if (actualAccess !== cachedAccess) {
+                        // El acceso cambió, actualizar UI
+                        console.log('Acceso a cartera cambió, actualizando...');
+                        hasCarteraAccess = actualAccess;
+                        if (actualAccess) {
+                            if (desktopTab) desktopTab.classList.remove('hidden');
+                            if (mobileTab) mobileTab.classList.remove('hidden');
+                        } else {
+                            if (desktopTab) desktopTab.classList.add('hidden');
+                            if (mobileTab) mobileTab.classList.add('hidden');
+                        }
+                    }
+                });
+            } else {
+                // No hay caché, verificar y aplicar
+                hasCarteraAccess = await checkCarteraAccess(userEmail, false);
+                
+                if (hasCarteraAccess) {
+                    if (desktopTab) desktopTab.classList.remove('hidden');
+                    if (mobileTab) mobileTab.classList.remove('hidden');
+                } else {
+                    if (desktopTab) desktopTab.classList.add('hidden');
+                    if (mobileTab) mobileTab.classList.add('hidden');
+                }
+            }
+        }
+
+        async function loadCreditos() {
+            try {
+                const tableBody = document.getElementById('creditos-table-body');
+                const currentUserEmail = document.getElementById('current-user-email');
+                const adminDashboard = document.getElementById('admin-dashboard');
+                
+                // Show loading state
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="px-4 py-8 text-center">
+                            <i class="fas fa-spinner fa-spin text-3xl text-indigo-600 mb-2"></i>
+                            <p class="text-gray-600">Cargando cartera...</p>
+                        </td>
+                    </tr>
+                `;
+
+                // Cargar todos los datos (usa cache si ya se cargó)
+                const carteraData = await loadAllCarteraData();
+                
+                currentUserEmail.textContent = carteraData.userEmail;
+
+                // Show/hide admin dashboard
+                if (adminDashboard) {
+                    if (carteraData.isAdmin) {
+                        adminDashboard.classList.remove('hidden');
+                    } else {
+                        adminDashboard.classList.add('hidden');
+                    }
+                }
+
+                // Ordenar por fecha de creación (más reciente primero) para la vista general
+                creditosData = [...carteraData.data].sort((a, b) => {
+                    const dateA = new Date(a.created_at || 0);
+                    const dateB = new Date(b.created_at || 0);
+                    return dateB - dateA;
+                });
+                filteredCreditos = creditosData;
+                
+                // Update stats
+                updateCreditosStats();
+                
+                // Update admin dashboard if admin
+                if (carteraData.isAdmin) {
+                    updateAdminDashboard();
+                }
+                
+                // Render table
+                renderCreditosTable();
+
+                // Show success message
+                if (window.TupakAuth && window.TupakAuth.showToast) {
+                    window.TupakAuth.showToast(
+                        `${creditosData.length} registro(s) de cartera cargado(s)`, 
+                        'success'
+                    );
+                }
+
+            } catch (error) {
+                console.error('Error al cargar créditos:', error);
+                const tableBody = document.getElementById('creditos-table-body');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="px-4 py-8 text-center">
+                            <i class="fas fa-exclamation-triangle text-3xl text-red-600 mb-2"></i>
+                            <p class="text-red-600 font-semibold">Error al cargar cartera</p>
+                            <p class="text-gray-600 text-sm">${error.message}</p>
+                        </td>
+                    </tr>
+                `;
+                
+                if (window.TupakAuth && window.TupakAuth.showToast) {
+                    window.TupakAuth.showToast('Error al cargar cartera: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function updateCreditosStats() {
+            const totalCreditos = filteredCreditos.length;
+            const montoTotal = filteredCreditos.reduce((sum, credito) => {
+                const monto = parseFloat(credito.monto_aprobado) || 0;
+                return sum + monto;
+            }, 0);
+
+            document.getElementById('total-creditos').textContent = totalCreditos;
+            document.getElementById('monto-total').textContent = '$' + montoTotal.toLocaleString('es-ES', { 
+                minimumFractionDigits: 2, 
+                maximumFractionDigits: 2 
+            });
+        }
+
+        function updateAdminDashboard() {
+            // Calcular estadísticas globales
+            const totalCreditos = creditosData.length;
+            const montoTotal = creditosData.reduce((sum, credito) => {
+                const monto = parseFloat(credito.monto_aprobado) || 0;
+                return sum + monto;
+            }, 0);
+            const promedioMonto = totalCreditos > 0 ? montoTotal / totalCreditos : 0;
+
+            // Agrupar por asesor
+            const creditosPorAsesor = {};
+            creditosData.forEach(credito => {
+                const asesor = credito.correo_asesor || 'Sin Asesor';
+                if (!creditosPorAsesor[asesor]) {
+                    creditosPorAsesor[asesor] = {
+                        nombre: credito.asesor_credito || asesor,
+                        correo: asesor,
+                        totalCreditos: 0,
+                        montoTotal: 0
+                    };
+                }
+                creditosPorAsesor[asesor].totalCreditos++;
+                creditosPorAsesor[asesor].montoTotal += parseFloat(credito.monto_aprobado) || 0;
+            });
+
+            const totalAsesores = Object.keys(creditosPorAsesor).length;
+
+            // Actualizar métricas principales
+            document.getElementById('dashboard-total-creditos').textContent = totalCreditos;
+            document.getElementById('dashboard-monto-total').textContent = '$' + montoTotal.toLocaleString('es-ES', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            document.getElementById('dashboard-promedio-monto').textContent = '$' + promedioMonto.toLocaleString('es-ES', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            document.getElementById('dashboard-total-asesores').textContent = totalAsesores;
+
+            // Crear gráfico de barras de asesores
+            const asesoresChart = document.getElementById('asesores-chart');
+            const asesoresArray = Object.values(creditosPorAsesor).sort((a, b) => b.montoTotal - a.montoTotal);
+            
+            if (asesoresArray.length === 0) {
+                asesoresChart.innerHTML = '<p class="text-gray-500 text-center py-4">No hay datos de asesores disponibles</p>';
+                return;
+            }
+
+            // Calcular el porcentaje basado en el monto total global, no en el máximo individual
+            const maxMonto = Math.max(...asesoresArray.map(a => a.montoTotal));
+
+            asesoresChart.innerHTML = asesoresArray.map(asesor => {
+                // Porcentaje real del total global
+                const percentageOfTotal = montoTotal > 0 ? (asesor.montoTotal / montoTotal) * 100 : 0;
+                // Porcentaje para el ancho visual de la barra (relativo al máximo)
+                const percentageWidth = maxMonto > 0 ? (asesor.montoTotal / maxMonto) * 100 : 0;
+                const promedioAsesor = asesor.totalCreditos > 0 ? asesor.montoTotal / asesor.totalCreditos : 0;
+                
+                return `
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex-1">
+                                <p class="font-semibold text-gray-800 text-sm">${asesor.nombre}</p>
+                                <p class="text-xs text-gray-500">${asesor.correo}</p>
+                            </div>
+                            <div class="text-right ml-4">
+                                <p class="font-bold text-green-600 text-sm">$${asesor.montoTotal.toLocaleString('es-ES')}</p>
+                                <p class="text-xs text-gray-500">${asesor.totalCreditos} crédito(s)</p>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full transition-all duration-500 flex items-center justify-end pr-2" 
+                                 style="width: ${percentageWidth}%">
+                                <span class="text-white text-xs font-semibold">
+                                    ${percentageOfTotal >= 10 ? percentageOfTotal.toFixed(0) + '%' : ''}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mt-1">
+                            <p class="text-xs text-gray-600">
+                                <i class="fas fa-chart-line mr-1"></i>
+                                Promedio: $${promedioAsesor.toLocaleString('es-ES', { maximumFractionDigits: 0 })}
+                            </p>
+                            <p class="text-xs text-gray-600">
+                                ${percentageOfTotal.toFixed(1)}% del total
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderCreditosTable() {
+            const tableBody = document.getElementById('creditos-table-body');
+            
+            if (filteredCreditos.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="px-4 py-8 text-center">
+                            <i class="fas fa-inbox text-4xl text-gray-400 mb-3"></i>
+                            <p class="text-gray-600 font-semibold">No se encontraron registros</p>
+                            <p class="text-gray-500 text-sm">No hay registros en tu cartera</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const rows = filteredCreditos.map(credito => {
+                const fecha = credito.fecha_hora ? new Date(credito.fecha_hora).toLocaleDateString('es-ES') : 'N/A';
+                const montoFormateado = parseFloat(credito.monto_aprobado || 0).toLocaleString('es-ES', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                
+                return `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3 text-sm text-gray-900 font-medium text-right">${credito.acta || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${credito.nombre_socio || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700 text-right">${credito.cedula_socio || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900 font-semibold text-right">$${montoFormateado}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${credito.interes || 'N/A'}%</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${credito.plazo || 'N/A'} meses</td>
+                        <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-xs" title="${credito.asesor_credito || 'N/A'}">${credito.asesor_credito || 'N/A'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">${fecha}</td>
+                        <td class="px-4 py-3 text-sm">
+                            <button onclick="viewCreditoDetails(${credito.id})" 
+                                    class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1 rounded text-xs font-medium transition-colors">
+                                <i class="fas fa-eye mr-1"></i>
+                                Ver
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            tableBody.innerHTML = rows;
+        }
+
+        function viewCreditoDetails(creditoId) {
+            const credito = creditosData.find(c => c.id === creditoId);
+            if (!credito) return;
+
+            const modalContent = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold">Acta:</p>
+                            <p class="text-gray-900">${credito.acta || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold">Sesión:</p>
+                            <p class="text-gray-900">${credito.sesion || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold">Socio:</p>
+                            <p class="text-gray-900">${credito.nombre_socio || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold">Cédula:</p>
+                            <p class="text-gray-900">${credito.cedula_socio || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold">Teléfono:</p>
+                            <p class="text-gray-900">${credito.telefono_socio || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold">Monto Aprobado:</p>
+                            <p class="text-gray-900 font-bold text-green-600">$${parseFloat(credito.monto_aprobado || 0).toLocaleString('es-ES')}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold">Interés:</p>
+                            <p class="text-gray-900">${credito.interes || 'N/A'}%</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold">Plazo:</p>
+                            <p class="text-gray-900">${credito.plazo || 'N/A'} meses</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold">Frecuencia de Pago:</p>
+                            <p class="text-gray-900">${credito.frecuencia_pago || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold">Día de Pago:</p>
+                            <p class="text-gray-900">${credito.dia_pago || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold">Cuota Pagada:</p>
+                            <p class="text-gray-900">${credito.cuota_pagada || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 font-semibold">Primer Pago:</p>
+                            <p class="text-gray-900">${getMesAnioPrimerPago(credito) ? formatearPrimerPago(getMesAnioPrimerPago(credito), credito.dia_pago) : 'N/A'}</p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-sm text-gray-600 font-semibold">Destino del Crédito:</p>
+                            <p class="text-gray-900">${credito.destino_credito || 'N/A'}</p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-sm text-gray-600 font-semibold">Asesor de Crédito:</p>
+                            <p class="text-gray-900">${credito.asesor_credito || 'N/A'}</p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-sm text-gray-600 font-semibold">Correo Asesor:</p>
+                            <p class="text-gray-900">${credito.correo_asesor || 'N/A'}</p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-sm text-gray-600 font-semibold">Observaciones:</p>
+                            <p class="text-gray-900">${credito.observaciones || 'Sin observaciones'}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Create modal
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 sticky top-0">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-white flex items-center">
+                                <i class="fas fa-file-invoice-dollar mr-3"></i>
+                                Detalle del Crédito
+                            </h3>
+                            <button onclick="this.closest('.fixed').remove()" 
+                                    class="text-white hover:text-gray-200 transition-colors">
+                                <i class="fas fa-times text-2xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        ${modalContent}
+                    </div>
+                    <div class="bg-gray-50 p-4 flex justify-end border-t">
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+        }
+
+        // Search functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('search-creditos');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    
+                    if (!searchTerm) {
+                        filteredCreditos = creditosData;
+                    } else {
+                        filteredCreditos = creditosData.filter(credito => {
+                            return (
+                                (credito.acta && credito.acta.toLowerCase().includes(searchTerm)) ||
+                                (credito.nombre_socio && credito.nombre_socio.toLowerCase().includes(searchTerm)) ||
+                                (credito.cedula_socio && credito.cedula_socio.toLowerCase().includes(searchTerm)) ||
+                                (credito.asesor_credito && credito.asesor_credito.toLowerCase().includes(searchTerm)) ||
+                                (credito.sesion && credito.sesion.toLowerCase().includes(searchTerm))
+                            );
+                        });
+                    }
+                    
+                    updateCreditosStats();
+                    renderCreditosTable();
+                });
+            }
+        });
     </script>
     
+    <!-- Screen Loader para Notificaciones -->
+    <div id="notification-loader" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div class="flex flex-col items-center">
+                <!-- Animación de WhatsApp -->
+                <div class="relative mb-6">
+                    <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                        <i class="fab fa-whatsapp text-white text-5xl"></i>
+                    </div>
+                    <div class="absolute -top-1 -right-1">
+                        <div class="w-6 h-6 bg-blue-500 rounded-full animate-ping"></div>
+                        <div class="absolute top-0 right-0 w-6 h-6 bg-blue-500 rounded-full"></div>
+                    </div>
+                </div>
+                
+                <!-- Mensaje -->
+                <h3 id="notification-loader-title" class="text-xl font-bold text-gray-800 mb-2 text-center">Enviando notificación...</h3>
+                <p id="notification-loader-message" class="text-gray-600 text-center mb-6">Por favor espera mientras se envía el mensaje por WhatsApp</p>
+                
+                <!-- Barra de progreso -->
+                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full animate-progress"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container para Mensajes -->
+    <div id="custom-toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <style>
+        @keyframes progress {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+        
+        .animate-progress {
+            animation: progress 2s ease-in-out infinite;
+        }
+    </style>
+
     <!-- Main application script -->
     <script src="main.js"></script>
     
@@ -2026,15 +4120,280 @@
             // Check authentication status
             if (window.TupakAuth && window.TupakAuth.checkAuth) {
                 await window.TupakAuth.checkAuth();
+                
+                // Cargar configuración de notificaciones del usuario
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user && user.email) {
+                    await loadUserNotificationConfig(user.email);
+                }
+                
+                // Check cartera access after authentication
+                if (typeof toggleCarteraTab === 'function') {
+                    await toggleCarteraTab();
+                }
             } else {
                 // Fallback: check auth after main.js loads
                 setTimeout(async () => {
                     if (window.TupakAuth && window.TupakAuth.checkAuth) {
                         await window.TupakAuth.checkAuth();
+                        
+                        // Cargar configuración de notificaciones del usuario
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (user && user.email) {
+                            await loadUserNotificationConfig(user.email);
+                        }
+                        
+                        // Check cartera access after authentication
+                        if (typeof toggleCarteraTab === 'function') {
+                            await toggleCarteraTab();
+                        }
                     }
                 }, 100);
             }
         });
+
+        // ===== MODAL PARA ASIGNAR FECHA DE PAGO =====
+        
+        function openAsignarFechaModal(creditoId) {
+            const credito = carteraDataCache?.data?.find(c => c.id === creditoId);
+            if (!credito) {
+                showCustomToast('No se encontró el crédito', 'error');
+                return;
+            }
+            
+            // Calcular próximo mes y año
+            const hoy = new Date();
+            const mesActual = hoy.getMonth(); // 0-11
+            const anioActual = hoy.getFullYear();
+            
+            let mesPorDefecto = mesActual + 1; // Próximo mes
+            let anioPorDefecto = anioActual;
+            
+            // Si el próximo mes es enero (mes 0), incrementar año
+            if (mesPorDefecto > 11) {
+                mesPorDefecto = 0;
+                anioPorDefecto++;
+            }
+            
+            const meses = [
+                { valor: '01', nombre: 'Enero' },
+                { valor: '02', nombre: 'Febrero' },
+                { valor: '03', nombre: 'Marzo' },
+                { valor: '04', nombre: 'Abril' },
+                { valor: '05', nombre: 'Mayo' },
+                { valor: '06', nombre: 'Junio' },
+                { valor: '07', nombre: 'Julio' },
+                { valor: '08', nombre: 'Agosto' },
+                { valor: '09', nombre: 'Septiembre' },
+                { valor: '10', nombre: 'Octubre' },
+                { valor: '11', nombre: 'Noviembre' },
+                { valor: '12', nombre: 'Diciembre' }
+            ];
+            
+            const mesOptions = meses.map((mes, index) => {
+                const selected = index === mesPorDefecto ? 'selected' : '';
+                return `<option value="${mes.valor}" ${selected}>${mes.nombre}</option>`;
+            }).join('');
+            
+            const anioInicio = anioActual;
+            const anioFin = anioActual + 2;
+            let anioOptions = '';
+            for (let anio = anioInicio; anio <= anioFin; anio++) {
+                const selected = anio === anioPorDefecto ? 'selected' : '';
+                anioOptions += `<option value="${anio}" ${selected}>${anio}</option>`;
+            }
+            
+            // Crear modal
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.id = 'modal-asignar-fecha';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-2xl max-w-md w-full">
+                    <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 p-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-white flex items-center">
+                                <i class="fas fa-calendar-plus mr-3"></i>
+                                Asignar Fecha de Pago
+                            </h3>
+                            <button onclick="closeAsignarFechaModal()" 
+                                    class="text-white hover:text-gray-200 transition-colors">
+                                <i class="fas fa-times text-2xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-600"><strong>Socio:</strong> ${credito.nombre_socio || 'N/A'}</p>
+                            <p class="text-sm text-gray-600"><strong>Cédula:</strong> ${credito.cedula_socio || 'N/A'}</p>
+                            <p class="text-sm text-gray-600"><strong>Monto:</strong> $${parseFloat(credito.monto_aprobado || 0).toLocaleString('es-ES')}</p>
+                        </div>
+                        
+                        <form id="form-asignar-fecha" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-calendar-day mr-1"></i>
+                                    Día de Pago (1-31)
+                                </label>
+                                <input type="number" 
+                                       id="dia-pago" 
+                                       min="1" 
+                                       max="31" 
+                                       required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                       placeholder="Ej: 15">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    Mes del Primer Pago
+                                </label>
+                                <select id="mes-primer-pago" 
+                                        required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                                    ${mesOptions}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    Año del Primer Pago
+                                </label>
+                                <select id="anio-primer-pago" 
+                                        required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                                    ${anioOptions}
+                                </select>
+                            </div>
+                            
+                            <div class="flex gap-3 pt-4">
+                                <button type="button" 
+                                        onclick="closeAsignarFechaModal()"
+                                        class="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-semibold transition-colors">
+                                    Cancelar
+                                </button>
+                                <button type="submit" 
+                                        class="flex-1 px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-bold transition-colors shadow-md">
+                                    <i class="fas fa-save mr-2"></i>
+                                    Guardar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Manejar envío del formulario
+            document.getElementById('form-asignar-fecha').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await guardarFechaPago(creditoId);
+            });
+        }
+        
+        function closeAsignarFechaModal() {
+            const modal = document.getElementById('modal-asignar-fecha');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        async function guardarFechaPago(creditoId) {
+            try {
+                const diaPago = document.getElementById('dia-pago').value;
+                const mes = document.getElementById('mes-primer-pago').value;
+                const anio = document.getElementById('anio-primer-pago').value;
+                
+                // Validar
+                const dia = parseInt(diaPago);
+                if (dia < 1 || dia > 31) {
+                    alert('El día debe estar entre 1 y 31');
+                    return;
+                }
+                
+                // Formatear día con 2 dígitos
+                const diaFormateado = dia.toString().padStart(2, '0');
+                
+                // Crear valor para mes/año_primer_pago
+                const mesAnioPrimerPago = `${mes}/${anio}`;
+                
+                console.log('Guardando fecha de pago:', {
+                    creditoId,
+                    dia_pago: diaFormateado,
+                    mesAnioPrimerPago
+                });
+                
+                // Primero verificar que el registro existe
+                const { data: registroExistente, error: errorBusqueda } = await supabase
+                    .from('actas_creditos_tupakra')
+                    .select('*')
+                    .eq('id', creditoId)
+                    .single();
+                
+                if (errorBusqueda) {
+                    console.error('❌ Error al buscar el registro:', errorBusqueda);
+                    throw new Error('No se encontró el crédito con ID: ' + creditoId);
+                }
+                
+                console.log('✅ Registro encontrado:', registroExistente);
+                console.log('📋 Columnas disponibles:', Object.keys(registroExistente));
+                
+                // Encontrar el nombre exacto de la columna que contiene mes/año
+                let nombreColumnaReal = null;
+                for (const key of Object.keys(registroExistente)) {
+                    if (key.toLowerCase().includes('mes') && key.toLowerCase().includes('año')) {
+                        nombreColumnaReal = key;
+                        console.log('✅ Columna encontrada:', nombreColumnaReal);
+                        break;
+                    }
+                }
+                
+                if (!nombreColumnaReal) {
+                    throw new Error('No se encontró la columna de mes/año en la tabla');
+                }
+                
+                // Actualizar usando el nombre exacto de la columna
+                const updateData = {
+                    'dia_pago': diaFormateado,
+                    [nombreColumnaReal]: mesAnioPrimerPago
+                };
+                
+                console.log('📤 Datos a actualizar:', updateData);
+                
+                const { data, error } = await supabase
+                    .from('actas_creditos_tupakra')
+                    .update(updateData)
+                    .eq('id', creditoId)
+                    .select();
+                
+                console.log('📥 Resultado de actualización:', { data, error });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                if (!data || data.length === 0) {
+                    throw new Error('No se pudo actualizar el registro. Posible problema de permisos RLS.');
+                }
+                
+                console.log('✅ Actualización exitosa:', data[0]);
+                
+                // Cerrar modal
+                closeAsignarFechaModal();
+                
+                // Recargar datos y actualizar vista
+                carteraDataCache = null; // Limpiar caché
+                await loadCobrosProximos();
+                
+                showCustomToast('Fecha de pago asignada correctamente', 'success');
+                
+            } catch (error) {
+                console.error('Error al guardar fecha de pago:', error);
+                showCustomToast('Error al guardar: ' + error.message, 'error');
+            }
+        }
     </script>
 
 </body>
