@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -2793,7 +2793,7 @@
             hoy.setHours(0, 0, 0, 0);
             
             try {
-                // Parsear mes/año_primer_pago (formato esperado: "10/2025" o "MM/YYYY")
+                // Parsear mes_anio_primer_pago (formato esperado: "10/2025" o "MM/YYYY")
                 const partes = mesAnioPrimerPago.split('/');
                 if (partes.length !== 2) return null;
                 
@@ -2821,11 +2821,11 @@
             }
         }
         
-        // Función helper para obtener el valor de mes/año_primer_pago 
+        // Función helper para obtener el valor de mes_anio_primer_pago 
         // (maneja diferentes formas en que puede venir de la BD)
         function getMesAnioPrimerPago(credito) {
             // Intentar diferentes variantes del nombre de columna
-            return credito['mes/año_primer_pago'] || 
+            return credito['mes_anio_primer_pago'] || 
                    credito['mes / año_primer_pago'] ||
                    credito.mes_año_primer_pago ||
                    null;
@@ -5093,7 +5093,7 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
                 // Formatear día con 2 dígitos
                 const diaFormateado = dia.toString().padStart(2, '0');
                 
-                // Crear valor para mes/año_primer_pago
+                // Crear valor para mes_anio_primer_pago
                 const mesAnioPrimerPago = `${mes}/${anio}`;
                 
                 console.log('Guardando fecha de pago:', {
@@ -5117,24 +5117,10 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
                 console.log('✅ Registro encontrado:', registroExistente);
                 console.log('📋 Columnas disponibles:', Object.keys(registroExistente));
                 
-                // Encontrar el nombre exacto de la columna que contiene mes/año
-                let nombreColumnaReal = null;
-                for (const key of Object.keys(registroExistente)) {
-                    if (key.toLowerCase().includes('mes') && key.toLowerCase().includes('año')) {
-                        nombreColumnaReal = key;
-                        console.log('✅ Columna encontrada:', nombreColumnaReal);
-                        break;
-                    }
-                }
-                
-                if (!nombreColumnaReal) {
-                    throw new Error('No se encontró la columna de mes/año en la tabla');
-                }
-                
-                // Actualizar usando el nombre exacto de la columna
+                // Actualizar usando el nombre correcto de la columna
                 const updateData = {
                     'dia_pago': diaFormateado,
-                    [nombreColumnaReal]: mesAnioPrimerPago
+                    'mes_anio_primer_pago': mesAnioPrimerPago
                 };
                 
                 console.log('📤 Datos a actualizar:', updateData);

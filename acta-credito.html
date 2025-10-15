@@ -1120,18 +1120,149 @@
             }
         }
 
+        // Función para formatear monto con punto para miles y coma para decimales
+        function formatearCapitalRestante(monto) {
+            try {
+                // Convertir a número y asegurar 2 decimales
+                const numero = parseFloat(monto);
+                if (isNaN(numero)) {
+                    return '0,00';
+                }
+                
+                // Separar enteros y decimales
+                const partes = numero.toFixed(2).split('.');
+                const entero = partes[0];
+                const decimales = partes[1];
+                
+                // Formatear entero con puntos cada 3 dígitos
+                const enteroFormateado = entero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                
+                // Retornar con coma para decimales
+                return `${enteroFormateado},${decimales}`;
+                
+            } catch (error) {
+                console.error('Error formateando capital restante:', error);
+                return '0,00';
+            }
+        }
+
+        // Función para obtener el último número de crédito
+        async function obtenerUltimoNumeroCredito() {
+            try {
+                // Obtener todos los créditos para procesarlos como números
+                const { data, error } = await supabaseClient
+                    .from('actas_creditos_tupakra')
+                    .select('credito');
+                
+                if (error) {
+                    console.error('Error obteniendo último crédito:', error);
+                    return 1; // Si hay error, empezar desde 1
+                }
+                
+                if (!data || data.length === 0) {
+                    return 1; // Si no hay registros, empezar desde 1
+                }
+                
+                // Convertir todos los créditos a números y encontrar el máximo
+                const creditos = data
+                    .map(item => parseInt(item.credito) || 0)
+                    .filter(num => !isNaN(num));
+                
+                const maxCredito = creditos.length > 0 ? Math.max(...creditos) : 0;
+                
+                console.log('📊 Créditos encontrados:', creditos);
+                console.log('📊 Máximo crédito:', maxCredito);
+                
+                return maxCredito + 1;
+                
+            } catch (error) {
+                console.error('Error obteniendo último crédito:', error);
+                return 1;
+            }
+        }
+
+        // Función para obtener datos del usuario logueado
+        async function obtenerDatosUsuario() {
+            try {
+                const { data: { user }, error } = await supabaseClient.auth.getUser();
+                
+                if (error || !user) {
+                    console.error('Error obteniendo usuario:', error);
+                    return { nombre: 'ASESOR', correo: '' };
+                }
+                
+                let userName = 'ASESOR';
+                
+                // Intentar obtener el nombre de la tabla usertr
+                try {
+                    const { data: userConfig, error: configError } = await supabaseClient
+                        .from('usertr')
+                        .select('user')
+                        .eq('correo', user.email)
+                        .single();
+                    
+                    if (userConfig && userConfig.user && userConfig.user.toLowerCase() !== 'no') {
+                        userName = userConfig.user;
+                    } else {
+                        // Si no hay en usertr, usar metadatos
+                        if (user.user_metadata?.full_name) {
+                            userName = user.user_metadata.full_name;
+                        } else if (user.user_metadata?.nombre) {
+                            userName = user.user_metadata.nombre;
+                        } else if (user.user_metadata?.name) {
+                            userName = user.user_metadata.name;
+                        }
+                    }
+                } catch (configError) {
+                    console.log('No se encontró en usertr, usando metadatos');
+                    if (user.user_metadata?.full_name) {
+                        userName = user.user_metadata.full_name;
+                    } else if (user.user_metadata?.nombre) {
+                        userName = user.user_metadata.nombre;
+                    } else if (user.user_metadata?.name) {
+                        userName = user.user_metadata.name;
+                    }
+                }
+                
+                return {
+                    nombre: userName,
+                    correo: user.email || ''
+                };
+                
+            } catch (error) {
+                console.error('Error obteniendo datos de usuario:', error);
+                return { nombre: 'ASESOR', correo: '' };
+            }
+        }
+
         // Función para guardar en Supabase
         async function guardarActaEnSupabase(datos) {
             try {
                 console.log('💾 Guardando acta en Supabase...', datos);
                 
+                // Limpiar datos: remover campos con null para que use los defaults de la BD
+                const datosLimpios = {};
+                for (const key in datos) {
+                    if (datos[key] !== null && datos[key] !== undefined) {
+                        datosLimpios[key] = datos[key];
+                    }
+                }
+                
+                console.log('💾 Datos limpios a insertar:', datosLimpios);
+                
                 const { data, error } = await supabaseClient
                     .from('actas_creditos_tupakra')
-                    .insert([datos])
+                    .insert([datosLimpios])
                     .select();
                 
                 if (error) {
                     console.error('❌ Error guardando acta:', error);
+                    console.error('❌ Detalles del error:', {
+                        message: error.message,
+                        details: error.details,
+                        hint: error.hint,
+                        code: error.code
+                    });
                     return false;
                 }
                 
@@ -1139,7 +1270,7 @@
                 return true;
                 
             } catch (error) {
-                console.error('❌ Error guardando acta:', error);
+                console.error('❌ Error guardando acta (catch):', error);
                 return false;
             }
         }
@@ -1209,7 +1340,21 @@
                 // Actualizar fecha formateada
                 actualizarFechaFormateada();
 
-                // Preparar datos para Supabase
+                // Obtener datos del usuario logueado
+                const datosUsuario = await obtenerDatosUsuario();
+                
+                // Obtener el siguiente número de crédito
+                const numeroCredito = await obtenerUltimoNumeroCredito();
+                
+                // Formatear capital restante con punto para miles y coma para decimales
+                const capitalRestanteFormateado = formatearCapitalRestante(datos.montoAprobado);
+                
+                console.log('📊 Usuario:', datosUsuario);
+                console.log('📊 Número de crédito:', numeroCredito);
+                console.log('📊 Monto aprobado original:', datos.montoAprobado);
+                console.log('📊 Capital restante formateado:', capitalRestanteFormateado);
+
+                // Preparar datos para Supabase (solo campos con valores)
                 datosActaParaGuardar = {
                     acta: numeroActa,
                     sesion: numeroSesion,
@@ -1222,7 +1367,13 @@
                     telefono_socio: datos.telefono,
                     frecuencia_pago: datos.formaPago,
                     destino_credito: datos.destinoCredito,
-                    fecha_hora: fecha + 'T' + hora + ':00'
+                    fecha_hora: fecha + 'T' + hora + ':00',
+                    asesor_credito: datosUsuario.nombre,
+                    correo_asesor: datosUsuario.correo,
+                    cuota_pagada: '0',
+                    credito: numeroCredito.toString(),
+                    capital_restante: capitalRestanteFormateado
+                    // dia_pago y mes_anio_primer_pago se omiten para usar valores default null de la BD
                 };
 
                 // Scroll suave hacia el documento generado
