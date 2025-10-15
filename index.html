@@ -871,6 +871,28 @@
                             </div>
                         </div>
                         
+                        <!-- Consulta de Catastros Latacunga Card -->
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer group max-w-sm mx-auto w-full" 
+                             onclick="window.open('https://servltga.latacunga.gob.ec/portal_ec/latacunga.php', '_blank')">
+                            <div class="aspect-video bg-gray-200 relative overflow-hidden">
+                                <img src="https://lh3.googleusercontent.com/d/14LMKezmM_4oNT2-xJqHH4BMGjSMAg_Vb=w2048?name=Screenshot%202025-10-15%20111736.png" 
+                                     alt="Consulta de Catastros - Latacunga" 
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            </div>
+                            <div class="p-3 md:p-4">
+                                <h3 class="text-base md:text-lg font-semibold text-brand-dark-blue mb-2">Consulta de Catastros de Latacunga</h3>
+                                <p class="text-gray-600 text-xs md:text-sm mb-3 line-clamp-2">
+                                    Consulta información catastral y verifica propiedades en el Cantón Latacunga.
+                                </p>
+                                <div class="flex items-center text-brand-accent-blue text-xs md:text-sm font-medium">
+                                    <span>Acceder al sistema</span>
+                                    <svg class="w-3 h-3 md:w-4 md:h-4 ml-1 md:ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- ANT Multas Card -->
                         <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer group max-w-sm mx-auto w-full" 
                              onclick="window.open('https://ant.com.ec/multas-transito', '_blank')">
@@ -1193,6 +1215,24 @@
                                             <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">14</span>
                                             <div class="flex-1">
                                                 <label for="doc14" class="cursor-pointer">
+                                                    <h4 class="font-semibold text-gray-900">Croquis</h4>
+                                                    <p class="text-sm text-gray-600">Ubicación geográfica del domicilio</p>
+                                                </label>
+                                                <button onclick="window.open('croquis.html', '_blank')" class="mt-2 px-4 py-2 bg-brand-orange text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium">
+                                                    <i class="fas fa-map-marked-alt mr-2"></i>Generar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center mr-3">
+                                                <input type="checkbox" id="doc15" class="document-checkbox w-5 h-5 text-brand-orange focus:ring-brand-orange border-gray-300 rounded" data-doc="15">
+                                            </div>
+                                            <span class="flex-shrink-0 w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-bold mr-4">15</span>
+                                            <div class="flex-1">
+                                                <label for="doc15" class="cursor-pointer">
                                                     <h4 class="font-semibold text-gray-900">Cartilla de Servicios Básicos</h4>
                                                     <p class="text-sm text-gray-600">Planilla de luz o agua (últimos 3 meses)</p>
                                                 </label>

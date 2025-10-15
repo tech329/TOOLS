@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Croquis de Ubicación - Caja de Ahorro y Crédito Tupak Rantina</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root {
+            --brand-navy: #001749;
+            --brand-orange: #e48410;
+            --brand-light-blue: #3787c6;
+            --brand-blue: #015cd0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+        }
+        
+        #map {
+            width: 100%;
+            height: calc(100vh - 280px);
+            border: none;
+            border-radius: 8px;
+        }
+        
+        .header-gradient {
+            background: #001749;
+        }
+        
+        #map {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Estilos de impresión */
+        @media print {
+            @page {
+                margin: 0.5cm;
+                size: letter portrait;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+                background: white;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .print-only {
+                display: block !important;
+            }
+
+            .print-header {
+                display: block !important;
+                page-break-inside: avoid;
+                padding: 15px 20px !important;
+                margin-bottom: 20px !important;
+            }
+
+            .print-header img {
+                height: 60px !important;
+            }
+
+            .print-header h1 {
+                font-size: 18px !important;
+                line-height: 1.2 !important;
+            }
+
+            .print-header h2 {
+                font-size: 13px !important;
+            }
+
+            #map {
+                height: 450px !important;
+                width: 100% !important;
+                page-break-inside: avoid;
+                margin: 0;
+            }
+
+            .bg-white {
+                height: 450px !important;
+                box-shadow: none !important;
+            }
+
+            .print-signatures {
+                display: block !important;
+                page-break-inside: avoid;
+                margin-top: 10px;
+            }
+
+            .signature-box {
+                border: 2px solid #001749 !important;
+                padding: 15px !important;
+                background: white !important;
+                box-sizing: border-box;
+            }
+
+            .container {
+                max-width: 100% !important;
+                padding: 0 20px !important;
+            }
+
+            body {
+                background: white !important;
+            }
+
+            /* Asegurar que el mapa se imprima correctamente */
+            .bg-gray-100 {
+                background: #f5f5f5 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* Asegurar que los colores de los bordes se impriman */
+            [style*="border-left: 3px solid"] {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Asegurar backgrounds de colores */
+            [style*="background: #f8f9fa"],
+            [style*="background: white"] {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Estilos para el QR Code en impresión */
+            #qrCodeImage {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: contain !important;
+                display: block !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Contenedor del QR en impresión */
+            #qrCodeImage + p {
+                font-size: 8px !important;
+                margin: 4px 0 0 0 !important;
+                color: #666 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+
+        /* Ocultar elementos solo para impresión por defecto */
+        .print-only {
+            display: none;
+        }
+
+        .print-header {
+            display: none;
+        }
+
+        .print-signatures {
+            display: none;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.3s ease;
+        }
+
+        /* Toggle Switch Personalizado */
+        .toggle-checkbox:checked {
+            background-color: #015cd0 !important;
+        }
+
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #015cd0;
+        }
+
+        .toggle-checkbox:checked + .toggle-label:after {
+            transform: translateX(100%);
+        }
+
+        .toggle-label {
+            display: block;
+            width: 56px;
+            height: 28px;
+            background-color: #3787c6;
+            border-radius: 100px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-label:after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-checkbox {
+            display: none;
+        }
+
+        /* Alertas personalizadas */
+        .custom-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            min-width: 320px;
+            max-width: 450px;
+            opacity: 0;
+            animation: alertFadeIn 0.3s ease forwards;
+        }
+
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            opacity: 0;
+            animation: overlayFadeIn 0.3s ease forwards;
+        }
+
+        @keyframes alertFadeIn {
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        @keyframes overlayFadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes alertFadeOut {
+            from {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+        }
+
+        .alert-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 28px;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #e48410;
+        }
+
+        .alert-success {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Contenedor de alertas personalizadas -->
+    <div id="customAlertContainer"></div>
+    <!-- Header para pantalla -->
+    <header class="header-gradient text-white p-4 shadow-lg no-print">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold">Croquis de Ubicación</h1>
+                <p class="text-sm opacity-90">Caja de Ahorro y Crédito Tupak Rantina</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 px-4 py-2 bg-white bg-opacity-20 rounded-lg">
+                    <i class="fas fa-user"></i>
+                    <span class="text-sm font-medium">Usuario:</span>
+                    <span id="headerUserName" class="text-sm font-bold">Cargando...</span>
+                </div>
+                <button id="printBtn" onclick="if(validateBeforePrint()) window.print()" disabled class="px-4 py-2 bg-white rounded-lg transition-colors font-medium flex items-center gap-2 opacity-50 cursor-not-allowed" style="color: #001749;">
+                    <i class="fas fa-print"></i>
+                    Imprimir
+                </button>
+                <button onclick="window.close()" class="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-colors font-medium flex items-center gap-2">
+                    <i class="fas fa-times"></i>
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Header para impresión -->
+    <div class="print-header" style="padding: 15px 20px; background: white; border-bottom: 4px solid #e48410; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; gap: 20px;">
+            <!-- Logo -->
+            <div style="flex-shrink: 0;">
+                <img src="https://i.postimg.cc/zBPmbxNT/TRANSPARENTE-min.png" alt="Logo Tupak Rantina" style="height: 60px; width: auto;">
+            </div>
+            
+            <!-- Título -->
+            <div style="flex: 1; text-align: center;">
+                <h1 style="margin: 0 0 6px 0; font-size: 18px; font-weight: bold; color: #001749; letter-spacing: 0.3px; line-height: 1.2;">
+                    CAJA DE AHORRO Y CRÉDITO TUPAK RANTINA
+                </h1>
+                <div style="padding: 5px 16px; background: #001749; display: inline-block; border-radius: 3px;">
+                    <h2 id="printHeaderTitle" style="margin: 0; font-size: 13px; font-weight: 600; color: white; letter-spacing: 0.5px;">
+                        UBICACIÓN DE LA VIVIENDA
+                    </h2>
+                </div>
+            </div>
+            
+            <!-- QR Code -->
+            <div style="flex-shrink: 0; text-align: center;">
+                <div style="width: 78px; height: 78px; border: 2px solid #001749; border-radius: 4px; padding: 3px; background: white; display: inline-block; box-sizing: border-box; overflow: hidden;">
+                    <img id="qrCodeImage" src="" alt="QR Code" style="width: 100%; height: 100%; display: block; object-fit: contain; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
+                </div>
+                <p style="margin: 4px 0 0 0; font-size: 8px; color: #666; font-weight: 500;">Escanea el QR</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input Section -->
+    <div class="container mx-auto px-4 pt-4 no-print">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <!-- Fila 1: Nombre del Socio y Tipo de Ubicación -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
+                <!-- Input Nombre del Socio -->
+                <div>
+                    <h3 class="font-semibold mb-3 flex items-center gap-2" style="color: #001749;">
+                        <i class="fas fa-user-circle" style="color: #e48410;"></i>
+                        Nombre del Socio <span style="color: #e48410;">*</span>
+                    </h3>
+                    <input 
+                        type="text" 
+                        id="socioName" 
+                        placeholder="Ingrese el nombre completo del socio (mínimo 3 palabras)"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none"
+                        style="border-color: #e0e0e0; text-transform: uppercase;"
+                        onfocus="this.style.borderColor='#015cd0'; this.style.boxShadow='0 0 0 3px rgba(1, 92, 208, 0.1)'"
+                        onblur="validateSocioName(); this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'"
+                        oninput="this.value = this.value.toUpperCase(); updateSocioName(); checkFormComplete();"
+                        autocomplete="off"
+                        required
+                    >
+                    <p id="socioNameError" class="text-xs mt-1" style="color: #e48410; display: none;">
+                        <i class="fas fa-exclamation-circle mr-1"></i>
+                        El nombre debe tener al menos 3 palabras (nombre completo)
+                    >
+                </div>
+
+                <!-- Slider Tipo de Ubicación -->
+                <div>
+                    <h3 class="font-semibold mb-3 flex items-center gap-2" style="color: #001749;">
+                        <i class="fas fa-building" style="color: #e48410;"></i>
+                        Tipo de Ubicación <span style="color: #e48410;">*</span>
+                    </h3>
+                    <div class="flex items-center justify-center gap-4 px-4 py-3 border rounded-lg" style="border-color: #e0e0e0; background: #f8f9fa;">
+                        <span id="labelCasa" style="font-weight: 600; color: #015cd0; transition: color 0.3s;">
+                            <i class="fas fa-home mr-2"></i>Casa
+                        </span>
+                        <label>
+                            <input type="checkbox" id="tipoUbicacion" class="toggle-checkbox" onchange="toggleTipoUbicacion()">
+                            <div class="toggle-label"></div>
+                        </label>
+                        <span id="labelNegocio" style="font-weight: 600; color: #666; transition: color 0.3s;">
+                            <i class="fas fa-store mr-2"></i>Negocio
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila 2: Descripción/Nombre del Negocio y Referencia -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
+                <!-- Input Descripción (Casa) o Nombre del Negocio -->
+                <div id="descripcionContainer">
+                    <h3 id="descripcionTitle" class="font-semibold mb-3 flex items-center gap-2" style="color: #001749;">
+                        <i id="descripcionIcon" class="fas fa-info-circle" style="color: #e48410;"></i>
+                        <span id="descripcionLabel">Descripción</span> <span style="color: #e48410;">*</span>
+                    </h3>
+                    <input 
+                        type="text" 
+                        id="descripcionInput" 
+                        placeholder="Ej: Color, número de pisos, acabado, techo, etc."
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none"
+                        style="border-color: #e0e0e0; text-transform: uppercase;"
+                        onfocus="this.style.borderColor='#015cd0'; this.style.boxShadow='0 0 0 3px rgba(1, 92, 208, 0.1)'"
+                        onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'"
+                        oninput="this.value = this.value.toUpperCase(); checkFormComplete();"
+                        autocomplete="off"
+                        required
+                    >
+                </div>
+
+                <!-- Input Referencia -->
+                <div>
+                    <h3 class="font-semibold mb-3 flex items-center gap-2" style="color: #001749;">
+                        <i class="fas fa-map-signs" style="color: #e48410;"></i>
+                        Referencia <span style="color: #e48410;">*</span>
+                    </h3>
+                    <input 
+                        type="text" 
+                        id="referenciaInput" 
+                        placeholder="Ej: Al lado de, a 50 metros de, entre..."
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none"
+                        style="border-color: #e0e0e0; text-transform: uppercase;"
+                        onfocus="this.style.borderColor='#015cd0'; this.style.boxShadow='0 0 0 3px rgba(1, 92, 208, 0.1)'"
+                        onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'"
+                        oninput="this.value = this.value.toUpperCase(); checkFormComplete();"
+                        autocomplete="off"
+                        required
+                    >
+                </div>
+            </div>
+
+            <!-- Fila 3: Enlace de Google Maps - Oculto inicialmente -->
+            <div id="mapUrlSection" class="mb-5" style="display: none;">
+                <!-- Input Enlace de Google Maps -->
+
+                <div>
+                    <h3 class="font-semibold mb-3 flex items-center gap-2" style="color: #001749;">
+                        <i class="fas fa-map-marker-alt" style="color: #e48410;"></i>
+                        Enlace de Google Maps <span style="color: #e48410;">*</span>
+                    </h3>
+                    <div class="flex gap-3 flex-wrap">
+                        <input 
+                            type="text" 
+                            id="mapUrl" 
+                            placeholder="https://www.google.com/maps?q=-0.5145441,-78.5706978"
+                            class="flex-1 min-w-[300px] px-4 py-3 border border-gray-300 rounded-lg outline-none"
+                            style="border-color: #e0e0e0;"
+                            onfocus="this.style.borderColor='#015cd0'; this.style.boxShadow='0 0 0 3px rgba(1, 92, 208, 0.1)'"
+                            onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'; checkFormComplete();"
+                            autocomplete="off"
+                            value=""
+                            required
+                        >
+                        <button 
+                            onclick="loadMap()"
+                            class="px-6 py-3 text-white rounded-lg transition-colors font-medium flex items-center gap-2 whitespace-nowrap"
+                            style="background: #015cd0;"
+                            onmouseover="this.style.background='#001749'"
+                            onmouseout="this.style.background='#015cd0'">
+                            <i class="fas fa-map-marked-alt"></i>
+                            Generar Mapa
+                        </button>
+                        <div class="flex gap-2">
+                            <button 
+                                onclick="zoomIn()"
+                                class="w-12 h-12 text-white rounded-lg transition-colors font-bold text-xl flex items-center justify-center"
+                                style="background: #001749;"
+                                onmouseover="this.style.background='#015cd0'"
+                                onmouseout="this.style.background='#001749'"
+                                title="Acercar zoom">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button 
+                                onclick="zoomOut()"
+                                class="w-12 h-12 text-white rounded-lg transition-colors font-bold text-xl flex items-center justify-center"
+                                style="background: #001749;"
+                                onmouseover="this.style.background='#015cd0'"
+                                onmouseout="this.style.background='#001749'"
+                                title="Alejar zoom">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button 
+                                onclick="resetZoom()"
+                                class="w-12 h-12 text-white rounded-lg transition-colors font-bold text-sm flex items-center justify-center"
+                                style="background: #e48410;"
+                                onmouseover="this.style.background='#c56f0d'"
+                                onmouseout="this.style.background='#e48410'"
+                                title="Restablecer zoom">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-xs mt-2" style="color: #666;">
+                        <i class="fas fa-info-circle mr-1" style="color: #015cd0;"></i>
+                        Ejemplo: https://www.google.com/maps?q=-0.5145441,-78.5706978 o simplemente las coordenadas: -0.5145441,-78.5706978
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Container - Oculto inicialmente -->
+    <div id="mapContainer" class="container mx-auto p-4" style="display: none;">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-4 border-b" style="background: #f8f9fa;">
+                <p class="text-sm no-print" style="color: #001749;">
+                    <i class="fas fa-info-circle mr-2" style="color: #015cd0;"></i>
+                    Vista satelital de la ubicación. Usa los botones +/- para controlar el zoom.
+                </p>
+                <div id="coordsDisplay" class="text-sm font-mono mt-2 font-semibold" style="color: #001749;">
+                    Coordenadas: -- | Zoom: --
+                </div>
+            </div>
+            <iframe 
+                id="map"
+                src=""
+                allowfullscreen="" 
+                loading="lazy" 
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+    </div>
+
+    <!-- Información y Firmas debajo del mapa -->
+    <div class="print-signatures container mx-auto" style="margin-top: 10px; padding: 0 20px; max-width: 1200px;">
+        <!-- Grid principal con 3 columnas uniformes -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; height: 180px;">
+            
+            <!-- Columna 1: Información y Observaciones -->
+            <div class="signature-box" style="border: 2px solid #001749; padding: 15px; background: white; display: flex; flex-direction: column; height: 100%;">
+                <h4 style="margin: 0 0 12px 0; font-size: 11px; font-weight: bold; color: #001749; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #001749; padding-bottom: 8px;">
+                    INFORMACIÓN Y OBSERVACIONES
+                </h4>
+                
+                <!-- Información compacta -->
+                <div style="font-size: 9px; line-height: 1.6; margin-bottom: 10px;">
+                    <p style="margin: 0 0 4px 0; color: #001749;">
+                        <strong style="font-weight: 600;">Tipo:</strong> 
+                        <span id="printTipoUbicacion" style="color: #015cd0; font-weight: 500;">Casa</span>
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #001749;">
+                        <strong id="printDescripcionLabel" style="font-weight: 600;">Descripción:</strong> 
+                        <span id="printDescripcionValue" style="color: #015cd0; font-weight: 500;"></span>
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #001749;">
+                        <strong style="font-weight: 600;">Referencia:</strong> 
+                        <span id="printReferencia" style="color: #015cd0; font-weight: 500;"></span>
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #001749;">
+                        <strong style="font-weight: 600;">Coordenadas:</strong> 
+                        <span id="printCoords" style="color: #015cd0; font-weight: 500; font-family: monospace; font-size: 8px;">-0.5145441, -78.5706978</span>
+                    </p>
+                    <p style="margin: 0 0 8px 0; color: #001749;">
+                        <strong style="font-weight: 600;">Fecha:</strong> 
+                        <span id="printDate" style="color: #015cd0; font-weight: 500;"></span>
+                    </p>
+                </div>
+                
+                <!-- Observaciones -->
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                    <p style="margin: 0 0 6px 0; font-size: 9px; color: #001749; font-weight: 600;">
+                        Observaciones Adicionales:
+                    </p>
+                    <div style="min-height: 45px; border: 1px solid #ccc; border-radius: 3px; padding: 5px;">
+                        <!-- Espacio para escribir observaciones a mano -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna 2: Firma del Asesor -->
+            <div class="signature-box" style="border: 2px solid #001749; padding: 15px; background: white; display: flex; flex-direction: column; height: 100%;">
+                <h4 style="margin: 0 0 12px 0; font-size: 11px; font-weight: bold; color: #001749; text-align: center; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 2px solid #001749; padding-bottom: 8px;">
+                    ELABORADO POR
+                </h4>
+                <div style="padding: 10px; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 3px;">
+                    <p id="printAsesorName" style="margin: 0; font-size: 10px; font-weight: 600; color: #001749; text-align: center;">
+                        Cargando...
+                    </p>
+                </div>
+                <div style="flex: 1;"></div>
+                <div style="border-top: 2px solid #001749; padding-top: 6px; margin-top: 10px;">
+                    <p style="margin: 0; font-size: 8px; text-align: center; color: #666; font-weight: 500;">Firma del Asesor</p>
+                </div>
+            </div>
+
+            <!-- Columna 3: Firma del Socio -->
+            <div class="signature-box" style="border: 2px solid #001749; padding: 15px; background: white; display: flex; flex-direction: column; height: 100%;">
+                <h4 style="margin: 0 0 12px 0; font-size: 11px; font-weight: bold; color: #001749; text-align: center; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 2px solid #001749; padding-bottom: 8px;">
+                    SOCIO SOLICITANTE
+                </h4>
+                <div style="padding: 10px; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 3px; min-height: 35px;">
+                    <p id="printSocioName" style="margin: 0; font-size: 10px; font-weight: 600; color: #001749; text-align: center;">
+                        <!-- Nombre del socio aparecerá aquí -->
+                    </p>
+                </div>
+                <div style="flex: 1;"></div>
+                <div style="border-top: 2px solid #001749; padding-top: 6px; margin-top: 10px;">
+                    <p style="margin: 0; font-size: 8px; text-align: center; color: #666; font-weight: 500;">Firma del Socio</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://lpsupabase.luispinta.com';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.bZRDLg2HoJKCXPp_B6BD5s-qcZM6-NrKO8qtxBtFGTk';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentUser = null;
+        let currentLat = null;
+        let currentLng = null;
+        let currentZoom = 18;
+        const defaultZoom = 18;
+        const minZoom = 10;
+        const maxZoom = 21;
+
+        // Obtener usuario loggeado y su configuración
+        async function loadUserData() {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (user && !error) {
+                    currentUser = user;
+                    let userName = 'Asesor';
+                    
+                    // Intentar obtener el nombre de la tabla usertr
+                    try {
+                        const { data: userConfig, error: configError } = await supabase
+                            .from('usertr')
+                            .select('user')
+                            .eq('correo', user.email)
+                            .single();
+                        
+                        if (userConfig && userConfig.user && userConfig.user.toLowerCase() !== 'no') {
+                            userName = userConfig.user;
+                        } else {
+                            // Si no hay en usertr, usar metadatos
+                            if (user.user_metadata?.full_name) {
+                                userName = user.user_metadata.full_name;
+                            } else if (user.user_metadata?.nombre) {
+                                userName = user.user_metadata.nombre;
+                            } else if (user.user_metadata?.name) {
+                                userName = user.user_metadata.name;
+                            }
+                        }
+                    } catch (configError) {
+                        console.log('No se encontró en usertr, usando metadatos:', configError);
+                        // Si falla, usar metadatos
+                        if (user.user_metadata?.full_name) {
+                            userName = user.user_metadata.full_name;
+                        } else if (user.user_metadata?.nombre) {
+                            userName = user.user_metadata.nombre;
+                        } else if (user.user_metadata?.name) {
+                            userName = user.user_metadata.name;
+                        }
+                    }
+                    
+                    // Actualizar nombre en header y en firma
+                    document.getElementById('printAsesorName').textContent = userName.toUpperCase();
+                    document.getElementById('headerUserName').textContent = userName;
+                    
+                    // Verificar si el formulario está completo después de cargar el usuario
+                    checkFormComplete();
+                } else {
+                    document.getElementById('printAsesorName').textContent = 'ASESOR';
+                    document.getElementById('headerUserName').textContent = 'Usuario';
+                }
+            } catch (error) {
+                console.error('Error cargando usuario:', error);
+                document.getElementById('printAsesorName').textContent = 'ASESOR';
+                document.getElementById('headerUserName').textContent = 'Usuario';
+            }
+        }
+
+        // Actualizar fecha de impresión
+        function updatePrintDate() {
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString('es-ES', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('printDate').textContent = formattedDate;
+        }
+
+        // Mostrar alerta personalizada
+        function showCustomAlert(message, type = 'warning') {
+            const container = document.getElementById('customAlertContainer');
+            
+            // Crear overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-alert-overlay';
+            
+            // Crear alerta
+            const alert = document.createElement('div');
+            alert.className = 'custom-alert';
+            
+            const iconClass = type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            const iconBgClass = type === 'warning' ? 'alert-warning' : 'alert-success';
+            
+            alert.innerHTML = `
+                <div class="alert-icon ${iconBgClass}">
+                    <i class="fas ${iconClass}"></i>
+                </div>
+                <h3 style="margin: 0 0 15px 0; text-align: center; color: #001749; font-size: 18px; font-weight: 600;">
+                    ${type === 'warning' ? 'Atención' : '¡Listo!'}
+                </h3>
+                <p style="margin: 0 0 25px 0; text-align: center; color: #666; line-height: 1.5;">
+                    ${message}
+                </p>
+                <button 
+                    onclick="closeCustomAlert()"
+                    style="width: 100%; padding: 12px; background: #001749; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; transition: background 0.3s;"
+                    onmouseover="this.style.background='#015cd0'"
+                    onmouseout="this.style.background='#001749'">
+                    Entendido
+                </button>
+            `;
+            
+            container.appendChild(overlay);
+            container.appendChild(alert);
+            
+            // Auto cerrar después de 5 segundos
+            setTimeout(() => {
+                if (container.contains(alert)) {
+                    closeCustomAlert();
+                }
+            }, 5000);
+        }
+
+        // Cerrar alerta personalizada
+        function closeCustomAlert() {
+            const container = document.getElementById('customAlertContainer');
+            const alert = container.querySelector('.custom-alert');
+            const overlay = container.querySelector('.custom-alert-overlay');
+            
+            if (alert) {
+                alert.style.animation = 'alertFadeOut 0.3s ease forwards';
+                overlay.style.animation = 'alertFadeOut 0.3s ease forwards';
+                
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 300);
+            }
+        }
+
+        // Toggle tipo de ubicación (Casa/Negocio)
+        function toggleTipoUbicacion() {
+            const checkbox = document.getElementById('tipoUbicacion');
+            const descripcionLabel = document.getElementById('descripcionLabel');
+            const descripcionIcon = document.getElementById('descripcionIcon');
+            const descripcionInput = document.getElementById('descripcionInput');
+            const labelCasa = document.getElementById('labelCasa');
+            const labelNegocio = document.getElementById('labelNegocio');
+            
+            if (checkbox.checked) {
+                // Es Negocio
+                descripcionLabel.textContent = 'Nombre del Negocio';
+                descripcionIcon.className = 'fas fa-store-alt';
+                descripcionInput.placeholder = 'Ingrese el nombre del negocio';
+                labelCasa.style.color = '#666';
+                labelNegocio.style.color = '#015cd0';
+            } else {
+                // Es Casa
+                descripcionLabel.textContent = 'Descripción';
+                descripcionIcon.className = 'fas fa-info-circle';
+                descripcionInput.placeholder = 'Ej: Color, número de pisos, acabado, techo, etc.';
+                labelCasa.style.color = '#015cd0';
+                labelNegocio.style.color = '#666';
+            }
+            
+            descripcionInput.value = '';
+            checkFormComplete();
+        }
+
+        // Actualizar nombre del socio en la sección de firma
+        function updateSocioName() {
+            const socioNameInput = document.getElementById('socioName');
+            const printSocioName = document.getElementById('printSocioName');
+            
+            if (socioNameInput && printSocioName) {
+                const nombre = socioNameInput.value.trim();
+                if (nombre) {
+                    printSocioName.textContent = nombre;
+                } else {
+                    printSocioName.textContent = '';
+                }
+            }
+        }
+
+        // Validar que el nombre del socio tenga al menos 3 palabras
+        function validateSocioName() {
+            const socioNameInput = document.getElementById('socioName');
+            const socioNameError = document.getElementById('socioNameError');
+            const name = socioNameInput.value.trim();
+            const words = name.split(/\s+/).filter(word => word.length > 0);
+            
+            if (name && words.length < 3) {
+                socioNameError.style.display = 'block';
+                socioNameInput.style.borderColor = '#e48410';
+                return false;
+            } else {
+                socioNameError.style.display = 'none';
+                socioNameInput.style.borderColor = '#e0e0e0';
+                return true;
+            }
+        }
+
+        // Verificar si el formulario está completo
+        function checkFormComplete() {
+            const socioName = document.getElementById('socioName').value.trim();
+            const mapUrl = document.getElementById('mapUrl').value.trim();
+            const descripcion = document.getElementById('descripcionInput').value.trim();
+            const referencia = document.getElementById('referenciaInput').value.trim();
+            const printBtn = document.getElementById('printBtn');
+            const headerUserName = document.getElementById('headerUserName').textContent;
+            const mapUrlSection = document.getElementById('mapUrlSection');
+            const mapContainer = document.getElementById('mapContainer');
+            
+            // Contar palabras en el nombre del socio
+            const words = socioName.split(/\s+/).filter(word => word.length > 0);
+            const hasValidName = words.length >= 3;
+            
+            // Verificar si los campos previos están completos para mostrar el input del mapa
+            const prevFieldsComplete = socioName && hasValidName && descripcion && referencia;
+            
+            // Mostrar u ocultar el input del mapa según los campos previos
+            if (prevFieldsComplete) {
+                mapUrlSection.style.display = 'block';
+                mapUrlSection.classList.add('animate-fade-in');
+            } else {
+                mapUrlSection.style.display = 'none';
+            }
+            
+            // Verificar que el mapa esté visible (cargado)
+            const mapLoaded = mapContainer.style.display !== 'none' && currentLat !== null && currentLng !== null;
+            
+            // Verificar que el usuario esté cargado y todos los campos estén llenos, incluyendo el mapa cargado
+            const isComplete = socioName && hasValidName && mapUrl && descripcion && referencia && headerUserName !== 'Cargando...' && mapLoaded;
+            
+            if (isComplete) {
+                printBtn.disabled = false;
+                printBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                printBtn.classList.add('hover:bg-gray-100', 'cursor-pointer');
+            } else {
+                printBtn.disabled = true;
+                printBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                printBtn.classList.remove('hover:bg-gray-100', 'cursor-pointer');
+            }
+        }
+
+        // Validar formulario antes de imprimir
+        function validateBeforePrint() {
+            const socioName = document.getElementById('socioName').value.trim();
+            const mapUrl = document.getElementById('mapUrl').value.trim();
+            const descripcion = document.getElementById('descripcionInput').value.trim();
+            const referencia = document.getElementById('referenciaInput').value.trim();
+            const tipoUbicacion = document.getElementById('tipoUbicacion').checked;
+
+            if (!socioName) {
+                showCustomAlert('Por favor ingrese el nombre completo del socio para continuar.');
+                return false;
+            }
+
+            // Validar que tenga al menos 3 palabras
+            const words = socioName.split(/\s+/).filter(word => word.length > 0);
+            if (words.length < 3) {
+                showCustomAlert('El nombre del socio debe tener al menos 3 palabras (nombre completo).');
+                return false;
+            }
+
+            if (!descripcion) {
+                const tipo = tipoUbicacion ? 'el nombre del negocio' : 'la descripción de la ubicación';
+                showCustomAlert(`Por favor ingrese ${tipo} para continuar.`);
+                return false;
+            }
+
+            if (!referencia) {
+                showCustomAlert('Por favor ingrese la referencia de la ubicación para continuar.');
+                return false;
+            }
+
+            if (!mapUrl) {
+                showCustomAlert('Por favor ingrese el enlace de Google Maps para continuar.');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Inicializar al cargar la página
+        window.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            updatePrintDate();
+        });
+
+        // Extraer coordenadas de diferentes formatos de URL
+        function extractCoordinates(input) {
+            input = input.trim();
+            
+            // Patrón para coordenadas directas: -0.5145441,-78.5706978
+            const directPattern = /^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/;
+            const directMatch = input.match(directPattern);
+            if (directMatch) {
+                return {
+                    lat: parseFloat(directMatch[1]),
+                    lng: parseFloat(directMatch[2])
+                };
+            }
+
+            // Patrón para URL de Google Maps: ?q=lat,lng
+            const urlPattern = /[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/;
+            const urlMatch = input.match(urlPattern);
+            if (urlMatch) {
+                return {
+                    lat: parseFloat(urlMatch[1]),
+                    lng: parseFloat(urlMatch[2])
+                };
+            }
+
+            // Patrón para URL con @: @lat,lng,zoom
+            const atPattern = /@(-?\d+\.?\d*),(-?\d+\.?\d*)/;
+            const atMatch = input.match(atPattern);
+            if (atMatch) {
+                return {
+                    lat: parseFloat(atMatch[1]),
+                    lng: parseFloat(atMatch[2])
+                };
+            }
+
+            return null;
+        }
+
+        // Cargar mapa con nuevas coordenadas
+        function loadMap() {
+            const urlInput = document.getElementById('mapUrl').value;
+            const coords = extractCoordinates(urlInput);
+
+            if (!coords) {
+                showCustomAlert('⚠️ No se pudieron extraer las coordenadas.\n\nFormatos válidos:\n• https://www.google.com/maps?q=-0.5145441,-78.5706978\n• -0.5145441,-78.5706978');
+                return;
+            }
+
+            // Validar coordenadas
+            if (coords.lat < -90 || coords.lat > 90 || coords.lng < -180 || coords.lng > 180) {
+                showCustomAlert('⚠️ Coordenadas inválidas.\nLatitud debe estar entre -90 y 90.\nLongitud debe estar entre -180 y 180.');
+                return;
+            }
+
+            currentLat = coords.lat;
+            currentLng = coords.lng;
+
+            // Restablecer zoom al cargar nuevo mapa
+            currentZoom = defaultZoom;
+
+            // Mostrar el contenedor del mapa
+            const mapContainer = document.getElementById('mapContainer');
+            mapContainer.style.display = 'block';
+            mapContainer.classList.add('animate-fade-in');
+
+            // Actualizar iframe del mapa
+            updateMapFrame();
+
+            // Actualizar display de coordenadas
+            const coordsText = `${currentLat}, ${currentLng}`;
+            document.getElementById('coordsDisplay').textContent = `Coordenadas: ${coordsText} | Zoom: ${currentZoom}`;
+            
+            // Actualizar coordenadas para impresión
+            document.getElementById('printCoords').textContent = coordsText;
+            
+            // Generar QR Code con las nuevas coordenadas
+            generateQRCode();
+            
+            // Scroll suave al mapa
+            setTimeout(() => {
+                mapContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+            
+            // Esperar 800ms antes de habilitar el botón imprimir (para que cargue el mapa)
+            setTimeout(() => {
+                checkFormComplete();
+            }, 800);
+        }
+
+        // Actualizar el iframe del mapa
+        function updateMapFrame() {
+            const mapFrame = document.getElementById('map');
+            mapFrame.src = `https://www.google.com/maps?q=${currentLat},${currentLng}&output=embed&t=k&z=${currentZoom}`;
+            
+            // Efecto visual de carga
+            mapFrame.style.opacity = '0.5';
+            setTimeout(() => {
+                mapFrame.style.opacity = '1';
+            }, 300);
+
+            // Actualizar display
+            document.getElementById('coordsDisplay').textContent = `Coordenadas: ${currentLat}, ${currentLng} | Zoom: ${currentZoom}`;
+            
+            // Actualizar coordenadas para impresión
+            document.getElementById('printCoords').textContent = `${currentLat}, ${currentLng}`;
+        }
+
+        // Aumentar zoom
+        function zoomIn() {
+            if (currentZoom < maxZoom) {
+                currentZoom++;
+                updateMapFrame();
+            } else {
+                showZoomAlert('Ya estás en el nivel máximo de zoom (21)');
+            }
+        }
+
+        // Disminuir zoom
+        function zoomOut() {
+            if (currentZoom > minZoom) {
+                currentZoom--;
+                updateMapFrame();
+            } else {
+                showZoomAlert('Ya estás en el nivel mínimo de zoom (10)');
+            }
+        }
+
+        // Restablecer zoom
+        function resetZoom() {
+            currentZoom = defaultZoom;
+            updateMapFrame();
+        }
+
+        // Mostrar alerta de zoom (toast pequeña)
+        function showZoomAlert(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: #001749;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                z-index: 9998;
+                animation: fade-in 0.3s ease;
+                border-left: 4px solid #e48410;
+            `;
+            alertDiv.innerHTML = `<i class="fas fa-info-circle mr-2" style="color: #e48410;"></i>${message}`;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+                alertDiv.style.transition = 'opacity 0.3s';
+                setTimeout(() => alertDiv.remove(), 300);
+            }, 2000);
+        }
+
+        /* Permitir cargar con Enter */
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('mapUrl').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadMap();
+                }
+            });
+        });
+
+        // Actualizar información de impresión
+        function updatePrintInfo() {
+            const tipoUbicacion = document.getElementById('tipoUbicacion').checked;
+            const descripcion = document.getElementById('descripcionInput').value.trim();
+            const referencia = document.getElementById('referenciaInput').value.trim();
+            const socioName = document.getElementById('socioName').value.trim();
+            
+            // Actualizar tipo de ubicación
+            document.getElementById('printTipoUbicacion').textContent = tipoUbicacion ? 'Negocio' : 'Casa';
+            
+            // Actualizar label y valor de descripción
+            const printDescripcionLabel = document.getElementById('printDescripcionLabel');
+            const printDescripcionValue = document.getElementById('printDescripcionValue');
+            
+            if (tipoUbicacion) {
+                printDescripcionLabel.textContent = 'Nombre del negocio:';
+            } else {
+                printDescripcionLabel.textContent = 'Descripción:';
+            }
+            
+            printDescripcionValue.textContent = descripcion || 'N/A';
+            
+            // Actualizar referencia
+            document.getElementById('printReferencia').textContent = referencia || 'N/A';
+            
+            // Actualizar título del header dinámicamente
+            const printHeaderTitle = document.getElementById('printHeaderTitle');
+            if (socioName) {
+                if (tipoUbicacion && descripcion) {
+                    // Es negocio
+                    printHeaderTitle.textContent = `UBICACIÓN DE "${descripcion}"`;
+                } else {
+                    // Es casa/vivienda
+                    printHeaderTitle.textContent = `UBICACIÓN DE LA VIVIENDA DE ${socioName}`;
+                }
+            } else {
+                printHeaderTitle.textContent = 'UBICACIÓN DE LA VIVIENDA';
+            }
+            
+            // Generar QR Code con el enlace de Google Maps
+            generateQRCode();
+        }
+
+        // Generar código QR con la ubicación de Google Maps
+        function generateQRCode() {
+            // Solo generar si hay coordenadas válidas
+            if (currentLat && currentLng) {
+                const mapsUrl = `https://www.google.com/maps?q=${currentLat},${currentLng}`;
+                // Usar API de QR Code gratuita
+                const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mapsUrl)}`;
+                document.getElementById('qrCodeImage').src = qrApiUrl;
+            }
+        }
+
+        // Agregar evento antes de imprimir
+        window.addEventListener('beforeprint', function() {
+            updatePrintDate();
+            updatePrintInfo();
+        });
+    </script>
+</body>
+</html>
