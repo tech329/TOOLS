@@ -256,6 +256,25 @@
             flex-direction: column;
             opacity: 1;
         }
+        
+        /* Scrollbar para tarjetas de dashboard con fondos de color */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
         .iframe-container {
             width: 100%;
             flex: 1;
@@ -1469,7 +1488,7 @@
                             
                             <div class="p-6">
                                 <!-- Métricas principales -->
-                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-5 rounded-xl shadow-lg text-white">
                                         <div class="flex items-center justify-between mb-2">
                                             <i class="fas fa-file-invoice-dollar text-3xl opacity-80"></i>
@@ -1488,6 +1507,15 @@
                                         <p class="text-2xl font-bold" id="dashboard-monto-total">$0</p>
                                     </div>
                                     
+                                    <div class="bg-gradient-to-br from-teal-500 to-teal-600 p-5 rounded-xl shadow-lg text-white">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <i class="fas fa-coins text-3xl opacity-80"></i>
+                                            <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">Vigente</span>
+                                        </div>
+                                        <p class="text-sm opacity-90">Capital Vigente</p>
+                                        <p class="text-2xl font-bold" id="dashboard-capital-vigente">$0</p>
+                                    </div>
+                                    
                                     <div class="bg-gradient-to-br from-purple-500 to-purple-600 p-5 rounded-xl shadow-lg text-white">
                                         <div class="flex items-center justify-between mb-2">
                                             <i class="fas fa-chart-bar text-3xl opacity-80"></i>
@@ -1504,6 +1532,111 @@
                                         </div>
                                         <p class="text-sm opacity-90">Asesores</p>
                                         <p class="text-3xl font-bold" id="dashboard-total-asesores">0</p>
+                                    </div>
+                                </div>
+
+                                <!-- Últimos 3 Meses -->
+                                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+                                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                                        <i class="fas fa-calendar-days mr-2 text-blue-600"></i>
+                                        Últimos 3 Meses
+                                    </h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <!-- Mes Actual -->
+                                        <div class="bg-gradient-to-br from-green-500 to-green-600 p-5 rounded-xl shadow-lg text-white">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <i class="fas fa-calendar-check text-2xl opacity-80"></i>
+                                                <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">Actual</span>
+                                            </div>
+                                            <p class="text-sm opacity-90 font-semibold mb-3" id="dashboard-month-0-name">-</p>
+                                            <div class="space-y-1 mb-3 pb-3 border-b border-white/20">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs opacity-90">Total Créditos:</span>
+                                                    <span class="text-xl font-bold" id="dashboard-month-0-count">0</span>
+                                                </div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs opacity-90">Monto Total:</span>
+                                                    <span class="text-lg font-bold" id="dashboard-month-0-amount">$0</span>
+                                                </div>
+                                                <div class="flex items-center justify-between border-t border-white/10 pt-1">
+                                                    <span class="text-xs opacity-90">Capital Vigente:</span>
+                                                    <span class="text-lg font-bold" id="dashboard-month-0-capital">$0</span>
+                                                </div>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <p class="text-xs opacity-75 font-semibold mb-2 flex items-center">
+                                                    <i class="fas fa-users mr-1"></i>
+                                                    Por Asesor:
+                                                </p>
+                                                <div id="dashboard-month-0-asesores" class="max-h-32 overflow-y-auto scrollbar-thin">
+                                                    <!-- Asesores will be inserted here -->
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Mes -1 -->
+                                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-5 rounded-xl shadow-lg text-white">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <i class="fas fa-calendar-minus text-2xl opacity-80"></i>
+                                                <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">-1</span>
+                                            </div>
+                                            <p class="text-sm opacity-90 font-semibold mb-3" id="dashboard-month-1-name">-</p>
+                                            <div class="space-y-1 mb-3 pb-3 border-b border-white/20">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs opacity-90">Total Créditos:</span>
+                                                    <span class="text-xl font-bold" id="dashboard-month-1-count">0</span>
+                                                </div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs opacity-90">Monto Total:</span>
+                                                    <span class="text-lg font-bold" id="dashboard-month-1-amount">$0</span>
+                                                </div>
+                                                <div class="flex items-center justify-between border-t border-white/10 pt-1">
+                                                    <span class="text-xs opacity-90">Capital Vigente:</span>
+                                                    <span class="text-lg font-bold" id="dashboard-month-1-capital">$0</span>
+                                                </div>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <p class="text-xs opacity-75 font-semibold mb-2 flex items-center">
+                                                    <i class="fas fa-users mr-1"></i>
+                                                    Por Asesor:
+                                                </p>
+                                                <div id="dashboard-month-1-asesores" class="max-h-32 overflow-y-auto scrollbar-thin">
+                                                    <!-- Asesores will be inserted here -->
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Mes -2 -->
+                                        <div class="bg-gradient-to-br from-purple-500 to-purple-600 p-5 rounded-xl shadow-lg text-white">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <i class="fas fa-calendar text-2xl opacity-80"></i>
+                                                <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">-2</span>
+                                            </div>
+                                            <p class="text-sm opacity-90 font-semibold mb-3" id="dashboard-month-2-name">-</p>
+                                            <div class="space-y-1 mb-3 pb-3 border-b border-white/20">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs opacity-90">Total Créditos:</span>
+                                                    <span class="text-xl font-bold" id="dashboard-month-2-count">0</span>
+                                                </div>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs opacity-90">Monto Total:</span>
+                                                    <span class="text-lg font-bold" id="dashboard-month-2-amount">$0</span>
+                                                </div>
+                                                <div class="flex items-center justify-between border-t border-white/10 pt-1">
+                                                    <span class="text-xs opacity-90">Capital Vigente:</span>
+                                                    <span class="text-lg font-bold" id="dashboard-month-2-capital">$0</span>
+                                                </div>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <p class="text-xs opacity-75 font-semibold mb-2 flex items-center">
+                                                    <i class="fas fa-users mr-1"></i>
+                                                    Por Asesor:
+                                                </p>
+                                                <div id="dashboard-month-2-asesores" class="max-h-32 overflow-y-auto scrollbar-thin">
+                                                    <!-- Asesores will be inserted here -->
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -2917,17 +3050,25 @@
                         </td>
                         <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-xs" title="${credito.asesor_credito || 'N/A'}">${credito.asesor_credito || 'N/A'}</td>
                         <td class="px-4 py-3 text-sm">
-                            <div class="flex gap-2 flex-wrap">
-                                <button onclick="enviarNotificacionWhatsApp(${JSON.stringify(credito).replace(/"/g, '&quot;')})" 
+                            <div class="flex gap-2 flex-wrap justify-center">
+                                <button onclick="confirmarEnviarNotificacion(${JSON.stringify(credito).replace(/"/g, '&quot;')})" 
                                         ${!canSendNotifications() ? 'disabled' : ''}
-                                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm inline-flex items-center ${!canSendNotifications() ? 'opacity-50 cursor-not-allowed' : ''}">
-                                    <i class="fab fa-whatsapp mr-1"></i>
-                                    Notificar
+                                        class="group bg-green-500 hover:bg-green-600 text-white px-2 py-2 md:px-3 md:py-1 rounded text-xs font-bold shadow-sm inline-flex items-center ${!canSendNotifications() ? 'opacity-50 cursor-not-allowed' : ''}"
+                                        title="Enviar recordatorio por WhatsApp">
+                                    <i class="fab fa-whatsapp flex-shrink-0"></i>
+                                    <span class="btn-text hidden md:inline-block">Notificar</span>
+                                </button>
+                                <button onclick="confirmarMarcarPagado(${JSON.stringify(credito).replace(/"/g, '&quot;')})" 
+                                        ${isAdminUser() ? 'disabled' : ''}
+                                        class="group bg-blue-500 hover:bg-blue-600 text-white px-2 py-2 md:px-3 md:py-1 rounded text-xs font-bold shadow-sm inline-flex items-center ${isAdminUser() ? 'opacity-50 cursor-not-allowed' : ''}"
+                                        title="${isAdminUser() ? 'Solo los asesores pueden marcar como pagado' : 'Marcar cuota como pagada'}">
+                                    <i class="fas fa-check-circle flex-shrink-0"></i>
+                                    <span class="btn-text hidden md:inline-block">Pagado</span>
                                 </button>
                                 <button onclick="viewCreditoDetails(${credito.id})" 
-                                        class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded text-xs font-medium transition-colors">
-                                    <i class="fas fa-eye mr-1"></i>
-                                    Ver
+                                        class="group bg-red-100 hover:bg-red-200 text-red-700 px-2 py-2 md:px-3 md:py-1 rounded text-xs font-medium">
+                                    <i class="fas fa-eye flex-shrink-0"></i>
+                                    <span class="btn-text hidden md:inline-block">Ver</span>
                                 </button>
                             </div>
                         </td>
@@ -3191,23 +3332,30 @@
                         <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-xs" title="${credito.asesor_credito || 'N/A'}">${credito.asesor_credito || 'N/A'}</td>
                         <td class="px-4 py-3 text-sm">
                             <div class="flex gap-2 justify-center flex-wrap">
-                                <button onclick="enviarNotificacionWhatsApp(${JSON.stringify(credito).replace(/"/g, '&quot;')})" 
+                                <button onclick="confirmarEnviarNotificacion(${JSON.stringify(credito).replace(/"/g, '&quot;')})" 
                                         ${!canSendNotifications() || diasRestantes > 3 ? 'disabled' : ''}
-                                        class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm inline-flex items-center ${!canSendNotifications() || diasRestantes > 3 ? 'opacity-50 cursor-not-allowed' : ''}"
+                                        class="group bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-2 md:px-3 md:py-1 rounded text-xs font-bold shadow-sm inline-flex items-center ${!canSendNotifications() || diasRestantes > 3 ? 'opacity-50 cursor-not-allowed' : ''}"
                                         title="${diasRestantes > 3 ? 'Solo se puede notificar cuando falten 3 días o menos' : 'Enviar recordatorio por WhatsApp'}">
-                                    <i class="fab fa-whatsapp mr-1"></i>
-                                    Notificar
+                                    <i class="fab fa-whatsapp flex-shrink-0"></i>
+                                    <span class="btn-text hidden md:inline-block">Notificar</span>
+                                </button>
+                                <button onclick="confirmarMarcarPagado(${JSON.stringify(credito).replace(/"/g, '&quot;')})" 
+                                        ${isAdminUser() ? 'disabled' : ''}
+                                        class="group bg-blue-500 hover:bg-blue-600 text-white px-2 py-2 md:px-3 md:py-1 rounded text-xs font-bold shadow-sm inline-flex items-center ${isAdminUser() ? 'opacity-50 cursor-not-allowed' : ''}"
+                                        title="${isAdminUser() ? 'Solo los asesores pueden marcar como pagado' : 'Marcar cuota como pagada'}">
+                                    <i class="fas fa-check-circle flex-shrink-0"></i>
+                                    <span class="btn-text hidden md:inline-block">Pagado</span>
                                 </button>
                                 <a href="tel:${credito.telefono_socio}" 
-                                   class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm inline-flex items-center">
-                                    <i class="fas fa-phone mr-1"></i>
-                                    Llamar
+                                   class="group bg-green-500 hover:bg-green-600 text-white px-2 py-2 md:px-3 md:py-1 rounded text-xs font-bold shadow-sm inline-flex items-center">
+                                    <i class="fas fa-phone flex-shrink-0"></i>
+                                    <span class="btn-text hidden md:inline-block">Llamar</span>
                                 </a>
                                 <a href="${numeroCreditoUrl}" 
                                    target="_blank"
-                                   class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm inline-flex items-center">
-                                    <i class="fas fa-table mr-1"></i>
-                                    Ver Tabla
+                                   class="group bg-indigo-500 hover:bg-indigo-600 text-white px-2 py-2 md:px-3 md:py-1 rounded text-xs font-bold shadow-sm inline-flex items-center">
+                                    <i class="fas fa-table flex-shrink-0"></i>
+                                    <span class="btn-text hidden md:inline-block">Ver Tabla</span>
                                 </a>
                             </div>
                         </td>
@@ -3235,13 +3383,55 @@
         // ===== FUNCIONES DE UI PARA NOTIFICACIONES =====
         
         // Mostrar loader de notificación
-        function showNotificationLoader(title = 'Enviando notificación...', message = 'Por favor espera mientras se envía el mensaje por WhatsApp') {
+        function showNotificationLoader(title = 'Enviando notificación...', message = 'Por favor espera mientras se envía el mensaje por WhatsApp', iconType = 'whatsapp') {
             const loader = document.getElementById('notification-loader');
             const titleEl = document.getElementById('notification-loader-title');
             const messageEl = document.getElementById('notification-loader-message');
+            const iconEl = document.getElementById('notification-loader-icon');
+            const iconContainerEl = document.getElementById('notification-loader-icon-container');
+            const progressEl = document.getElementById('notification-loader-progress');
+            
+            // Configurar íconos según el tipo
+            const iconConfig = {
+                whatsapp: {
+                    icon: 'fab fa-whatsapp',
+                    bgColor: 'bg-green-500',
+                    progressColor: 'from-green-400 to-green-600'
+                },
+                update: {
+                    icon: 'fas fa-sync-alt fa-spin',
+                    bgColor: 'bg-blue-500',
+                    progressColor: 'from-blue-400 to-blue-600'
+                },
+                save: {
+                    icon: 'fas fa-save',
+                    bgColor: 'bg-indigo-500',
+                    progressColor: 'from-indigo-400 to-indigo-600'
+                },
+                loading: {
+                    icon: 'fas fa-spinner fa-spin',
+                    bgColor: 'bg-gray-500',
+                    progressColor: 'from-gray-400 to-gray-600'
+                }
+            };
+            
+            const config = iconConfig[iconType] || iconConfig.whatsapp;
             
             if (titleEl) titleEl.textContent = title;
             if (messageEl) messageEl.textContent = message;
+            
+            if (iconEl) {
+                iconEl.className = `${config.icon} text-white text-5xl`;
+            }
+            
+            if (iconContainerEl) {
+                iconContainerEl.className = `w-20 h-20 ${config.bgColor} rounded-full flex items-center justify-center animate-pulse`;
+            }
+            
+            if (progressEl) {
+                progressEl.className = `h-full bg-gradient-to-r ${config.progressColor} rounded-full animate-progress`;
+            }
+            
             if (loader) loader.classList.remove('hidden');
         }
         
@@ -3249,6 +3439,35 @@
         function hideNotificationLoader() {
             const loader = document.getElementById('notification-loader');
             if (loader) loader.classList.add('hidden');
+        }
+        
+        // Mostrar modal de confirmación
+        function showConfirmModal(title, message, onConfirm, headerColor = 'from-blue-500 to-blue-600') {
+            const modal = document.getElementById('confirm-modal');
+            const header = document.getElementById('confirm-modal-header');
+            const titleEl = document.getElementById('confirm-modal-title');
+            const messageEl = document.getElementById('confirm-modal-message');
+            const acceptBtn = document.getElementById('confirm-modal-accept');
+            
+            if (titleEl) titleEl.innerHTML = `<i class="fas fa-question-circle mr-3"></i>${title}`;
+            if (messageEl) messageEl.innerHTML = message;
+            if (header) header.className = `bg-gradient-to-r ${headerColor} p-6 rounded-t-lg`;
+            if (modal) modal.classList.remove('hidden');
+            
+            // Remover listeners anteriores y agregar nuevo
+            const newAcceptBtn = acceptBtn.cloneNode(true);
+            acceptBtn.parentNode.replaceChild(newAcceptBtn, acceptBtn);
+            
+            newAcceptBtn.addEventListener('click', () => {
+                closeConfirmModal();
+                if (onConfirm) onConfirm();
+            });
+        }
+        
+        // Cerrar modal de confirmación
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirm-modal');
+            if (modal) modal.classList.add('hidden');
         }
         
         // Mostrar toast personalizado
@@ -3429,6 +3648,11 @@
             
             return userNotificationConfig.active && hasApiKey && hasInstance;
         }
+        
+        // Función para verificar si el usuario es admin
+        function isAdminUser() {
+            return userNotificationConfig.correo === 'contacto@tupakrantina.com';
+        }
 
         // Función para formatear fecha en texto (ejemplo: "22 de noviembre del 2025")
         function formatearFechaTexto(diaPago, mesAnioPrimerPago, cuotaPagada) {
@@ -3457,6 +3681,311 @@
             }
         }
 
+        // Función para marcar crédito como pagado
+        async function marcarComoPagado(credito, nuevoCapitalTexto) {
+            try {
+                // Validar que no sea admin
+                if (isAdminUser()) {
+                    showCustomToast('Solo los asesores de crédito pueden marcar pagos. El administrador solo tiene acceso de consulta.', 'error', 5000);
+                    return;
+                }
+                
+                const cuotaActual = parseInt(credito.cuota_pagada) || 0;
+                const plazoTotal = parseInt(credito.plazo) || 0;
+                const nuevaCuota = cuotaActual + 1;
+                
+                // Validar que no exceda el plazo
+                if (nuevaCuota > plazoTotal) {
+                    showCustomToast(`Este crédito ya está completamente pagado (${plazoTotal} cuotas)`, 'warning', 4000);
+                    return;
+                }
+                
+                showNotificationLoader(
+                    'Actualizando crédito...',
+                    `Registrando pago de cuota ${nuevaCuota} de ${plazoTotal} y actualizando capital a $${nuevoCapitalTexto}`,
+                    'update'
+                );
+                
+                // Actualizar en Supabase (ambas columnas: cuota_pagada y capital_restante)
+                const { data, error } = await supabase
+                    .from('actas_creditos_tupakra')
+                    .update({
+                        'cuota_pagada': nuevaCuota.toString(),
+                        'capital_restante': nuevoCapitalTexto
+                    })
+                    .eq('id', credito.id)
+                    .select();
+                
+                hideNotificationLoader();
+                
+                if (error) {
+                    throw error;
+                }
+                
+                if (!data || data.length === 0) {
+                    throw new Error('No se pudo actualizar el crédito. Verifica los permisos.');
+                }
+                
+                console.log('✅ Crédito actualizado:', data[0]);
+                
+                // Limpiar caché y recargar vistas
+                carteraDataCache = null;
+                
+                // Recargar la vista actual
+                const activeView = document.querySelector('[id^="cartera-view-"]:not(.hidden)');
+                if (activeView) {
+                    if (activeView.id === 'cartera-view-atrasados') {
+                        await loadAtrasados();
+                    } else if (activeView.id === 'cartera-view-cobros') {
+                        await loadCobrosProximos();
+                    } else if (activeView.id === 'cartera-view-general') {
+                        await loadCartera();
+                    }
+                }
+                
+                showCustomToast(
+                    `✅ Pago registrado: Cuota ${nuevaCuota}/${plazoTotal} | Capital: $${nuevoCapitalTexto}`, 
+                    'success', 
+                    6000
+                );
+                
+                // Limpiar datos temporales
+                window.tempCreditoData = null;
+                
+            } catch (error) {
+                console.error('❌ Error al marcar como pagado:', error);
+                hideNotificationLoader();
+                showCustomToast(`Error al registrar el pago: ${error.message}`, 'error', 5000);
+            }
+        }
+        
+        // Función para confirmar y marcar como pagado
+        function confirmarMarcarPagado(credito) {
+            const cuotaActual = parseInt(credito.cuota_pagada) || 0;
+            const plazoTotal = parseInt(credito.plazo) || 0;
+            const siguienteCuota = cuotaActual + 1;
+            const capitalActual = credito.capital_restante || '0,00';
+            const capitalActualNumero = parseEuropeanNumber(capitalActual);
+            
+            // Crear modal personalizado para solicitar capital vigente
+            const modalHTML = `
+                <div id="modal-capital-pagado" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                        <!-- Header -->
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-t-2xl">
+                            <h3 class="text-2xl font-bold text-white flex items-center">
+                                <i class="fas fa-hand-holding-dollar mr-3"></i>
+                                Registrar Pago
+                            </h3>
+                        </div>
+                        
+                        <!-- Body -->
+                        <div class="p-6 space-y-4">
+                            <!-- Info del crédito -->
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 space-y-2">
+                                <p class="text-sm"><strong>Socio:</strong> ${credito.nombre_socio || 'N/A'}</p>
+                                <p class="text-sm"><strong>Cédula:</strong> ${credito.cedula_socio || 'N/A'}</p>
+                                <p class="text-sm"><strong>Acta:</strong> ${credito.acta || 'N/A'}</p>
+                                <p class="text-sm"><strong>Cuota actual:</strong> ${cuotaActual} de ${plazoTotal}</p>
+                                <p class="text-sm"><strong>Nueva cuota:</strong> <span class="text-green-600 font-bold">${siguienteCuota} de ${plazoTotal}</span></p>
+                            </div>
+                            
+                            <!-- Capital actual -->
+                            <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-300">
+                                <p class="text-sm font-semibold text-gray-700 mb-1">Capital Actual:</p>
+                                <p class="text-2xl font-bold text-gray-800">$${capitalActual}</p>
+                            </div>
+                            
+                            <!-- Botón Ver Tabla -->
+                            <div class="flex justify-center">
+                                <a 
+                                    href="https://cajatupakrantina.webcoopec.com/view/${credito.acta || ''}" 
+                                    target="_blank"
+                                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors shadow-md"
+                                >
+                                    <i class="fas fa-table"></i>
+                                    Ver Tabla de Amortización
+                                </a>
+                            </div>
+                            
+                            <!-- Input nuevo capital -->
+                            <div class="space-y-2">
+                                <label class="block">
+                                    <span class="text-sm font-semibold text-gray-700">Nuevo Capital Vigente <span class="text-red-500">*</span></span>
+                                    <p class="text-xs text-gray-500 mb-2">Usa <strong>.</strong> para miles y <strong>,</strong> para decimales (Ejemplo: 8.500,50)</p>
+                                    <input 
+                                        type="text" 
+                                        id="input-nuevo-capital" 
+                                        placeholder="Ejemplo: 8.500,50"
+                                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 text-lg font-semibold"
+                                    />
+                                </label>
+                                <p id="error-capital" class="text-red-600 text-sm font-semibold hidden"></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="p-6 bg-gray-50 rounded-b-2xl flex gap-3">
+                            <button 
+                                onclick="cerrarModalCapital()" 
+                                class="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
+                            >
+                                <i class="fas fa-times mr-2"></i>Cancelar
+                            </button>
+                            <button 
+                                onclick="validarYConfirmarPago()" 
+                                class="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg transition-all shadow-lg"
+                            >
+                                <i class="fas fa-check mr-2"></i>Continuar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Insertar modal en el DOM
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Guardar datos en una variable global temporal
+            window.tempCreditoData = {
+                credito: credito,
+                capitalActual: capitalActualNumero,
+                siguienteCuota: siguienteCuota,
+                plazoTotal: plazoTotal
+            };
+            
+            // Focus en el input
+            setTimeout(() => {
+                document.getElementById('input-nuevo-capital').focus();
+            }, 100);
+        }
+        
+        // Función para cerrar modal de capital
+        window.cerrarModalCapital = function() {
+            const modal = document.getElementById('modal-capital-pagado');
+            if (modal) modal.remove();
+            window.tempCreditoData = null;
+        };
+        
+        // Función para validar y confirmar pago
+        window.validarYConfirmarPago = function() {
+            const inputCapital = document.getElementById('input-nuevo-capital');
+            const errorElement = document.getElementById('error-capital');
+            const nuevoCapitalTexto = inputCapital.value.trim();
+            
+            // Validar que no esté vacío
+            if (!nuevoCapitalTexto) {
+                errorElement.textContent = '⚠️ El capital vigente es obligatorio';
+                errorElement.classList.remove('hidden');
+                inputCapital.classList.add('border-red-500');
+                return;
+            }
+            
+            // Validar formato (debe tener punto para miles y coma para decimales)
+            const formatoValido = /^[\d.]+,\d{2}$/.test(nuevoCapitalTexto);
+            if (!formatoValido) {
+                errorElement.textContent = '⚠️ Formato incorrecto. Usa . para miles y , para decimales (Ej: 8.500,50)';
+                errorElement.classList.remove('hidden');
+                inputCapital.classList.add('border-red-500');
+                return;
+            }
+            
+            // Parsear a número
+            const nuevoCapitalNumero = parseEuropeanNumber(nuevoCapitalTexto);
+            
+            // Validar que sea menor al capital actual
+            if (nuevoCapitalNumero >= window.tempCreditoData.capitalActual) {
+                errorElement.textContent = `⚠️ El nuevo capital debe ser menor a $${formatEuropeanNumber(window.tempCreditoData.capitalActual)}`;
+                errorElement.classList.remove('hidden');
+                inputCapital.classList.add('border-red-500');
+                return;
+            }
+            
+            // Validar que no sea negativo
+            if (nuevoCapitalNumero < 0) {
+                errorElement.textContent = '⚠️ El capital no puede ser negativo';
+                errorElement.classList.remove('hidden');
+                inputCapital.classList.add('border-red-500');
+                return;
+            }
+            
+            // Todo OK - guardar datos y mostrar confirmación final
+            const datosGuardados = { ...window.tempCreditoData };
+            cerrarModalCapital();
+            mostrarConfirmacionFinalPago(nuevoCapitalTexto, nuevoCapitalNumero, datosGuardados);
+        };
+        
+        // Función para mostrar confirmación final con el valor en grande
+        function mostrarConfirmacionFinalPago(nuevoCapitalTexto, nuevoCapitalNumero, datosGuardados) {
+            const { credito, capitalActual, siguienteCuota, plazoTotal } = datosGuardados;
+            
+            showConfirmModal(
+                'Confirmar Actualización',
+                `<div class="space-y-4">
+                    <p class="font-semibold text-gray-800 text-center">¿Confirmar el registro de pago?</p>
+                    
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border-2 border-green-300">
+                        <p class="text-sm text-gray-600 text-center mb-2">Nuevo Capital Vigente:</p>
+                        <p class="text-4xl font-bold text-green-700 text-center">$${nuevoCapitalTexto}</p>
+                    </div>
+                    
+                    <!-- Botón Ver Tabla -->
+                    <div class="flex justify-center">
+                        <a 
+                            href="https://cajatupakrantina.webcoopec.com/view/${credito.acta || ''}" 
+                            target="_blank"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors shadow-md"
+                        >
+                            <i class="fas fa-table"></i>
+                            Ver Tabla de Amortización
+                        </a>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 space-y-1 text-sm">
+                        <p><strong>Socio:</strong> ${credito.nombre_socio || 'N/A'}</p>
+                        <p><strong>Acta:</strong> ${credito.acta || 'N/A'}</p>
+                        <p><strong>Cuota:</strong> ${siguienteCuota} de ${plazoTotal}</p>
+                        <p><strong>Capital anterior:</strong> <span class="line-through text-gray-500">$${formatEuropeanNumber(capitalActual)}</span></p>
+                        <p><strong>Capital nuevo:</strong> <span class="text-green-600 font-bold">$${nuevoCapitalTexto}</span></p>
+                    </div>
+                    
+                    <p class="text-xs text-gray-500 text-center">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Se actualizarán la cuota pagada y el capital restante
+                    </p>
+                </div>`,
+                () => marcarComoPagado(credito, nuevoCapitalTexto),
+                'from-green-500 to-green-600'
+            );
+        }
+
+        // Función para confirmar envío de notificación
+        function confirmarEnviarNotificacion(credito) {
+            // Calcular fecha de pago para mostrar
+            const cuotaPagada = parseInt(credito.cuota_pagada) || 0;
+            const mesAnioPrimerPago = getMesAnioPrimerPago(credito);
+            const fechaPagoTexto = formatearFechaTexto(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
+            
+            showConfirmModal(
+                'Enviar Notificación',
+                `<div class="space-y-3">
+                    <p class="font-semibold text-gray-800">¿Enviar recordatorio de pago por WhatsApp?</p>
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <p class="text-sm"><strong>Socio:</strong> ${credito.nombre_socio || 'N/A'}</p>
+                        <p class="text-sm"><strong>Teléfono:</strong> ${credito.telefono_socio || 'N/A'}</p>
+                        <p class="text-sm"><strong>Fecha de pago:</strong> ${fechaPagoTexto}</p>
+                        <p class="text-sm"><strong>Monto:</strong> $${parseFloat(credito.monto_aprobado || 0).toLocaleString('es-ES')}</p>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                        <i class="fab fa-whatsapp text-green-600 mr-1"></i>
+                        Se enviará un mensaje de recordatorio amigable al socio.
+                    </p>
+                </div>`,
+                () => enviarNotificacionWhatsApp(credito),
+                'from-green-500 to-green-600'
+            );
+        }
+        
         // Función para enviar notificación de WhatsApp
         async function enviarNotificacionWhatsApp(credito) {
             try {
@@ -3542,7 +4071,8 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
                 // Mostrar loader
                 showNotificationLoader(
                     'Enviando notificación...',
-                    `Enviando recordatorio de pago a ${nombreSocio} vía WhatsApp`
+                    `Enviando recordatorio de pago a ${nombreSocio} vía WhatsApp`,
+                    'whatsapp'
                 );
                 
                 const response = await fetch(url, {
@@ -3793,12 +4323,36 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
             });
         }
 
+        // Función para parsear formato europeo (9.092,34) a número
+        function parseEuropeanNumber(value) {
+            if (!value) return 0;
+            // Convertir a string y eliminar espacios
+            const str = String(value).trim();
+            // Reemplazar puntos (miles) por nada y comas (decimales) por punto
+            const normalized = str.replace(/\./g, '').replace(',', '.');
+            return parseFloat(normalized) || 0;
+        }
+
+        // Función para formatear número a formato europeo (9.092,34)
+        function formatEuropeanNumber(value) {
+            if (!value || isNaN(value)) return '0,00';
+            // Formatear con separador de miles (.) y decimales (,)
+            return value.toLocaleString('es-ES', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
         function updateAdminDashboard() {
             // Calcular estadísticas globales
             const totalCreditos = creditosData.length;
             const montoTotal = creditosData.reduce((sum, credito) => {
                 const monto = parseFloat(credito.monto_aprobado) || 0;
                 return sum + monto;
+            }, 0);
+            const capitalVigente = creditosData.reduce((sum, credito) => {
+                const capital = parseEuropeanNumber(credito.capital_restante);
+                return sum + capital;
             }, 0);
             const promedioMonto = totalCreditos > 0 ? montoTotal / totalCreditos : 0;
 
@@ -3820,12 +4374,106 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
 
             const totalAsesores = Object.keys(creditosPorAsesor).length;
 
+            // Calcular estadísticas de los últimos 3 meses
+            const mesesNombres = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const hoy = new Date();
+            const mesActual = hoy.getMonth(); // 0-11
+            const anioActual = hoy.getFullYear();
+            
+            // Calcular los 3 meses (actual, -1, -2)
+            const mesesCalcular = [];
+            for (let i = 0; i < 3; i++) {
+                const mesCalc = mesActual - i;
+                let mes, anio;
+                if (mesCalc >= 0) {
+                    mes = mesCalc;
+                    anio = anioActual;
+                } else {
+                    mes = 12 + mesCalc; // mesCalc es negativo
+                    anio = anioActual - 1;
+                }
+                mesesCalcular.push({ mes, anio, nombre: mesesNombres[mes] });
+            }
+
+            // Calcular créditos y montos por mes (basado en fecha de creación/aprobación)
+            const estadisticasMeses = mesesCalcular.map(mesInfo => {
+                const creditosDelMes = creditosData.filter(credito => {
+                    // Filtrar por fecha de creación (created_at)
+                    if (!credito.created_at) return false;
+
+                    const fechaCreacion = new Date(credito.created_at);
+                    
+                    // Verificar si la fecha de creación cae en este mes y año
+                    return fechaCreacion.getMonth() === mesInfo.mes && 
+                           fechaCreacion.getFullYear() === mesInfo.anio;
+                });
+
+                const montoMes = creditosDelMes.reduce((sum, c) => sum + (parseFloat(c.monto_aprobado) || 0), 0);
+                const capitalMes = creditosDelMes.reduce((sum, c) => sum + parseEuropeanNumber(c.capital_restante), 0);
+                
+                // Agrupar por asesor para este mes
+                const asesoresMes = {};
+                creditosDelMes.forEach(credito => {
+                    const asesor = credito.correo_asesor || 'Sin Asesor';
+                    const nombreAsesor = credito.asesor_credito || asesor;
+                    
+                    if (!asesoresMes[asesor]) {
+                        asesoresMes[asesor] = {
+                            nombre: nombreAsesor,
+                            count: 0,
+                            monto: 0
+                        };
+                    }
+                    asesoresMes[asesor].count++;
+                    asesoresMes[asesor].monto += parseFloat(credito.monto_aprobado) || 0;
+                });
+                
+                return {
+                    nombre: mesInfo.nombre + ' ' + mesInfo.anio,
+                    count: creditosDelMes.length,
+                    monto: montoMes,
+                    capital: capitalMes,
+                    asesores: Object.values(asesoresMes).sort((a, b) => b.monto - a.monto)
+                };
+            });
+
+            // Actualizar los elementos del DOM para los 3 meses
+            estadisticasMeses.forEach((stat, index) => {
+                document.getElementById(`dashboard-month-${index}-name`).textContent = stat.nombre;
+                document.getElementById(`dashboard-month-${index}-count`).textContent = stat.count;
+                document.getElementById(`dashboard-month-${index}-amount`).textContent = 
+                    '$' + stat.monto.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                document.getElementById(`dashboard-month-${index}-capital`).textContent = 
+                    '$' + formatEuropeanNumber(stat.capital);
+                
+                // Actualizar desglose por asesor
+                const asesorContainer = document.getElementById(`dashboard-month-${index}-asesores`);
+                if (asesorContainer) {
+                    if (stat.asesores.length === 0) {
+                        asesorContainer.innerHTML = '<p class="text-xs opacity-70 text-center py-2">Sin datos</p>';
+                    } else {
+                        asesorContainer.innerHTML = stat.asesores.map(asesor => `
+                            <div class="flex justify-between items-center text-xs py-1 border-b border-white/10 last:border-0">
+                                <span class="opacity-90 truncate flex-1" title="${asesor.nombre}">${asesor.nombre}</span>
+                                <div class="flex items-center gap-2 ml-2">
+                                    <span class="font-semibold">${asesor.count}</span>
+                                    <span class="opacity-75">|</span>
+                                    <span class="font-bold">$${asesor.monto.toLocaleString('es-ES', { maximumFractionDigits: 0 })}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            });
+
             // Actualizar métricas principales
             document.getElementById('dashboard-total-creditos').textContent = totalCreditos;
             document.getElementById('dashboard-monto-total').textContent = '$' + montoTotal.toLocaleString('es-ES', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
+            document.getElementById('dashboard-capital-vigente').textContent = '$' + formatEuropeanNumber(capitalVigente);
             document.getElementById('dashboard-promedio-monto').textContent = '$' + promedioMonto.toLocaleString('es-ES', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
@@ -4071,10 +4719,10 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
     <div id="notification-loader" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
             <div class="flex flex-col items-center">
-                <!-- Animación de WhatsApp -->
+                <!-- Ícono Dinámico -->
                 <div class="relative mb-6">
-                    <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
-                        <i class="fab fa-whatsapp text-white text-5xl"></i>
+                    <div id="notification-loader-icon-container" class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                        <i id="notification-loader-icon" class="fab fa-whatsapp text-white text-5xl"></i>
                     </div>
                     <div class="absolute -top-1 -right-1">
                         <div class="w-6 h-6 bg-blue-500 rounded-full animate-ping"></div>
@@ -4088,7 +4736,7 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
                 
                 <!-- Barra de progreso -->
                 <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full animate-progress"></div>
+                    <div id="notification-loader-progress" class="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full animate-progress"></div>
                 </div>
             </div>
         </div>
@@ -4096,6 +4744,39 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
 
     <!-- Toast Container para Mensajes -->
     <div id="custom-toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Modal de Confirmación General -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-2xl max-w-md w-full mx-4">
+            <div id="confirm-modal-header" class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-t-lg">
+                <div class="flex justify-between items-center">
+                    <h3 id="confirm-modal-title" class="text-xl font-bold text-white flex items-center">
+                        <i class="fas fa-question-circle mr-3"></i>
+                        Confirmar Acción
+                    </h3>
+                    <button onclick="closeConfirmModal()" 
+                            class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <p id="confirm-modal-message" class="text-gray-700 text-lg mb-6">
+                    ¿Estás seguro de realizar esta acción?
+                </p>
+                <div class="flex gap-3">
+                    <button onclick="closeConfirmModal()" 
+                            class="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-semibold transition-colors">
+                        Cancelar
+                    </button>
+                    <button id="confirm-modal-accept" 
+                            class="flex-1 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-bold transition-colors shadow-md">
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <style>
         @keyframes progress {
@@ -4106,6 +4787,62 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
         
         .animate-progress {
             animation: progress 2s ease-in-out infinite;
+        }
+        
+        /* Animación suave para texto de botones en hover */
+        @keyframes slideInText {
+            from {
+                opacity: 0;
+                transform: translateX(-5px);
+                max-width: 0;
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+                max-width: 100px;
+            }
+        }
+        
+        @keyframes slideOutText {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+                max-width: 100px;
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-5px);
+                max-width: 0;
+            }
+        }
+        
+        /* Clase para el span del texto */
+        .btn-text {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            max-width: 0;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Cuando el grupo tiene hover, anima el texto */
+        .group:hover .btn-text {
+            max-width: 100px;
+            opacity: 1;
+            margin-left: 0.25rem;
+        }
+        
+        /* Transición suave para el botón completo */
+        .group {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        /* Efecto de escala sutil en hover */
+        @media (min-width: 768px) {
+            .group:not(:disabled):hover {
+                transform: scale(1.05);
+            }
         }
     </style>
 
