@@ -454,7 +454,7 @@
                 <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 hidden" onclick="switchTab(5, 'Autorización Exterior', true)">
                     <i class="fas fa-user-check mr-3 text-orange-600"></i>Autorización Exterior
                 </button>
-                <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors" onclick="window.location.href='cargacomite.html'">
+                <button id="mobile-comite-tab" class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors hidden" onclick="window.location.href='cargacomite.html'">
                     <i class="fas fa-upload mr-3 text-teal-600"></i>Cargar Comité
                 </button>
             </div>
@@ -467,7 +467,7 @@
                 <button class="tab-button" onclick="switchTab(3, 'Imprimibles')">Imprimibles</button>
                 <button id="desktop-cartera-tab" class="tab-button hidden" onclick="switchTab(4, 'Cartera')">Cartera</button>
                 <button class="tab-button hidden" onclick="switchTab(5, 'Autorización Exterior')">Autorización Exterior</button>
-                <button class="tab-button" onclick="window.location.href='cargacomite.html'">Cargar Comité</button>
+                <button id="desktop-comite-tab" class="tab-button hidden" onclick="window.location.href='cargacomite.html'">Cargar Comité</button>
             </div>
         </div>
 
@@ -4293,6 +4293,84 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
             }
         }
 
+        // ===== FUNCIONES DE ACCESO A COMITÉ =====
+
+        // Función para verificar acceso a la pestaña de Comité
+        async function checkComiteAccess(userEmail = null, useCache = true) {
+            try {
+                // Get current user if not provided
+                if (!userEmail) {
+                    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+                    if (userError || !user) {
+                        return false;
+                    }
+                    userEmail = user.email;
+                }
+
+                // Admin siempre tiene acceso
+                if (userEmail === 'contacto@tupakrantina.com') {
+                    return true;
+                }
+
+                // Verificar si el usuario es asesor de crédito (tiene créditos asignados)
+                const { data, error } = await supabase
+                    .from('actas_creditos_tupakra')
+                    .select('id')
+                    .eq('correo_asesor', userEmail)
+                    .limit(1);
+
+                if (error) {
+                    console.error('Error verificando acceso a comité:', error);
+                    return false;
+                }
+
+                // Tiene acceso si es asesor (tiene al menos un crédito asignado)
+                const hasAccess = data && data.length > 0;
+
+                return hasAccess;
+
+            } catch (error) {
+                console.error('Error en checkComiteAccess:', error);
+                return false;
+            }
+        }
+
+        // Función para mostrar/ocultar pestaña de Comité
+        async function toggleComiteTab(forceCheck = false) {
+            const desktopTab = document.getElementById('desktop-comite-tab');
+            const mobileTab = document.getElementById('mobile-comite-tab');
+
+            // Obtener email del usuario actual
+            let userEmail = null;
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    userEmail = user.email;
+                }
+            } catch (error) {
+                console.error('Error obteniendo usuario:', error);
+            }
+
+            if (!userEmail) {
+                // Sin usuario, ocultar pestaña
+                if (desktopTab) desktopTab.classList.add('hidden');
+                if (mobileTab) mobileTab.classList.add('hidden');
+                return;
+            }
+
+            // Verificar acceso y aplicar
+            const hasAccess = await checkComiteAccess(userEmail, false);
+
+            if (hasAccess) {
+                if (desktopTab) desktopTab.classList.remove('hidden');
+                if (mobileTab) mobileTab.classList.remove('hidden');
+            } else {
+                if (desktopTab) desktopTab.classList.add('hidden');
+                if (mobileTab) mobileTab.classList.add('hidden');
+            }
+        }
+
         async function loadCreditos() {
             try {
                 const tableBody = document.getElementById('creditos-table-body');
@@ -4928,6 +5006,11 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
                 if (typeof toggleCarteraTab === 'function') {
                     await toggleCarteraTab();
                 }
+
+                // Check comité access after authentication
+                if (typeof toggleComiteTab === 'function') {
+                    await toggleComiteTab();
+                }
             } else {
                 // Fallback: check auth after main.js loads
                 setTimeout(async () => {
@@ -4943,6 +5026,11 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
                         // Check cartera access after authentication
                         if (typeof toggleCarteraTab === 'function') {
                             await toggleCarteraTab();
+                        }
+
+                        // Check comité access after authentication
+                        if (typeof toggleComiteTab === 'function') {
+                            await toggleComiteTab();
                         }
                     }
                 }, 100);
