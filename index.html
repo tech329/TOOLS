@@ -246,14 +246,11 @@
         
         .tab-content {
             display: none;
-            flex: 1;
-            overflow: auto;
-            min-height: 70vh;
+            width: 100%;
             transition: opacity 0.3s ease-in-out;
         }
         .tab-content.active {
-            display: flex;
-            flex-direction: column;
+            display: block;
             opacity: 1;
         }
         
@@ -454,8 +451,11 @@
                 <button id="mobile-cartera-tab" class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 hidden" onclick="switchTab(4, 'Cartera', true)">
                     <i class="fas fa-wallet mr-3 text-indigo-600"></i>Cartera
                 </button>
-                <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors" onclick="switchTab(5, 'Autorización Exterior', true)">
+                <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 hidden" onclick="switchTab(5, 'Autorización Exterior', true)">
                     <i class="fas fa-user-check mr-3 text-orange-600"></i>Autorización Exterior
+                </button>
+                <button class="mobile-tab-button w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors" onclick="window.location.href='cargacomite.html'">
+                    <i class="fas fa-upload mr-3 text-teal-600"></i>Cargar Comité
                 </button>
             </div>
             
@@ -466,7 +466,8 @@
                 <button class="tab-button" onclick="switchTab(2, 'Documentación')">Documentación</button>
                 <button class="tab-button" onclick="switchTab(3, 'Imprimibles')">Imprimibles</button>
                 <button id="desktop-cartera-tab" class="tab-button hidden" onclick="switchTab(4, 'Cartera')">Cartera</button>
-                <button class="tab-button" onclick="switchTab(5, 'Autorización Exterior')">Autorización Exterior</button>
+                <button class="tab-button hidden" onclick="switchTab(5, 'Autorización Exterior')">Autorización Exterior</button>
+                <button class="tab-button" onclick="window.location.href='cargacomite.html'">Cargar Comité</button>
             </div>
         </div>
 
@@ -1786,9 +1787,17 @@
 </div>
 
         <div id="tab5" class="tab-content hidden">
-            <div class="flex flex-col h-full bg-gray-50">
+            <div class="bg-gray-50 min-h-screen">
                 <div class="p-6">
                     <iframe src="authform.html" width="100%" height="800" frameborder="0"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab6" class="tab-content hidden">
+            <div class="bg-gray-50 min-h-screen">
+                <div class="p-6">
+                    <iframe src="cargacomite.html" width="100%" height="800" frameborder="0"></iframe>
                 </div>
             </div>
         </div>
@@ -1846,15 +1855,13 @@
                 if (index === tabIndex) {
                     tab.classList.add('active');
                     tab.classList.remove('hidden');
-                    if (window.innerWidth < 768) {
-                        tab.classList.add('flex');
-                    } else {
-                        tab.classList.remove('flex');
-                    }
+                    // Scroll al inicio de la pestaña
+                    setTimeout(() => {
+                        window.scrollTo(0, 0);
+                    }, 0);
                 } else {
                     tab.classList.remove('active');
                     tab.classList.add('hidden');
-                    tab.classList.remove('flex');
                 }
             });
             
@@ -1879,7 +1886,7 @@
             // Actualizar título en móvil y cerrar menú
             if (currentTabTitle) {
                 // Definir títulos según el índice
-                const titles = ['Calculadora', 'Herramientas de Consulta', 'Documentación', 'Imprimibles', 'Cartera', 'Autorización Exterior'];
+                const titles = ['Calculadora', 'Herramientas de Consulta', 'Documentación', 'Imprimibles', 'Cartera', 'Autorización Exterior', 'Cargar Comité'];
                 currentTabTitle.textContent = tabTitle || titles[tabIndex];
             }
             // Siempre cerrar menú móvil al seleccionar una opción
@@ -3661,6 +3668,19 @@
                     const userInfoElement = document.getElementById('user-info');
                     if (userInfoElement) {
                         userInfoElement.textContent = userNotificationConfig.user;
+                    }
+                    // Guardar nombre en localStorage para otras páginas
+                    localStorage.setItem('nombreUsuarioActual', userNotificationConfig.user.toUpperCase());
+                } else {
+                    // Si no hay nombre en usertr, intentar con metadatos del usuario
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        const userName = user.user_metadata?.full_name || 
+                                       user.user_metadata?.nombre || 
+                                       user.user_metadata?.name || 
+                                       user.email?.split('@')[0] || 
+                                       'Usuario';
+                        localStorage.setItem('nombreUsuarioActual', userName.toUpperCase());
                     }
                 }
                 

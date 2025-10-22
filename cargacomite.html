@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargar Comité</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- PDF-Lib para modificar metadatos -->
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    
+    <!-- PDF.js para compresión real -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-teal-50 to-cyan-50 min-h-screen p-4">
+    <!-- Botón de regreso -->
+    <div class="fixed top-4 left-4 z-50">
+        <button onclick="window.location.href='index.html'" class="flex items-center gap-2 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl">
+            <i class="fas fa-arrow-left text-teal-600"></i>
+            <span>Volver a Herramientas</span>
+        </button>
+    </div>
+    
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="max-w-4xl w-full">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 md:p-12">
+                <!-- Título -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 mb-4">
+                        <i class="fas fa-upload text-white text-2xl"></i>
+                    </div>
+                    <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+                        Cargar Comité
+                    </h1>
+                    <p class="text-gray-600">
+                        Complete los datos del comité
+                    </p>
+                    <p class="text-sm text-gray-500 mt-2">
+                        <i class="fas fa-user-tie mr-1"></i>Asesor: <span id="asesorNombre" class="font-semibold">Cargando...</span>
+                    </p>
+                </div>
+
+                <!-- Formulario -->
+                <form id="comiteForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Nombre Completo del Socio -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-user text-teal-600 mr-2"></i>Nombre Completo del Socio *
+                        </label>
+                        <input type="text" id="nombreCompleto" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition uppercase"
+                            placeholder="JUAN CARLOS PÉREZ GARCÍA">
+                        <p class="text-xs text-gray-500 mt-1">Debe contener al menos 3 palabras (nombre y apellidos)</p>
+                        <p id="nombreError" class="text-xs text-red-600 mt-1 hidden">Por favor ingrese al menos 3 palabras</p>
+                    </div>
+
+                    <!-- Cédula del Socio -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-id-card text-teal-600 mr-2"></i>Cédula del Socio *
+                        </label>
+                        <input type="text" id="cedula" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                            placeholder="1234567890">
+                    </div>
+
+                    <!-- Monto -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-dollar-sign text-teal-600 mr-2"></i>Monto *
+                        </label>
+                        <input type="text" id="monto" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                            placeholder="0.00">
+                        <p id="montoTexto" class="text-sm text-gray-600 mt-2 italic"></p>
+                    </div>
+
+                    <!-- Plazo -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-calendar-alt text-teal-600 mr-2"></i>Plazo (meses) *
+                        </label>
+                        <input type="number" id="plazo" required min="1"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                            placeholder="12">
+                        <p id="plazoTexto" class="text-sm text-gray-600 mt-2 italic"></p>
+                    </div>
+
+                    <!-- Tasa -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-percentage text-teal-600 mr-2"></i>Tasa (%) *
+                        </label>
+                        <select id="tasa" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                            <option value="">Seleccionar tasa...</option>
+                            <option value="26">26%</option>
+                            <option value="24">24%</option>
+                            <option value="23">23%</option>
+                            <option value="19">19%</option>
+                        </select>
+                        <p id="tasaTexto" class="text-sm text-gray-600 mt-2 italic"></p>
+                    </div>
+
+                    <!-- Tipo de Crédito -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-credit-card text-teal-600 mr-2"></i>Tipo de Crédito *
+                        </label>
+                        <input type="text" id="tipoCredito" required readonly
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed text-gray-600 font-semibold"
+                            value=""
+                            placeholder="Seleccione una tasa primero">
+                    </div>
+
+                    <!-- Destino -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-bullseye text-teal-600 mr-2"></i>Destino *
+                        </label>
+                        <select id="destino" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                            <option value="">Seleccionar...</option>
+                            <option value="CAPITAL DE TRABAJO" selected>CAPITAL DE TRABAJO</option>
+                            <option value="CONSUMO">CONSUMO</option>
+                            <option value="VIVIENDA">VIVIENDA</option>
+                            <option value="EDUCACIÓN">EDUCACIÓN</option>
+                            <option value="EMERGENCIA MÉDICA">EMERGENCIA MÉDICA</option>
+                            <option value="OTROS">OTROS</option>
+                        </select>
+                    </div>
+
+                    <!-- Subir PDF -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-file-pdf text-red-600 mr-2"></i>Documento PDF *
+                        </label>
+                        <div id="dropZone" 
+                            class="relative border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-teal-500 transition-all cursor-pointer bg-gray-50 hover:bg-teal-50">
+                            <input type="file" id="pdfFile" accept=".pdf,application/pdf" required class="hidden">
+                            <div id="dropZoneContent">
+                                <i class="fas fa-cloud-upload-alt text-5xl text-gray-400 mb-4"></i>
+                                <p class="text-gray-700 font-semibold mb-2">Arrastra tu PDF aquí</p>
+                                <p class="text-sm text-gray-500 mb-4">o haz clic para seleccionar</p>
+                                <p class="text-xs text-gray-400">También puedes pegar (Ctrl+V)</p>
+                            </div>
+                            <div id="fileInfo" class="hidden">
+                                <i class="fas fa-file-pdf text-red-500 text-5xl mb-4"></i>
+                                <p id="fileName" class="text-gray-700 font-semibold mb-2"></p>
+                                <p id="fileSize" class="text-sm text-gray-500 mb-4"></p>
+                                <div id="compressionProgress" class="hidden mb-4">
+                                    <div class="flex items-center justify-center gap-2 text-yellow-600">
+                                        <i class="fas fa-cog fa-spin"></i>
+                                        <span class="font-semibold">Comprimiendo PDF...</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                        <div id="progressBar" class="bg-yellow-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <button type="button" id="removeFile" 
+                                    class="text-red-600 hover:text-red-800 text-sm font-semibold">
+                                    <i class="fas fa-times-circle mr-1"></i>Remover archivo
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Solo archivos PDF. Archivos mayores a 15MB se comprimirán automáticamente</p>
+                    </div>
+
+                    <!-- Botón Enviar -->
+                    <div class="pt-4 md:col-span-2">
+                        <button type="submit" id="submitBtn" disabled
+                            class="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-bold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>Enviar al Comité</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Mensaje de estado -->
+                <div id="statusMessage" class="mt-6 hidden">
+                    <div class="p-4 rounded-lg">
+                        <p class="text-center font-semibold"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Supabase (misma que en index.html)
+        const SUPABASE_URL = 'https://nxonccbgjmcxzdsqlbrv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54b25jY2Jnam1jeHpkc3FsYnJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQxMjAxMzgsImV4cCI6MjA0OTY5NjEzOH0.pE_bCwL81xxwxJDIBrmbWH5_sYEttqfPxF6Ij-XYG58';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Silenciar console (elimina todos los console.log/warn/error en producción)
+        (function(){
+            if (window && window.console) {
+                console.log = function(){};
+                console.info = function(){};
+                console.warn = function(){};
+                console.error = function(){};
+            }
+        })();
+
+        let nombreAsesor = '';
+
+        // Obtener nombre del usuario desde localStorage o Supabase
+        async function obtenerNombreUsuario() {
+            console.log('Obteniendo nombre de usuario...');
+            
+            // Primero intentar obtener desde localStorage (guardado desde index.html)
+            const nombreGuardado = localStorage.getItem('nombreUsuarioActual');
+            if (nombreGuardado && nombreGuardado !== 'null' && nombreGuardado !== 'undefined') {
+                nombreAsesor = nombreGuardado;
+                console.log('Nombre obtenido desde localStorage:', nombreAsesor);
+                actualizarNombreAsesor();
+                return;
+            }
+            
+            // Si no está en localStorage, intentar desde Supabase
+            await obtenerUsuario();
+        }
+
+        // Obtener usuario logueado (mismo método que croquis.html)
+        async function obtenerUsuario() {
+            console.log('Iniciando obtenerUsuario...');
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                console.log('Resultado getUser:', { user, error });
+                
+                if (error) {
+                    console.error('Error obteniendo usuario:', error);
+                    nombreAsesor = 'ASESOR';
+                    actualizarNombreAsesor();
+                    return;
+                }
+                
+                if (user) {
+                    console.log('Usuario encontrado:', user.email);
+                    console.log('Metadatos:', user.user_metadata);
+                    
+                    let userName = 'ASESOR';
+                    
+                    // Intentar obtener el nombre de la tabla usertr
+                    try {
+                        console.log('Buscando en tabla usertr con email:', user.email);
+                        const { data: userConfig, error: configError } = await supabase
+                            .from('usertr')
+                            .select('user')
+                            .eq('correo', user.email)
+                            .single();
+                        
+                        console.log('Resultado usertr:', { userConfig, configError });
+                        
+                        if (userConfig && userConfig.user && userConfig.user.toLowerCase() !== 'no') {
+                            userName = userConfig.user.toUpperCase();
+                            console.log('Nombre desde usertr:', userName);
+                        } else {
+                            // Si no hay en usertr, usar metadatos
+                            console.log('No hay nombre válido en usertr, usando metadatos');
+                            if (user.user_metadata?.full_name) {
+                                userName = user.user_metadata.full_name.toUpperCase();
+                                console.log('Usando full_name:', userName);
+                            } else if (user.user_metadata?.nombre) {
+                                userName = user.user_metadata.nombre.toUpperCase();
+                                console.log('Usando nombre:', userName);
+                            } else if (user.user_metadata?.name) {
+                                userName = user.user_metadata.name.toUpperCase();
+                                console.log('Usando name:', userName);
+                            } else if (user.email) {
+                                userName = user.email.split('@')[0].toUpperCase();
+                                console.log('Usando email:', userName);
+                            }
+                        }
+                    } catch (configError) {
+                        console.log('Error buscando en usertr, usando metadatos:', configError);
+                        // Si falla, usar metadatos
+                        if (user.user_metadata?.full_name) {
+                            userName = user.user_metadata.full_name.toUpperCase();
+                        } else if (user.user_metadata?.nombre) {
+                            userName = user.user_metadata.nombre.toUpperCase();
+                        } else if (user.user_metadata?.name) {
+                            userName = user.user_metadata.name.toUpperCase();
+                        } else if (user.email) {
+                            userName = user.email.split('@')[0].toUpperCase();
+                        }
+                    }
+                    
+                    nombreAsesor = userName;
+                    console.log('Nombre final del asesor:', nombreAsesor);
+                    actualizarNombreAsesor();
+                } else {
+                    console.log('No hay usuario logueado');
+                    nombreAsesor = 'ASESOR';
+                    actualizarNombreAsesor();
+                }
+            } catch (err) {
+                console.error('Error general:', err);
+                nombreAsesor = 'ASESOR';
+                actualizarNombreAsesor();
+            }
+        }
+        
+        // Actualizar nombre del asesor en la UI
+        function actualizarNombreAsesor() {
+            const asesorElement = document.getElementById('asesorNombre');
+            if (asesorElement) {
+                asesorElement.textContent = nombreAsesor;
+            }
+        }
+
+        // Función para formatear números a USD
+        function formatearUSD(numero) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2
+            }).format(numero);
+        }
+
+        // Formatear fecha en español: "22 DE OCTUBRE DE 2025"
+        function fechaEnEspanol(fecha) {
+            try {
+                const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+                const d = fecha.getDate();
+                const m = fecha.getMonth();
+                const y = fecha.getFullYear();
+                return `${d} DE ${meses[m]} DE ${y}`;
+            } catch (e) {
+                return new Date().toLocaleDateString();
+            }
+        }
+
+        // Función mejorada para convertir número a texto en español
+        function numeroATexto(numero) {
+            if (!numero || isNaN(numero)) return '';
+            
+            const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+            const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+            const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
+            const centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
+            const veintes = ['VEINTE', 'VEINTIÚN', 'VEINTIDÓS', 'VEINTITRÉS', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISÉIS', 'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE'];
+            
+            function convertirGrupo(n) {
+                if (n === 0) return '';
+                if (n === 100) return 'CIEN';
+                
+                let texto = '';
+                const c = Math.floor(n / 100);
+                const d = Math.floor((n % 100) / 10);
+                const u = n % 10;
+                
+                if (c > 0) texto += centenas[c] + ' ';
+                
+                const dosDigitos = n % 100;
+                
+                if (dosDigitos >= 10 && dosDigitos < 20) {
+                    texto += especiales[dosDigitos - 10];
+                } else if (dosDigitos >= 20 && dosDigitos < 30) {
+                    texto += veintes[dosDigitos - 20];
+                } else {
+                    if (d > 0) texto += decenas[d];
+                    if (d > 2 && u > 0) texto += ' Y ';
+                    if (u > 0 && (d === 0 || d > 2)) texto += unidades[u];
+                }
+                
+                return texto.trim();
+            }
+            
+            const entero = Math.floor(numero);
+            const decimales = Math.round((numero - entero) * 100);
+            
+            let texto = '';
+            
+            // Si el entero es 0, solo mostrar centavos si hay
+            if (entero === 0) {
+                if (decimales > 0) {
+                    let textoCentavos = convertirGrupo(decimales);
+                    // Cambiar "UN" por "UN" para singular
+                    if (decimales === 1) {
+                        return 'UN CENTAVO';
+                    } else {
+                        return textoCentavos + ' CENTAVOS';
+                    }
+                } else {
+                    return 'CERO DÓLARES';
+                }
+            } else {
+                // Convertir la parte entera
+                const millones = Math.floor(entero / 1000000);
+                const miles = Math.floor((entero % 1000000) / 1000);
+                const cientos = entero % 1000;
+                
+                if (millones > 0) {
+                    if (millones === 1) {
+                        texto += 'UN MILLÓN ';
+                    } else {
+                        texto += convertirGrupo(millones) + ' MILLONES ';
+                    }
+                }
+                
+                if (miles > 0) {
+                    if (miles === 1) {
+                        texto += 'MIL ';
+                    } else {
+                        texto += convertirGrupo(miles) + ' MIL ';
+                    }
+                }
+                
+                if (cientos > 0) {
+                    texto += convertirGrupo(cientos);
+                }
+                
+                texto = texto.trim();
+                
+                // Agregar DÓLAR o DÓLARES según el número
+                if (entero === 1) {
+                    texto += ' DÓLAR';
+                } else {
+                    // Para terminaciones en UN (21, 31, etc.) antes de DÓLARES
+                    texto += ' DÓLARES';
+                }
+                
+                // Agregar centavos si existen
+                if (decimales > 0) {
+                    let textoCentavos = convertirGrupo(decimales);
+                    if (decimales === 1) {
+                        texto += ' CON UN CENTAVO';
+                    } else {
+                        texto += ' CON ' + textoCentavos + ' CENTAVOS';
+                    }
+                }
+            }
+            
+            return texto;
+        }
+
+        // Función para convertir número de meses a texto
+        function plazoATexto(numero) {
+            if (!numero || isNaN(numero) || numero <= 0) return '';
+            
+            const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+            const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+            const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
+            const veintes = ['VEINTE', 'VEINTIÚN', 'VEINTIDÓS', 'VEINTITRÉS', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISÉIS', 'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE'];
+            const centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
+            
+            function convertirGrupo(n) {
+                if (n === 0) return '';
+                if (n === 100) return 'CIEN';
+                
+                let texto = '';
+                const c = Math.floor(n / 100);
+                const d = Math.floor((n % 100) / 10);
+                const u = n % 10;
+                
+                if (c > 0) texto += centenas[c] + ' ';
+                
+                const dosDigitos = n % 100;
+                
+                if (dosDigitos >= 10 && dosDigitos < 20) {
+                    texto += especiales[dosDigitos - 10];
+                } else if (dosDigitos >= 20 && dosDigitos < 30) {
+                    texto += veintes[dosDigitos - 20];
+                } else {
+                    if (d > 0) texto += decenas[d];
+                    if (d > 2 && u > 0) texto += ' Y ';
+                    if (u > 0 && (d === 0 || d > 2)) texto += unidades[u];
+                }
+                
+                return texto.trim();
+            }
+            
+            let texto = '';
+            
+            if (numero >= 1000) {
+                const miles = Math.floor(numero / 1000);
+                const resto = numero % 1000;
+                
+                if (miles === 1) {
+                    texto += 'MIL';
+                } else {
+                    texto += convertirGrupo(miles) + ' MIL';
+                }
+                
+                if (resto > 0) {
+                    texto += ' ' + convertirGrupo(resto);
+                }
+            } else {
+                texto = convertirGrupo(numero);
+            }
+            
+            texto = texto.trim();
+            
+            return texto + (numero === 1 ? ' MES' : ' MESES');
+        }
+
+        // Función para generar ID del comité
+        function generarIDComite(nombreSocio, segundoNombre, nombreAsesor) {
+            const rand1 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            const rand2 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            const rand3 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            
+            const primerNombre = nombreSocio.trim().substring(0, 2).toUpperCase();
+            const segundoNom = segundoNombre.trim().substring(0, 2).toUpperCase();
+            const asesor = nombreAsesor.trim().substring(0, 2).toUpperCase();
+            
+            return `${primerNombre}${rand1}${segundoNom}${rand2}${asesor}${rand3}`;
+        }
+
+        // Auto-mayúsculas para campos de texto
+        document.querySelectorAll('input[type="text"]:not(#monto)').forEach(input => {
+            input.addEventListener('input', function(e) {
+                this.value = this.value.toUpperCase();
+            });
+        });
+
+        // Validar nombre completo
+        const nombreCompletoInput = document.getElementById('nombreCompleto');
+        const nombreError = document.getElementById('nombreError');
+        
+        nombreCompletoInput.addEventListener('blur', function(e) {
+            const palabras = this.value.trim().split(/\s+/).filter(p => p.length > 0);
+            if (palabras.length < 3) {
+                nombreError.classList.remove('hidden');
+                this.setCustomValidity('Debe ingresar al menos 3 palabras');
+            } else {
+                nombreError.classList.add('hidden');
+                this.setCustomValidity('');
+            }
+        });
+        
+        nombreCompletoInput.addEventListener('input', function(e) {
+            const palabras = this.value.trim().split(/\s+/).filter(p => p.length > 0);
+            if (palabras.length >= 3) {
+                nombreError.classList.add('hidden');
+                this.setCustomValidity('');
+            }
+        });
+
+        // Formatear monto (tipo caja registradora - desde centavos hacia izquierda)
+        const montoInput = document.getElementById('monto');
+        const montoTexto = document.getElementById('montoTexto');
+        let valorMontoCentavos = 0; // Almacenar el valor en centavos
+        
+        montoInput.addEventListener('keydown', function(e) {
+            // Permitir solo números, backspace, delete y flechas
+            const permitidas = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'];
+            
+            if (!permitidas.includes(e.key) && (e.key < '0' || e.key > '9')) {
+                e.preventDefault();
+                return;
+            }
+            
+            if (e.key >= '0' && e.key <= '9') {
+                e.preventDefault();
+                // Agregar dígito (multiplicar por 10 y sumar el nuevo dígito)
+                valorMontoCentavos = (valorMontoCentavos * 10) + parseInt(e.key);
+                actualizarMonto();
+            } else if (e.key === 'Backspace' || e.key === 'Delete') {
+                e.preventDefault();
+                // Quitar último dígito (dividir entre 10)
+                valorMontoCentavos = Math.floor(valorMontoCentavos / 10);
+                actualizarMonto();
+            }
+        });
+        
+        function actualizarMonto() {
+            const numero = valorMontoCentavos / 100;
+            montoInput.value = formatearUSD(numero).replace('$', '');
+            
+            if (numero > 0) {
+                montoTexto.textContent = numeroATexto(numero);
+            } else {
+                montoTexto.textContent = '';
+            }
+            // Re-validar formulario cuando el monto cambia
+            validateFormReady();
+        }
+
+        // Convertir plazo a texto
+        const plazoInput = document.getElementById('plazo');
+        const plazoTexto = document.getElementById('plazoTexto');
+        
+        plazoInput.addEventListener('input', function(e) {
+            const numero = parseInt(this.value);
+            if (!isNaN(numero) && numero > 0) {
+                plazoTexto.textContent = plazoATexto(numero);
+            } else {
+                plazoTexto.textContent = '';
+            }
+        });
+
+        // Convertir tasa/porcentaje a texto y cambiar tipo de crédito automáticamente
+        const tasaInput = document.getElementById('tasa');
+        const tasaTexto = document.getElementById('tasaTexto');
+        const tipoCreditoSelect = document.getElementById('tipoCredito');
+        
+        tasaInput.addEventListener('change', function(e) {
+            const tasa = parseFloat(this.value);
+            
+            if (!isNaN(tasa) && tasa > 0) {
+                // Determinar tipo de crédito según la tasa
+                let tipoCredito = '';
+                if (tasa === 26 || tasa === 23) {
+                    tipoCredito = 'MICROCRÉDITO';
+                } else if (tasa === 24) {
+                    tipoCredito = 'NUESTRAS RAÍCES';
+                } else if (tasa === 19) {
+                    tipoCredito = 'CRÉDITO DE CONSUMO';
+                }
+                
+                // Actualizar selector de tipo de crédito
+                if (tipoCredito) {
+                    tipoCreditoSelect.value = tipoCredito;
+                }
+                
+                // Convertir tasa a texto
+                const entero = Math.floor(tasa);
+                const decimales = Math.round((tasa - entero) * 100);
+                
+                let texto = '';
+                
+                if (entero > 0) {
+                    const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+                    const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+                    const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
+                    const veintes = ['VEINTE', 'VEINTIÚN', 'VEINTIDÓS', 'VEINTITRÉS', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISÉIS', 'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE'];
+                    
+                    if (entero < 10) {
+                        texto = unidades[entero];
+                    } else if (entero >= 10 && entero < 20) {
+                        texto = especiales[entero - 10];
+                    } else if (entero >= 20 && entero < 30) {
+                        texto = veintes[entero - 20];
+                    } else {
+                        const d = Math.floor(entero / 10);
+                        const u = entero % 10;
+                        texto = decenas[d];
+                        if (u > 0) {
+                            texto += ' Y ' + unidades[u];
+                        }
+                    }
+                }
+                
+                if (decimales > 0) {
+                    const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+                    const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+                    const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
+                    const veintes = ['VEINTE', 'VEINTIÚN', 'VEINTIDÓS', 'VEINTITRÉS', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISÉIS', 'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE'];
+                    
+                    let textoDecimal = '';
+                    if (decimales < 10) {
+                        textoDecimal = 'CERO ' + unidades[decimales];
+                    } else if (decimales >= 10 && decimales < 20) {
+                        textoDecimal = especiales[decimales - 10];
+                    } else if (decimales >= 20 && decimales < 30) {
+                        textoDecimal = veintes[decimales - 20];
+                    } else {
+                        const d = Math.floor(decimales / 10);
+                        const u = decimales % 10;
+                        textoDecimal = decenas[d];
+                        if (u > 0) {
+                            textoDecimal += ' Y ' + unidades[u];
+                        }
+                    }
+                    
+                    if (entero > 0) {
+                        texto += ' PUNTO ' + textoDecimal;
+                    } else {
+                        texto = 'CERO PUNTO ' + textoDecimal;
+                    }
+                }
+                
+                texto += ' POR CIENTO';
+                tasaTexto.textContent = texto;
+                // Re-validar porque el tipo de crédito puede haberse actualizado programáticamente
+                validateFormReady();
+            } else {
+                tasaTexto.textContent = '';
+                tipoCreditoSelect.value = '';
+                validateFormReady();
+            }
+        });
+
+        // === MANEJO DE SUBIDA DE PDF ===
+        let pdfFileSelected = null;
+        
+        const dropZone = document.getElementById('dropZone');
+        const pdfFileInput = document.getElementById('pdfFile');
+        const dropZoneContent = document.getElementById('dropZoneContent');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const removeFileBtn = document.getElementById('removeFile');
+        
+        // Función para agregar metadatos al PDF
+        async function agregarMetadatosPDF(file, metadata) {
+            try {
+                // Leer el archivo como array buffer
+                const arrayBuffer = await file.arrayBuffer();
+                
+                // Cargar el PDF
+                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+
+                // Crear un nuevo documento y copiar las páginas para garantizar que no queden metadatos XMP residuales
+                const newPdf = await PDFLib.PDFDocument.create();
+                const pages = await newPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                pages.forEach(p => newPdf.addPage(p));
+
+                // Establecer metadatos en el nuevo documento
+                newPdf.setTitle(metadata.title || '');
+                newPdf.setAuthor(metadata.author || '');
+                newPdf.setSubject(metadata.subject || '');
+                // Pasar un array vacío para limpiar keywords
+                newPdf.setKeywords((metadata.keywords && metadata.keywords.length) ? [metadata.keywords] : []);
+                // Evitar incluir texto que haga referencia a 'Comité' o al socio en campos adicionales
+                newPdf.setProducer('Caja de Ahorro Tupak Rantina');
+                newPdf.setCreator('');
+                newPdf.setCreationDate(new Date());
+                newPdf.setModificationDate(new Date());
+
+                // Intentar añadir metadatos XMP (mejora compatibilidad con visores que leen XMP)
+                try {
+                    const escapeXml = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+                    const xmpTitle = escapeXml(metadata.title || '');
+                    const xmpAuthor = escapeXml(metadata.author || '');
+                    const xmpKeywords = escapeXml((metadata.keywords && metadata.keywords.length) ? metadata.keywords : metadata.subject || '');
+
+                    const xmp = `<?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>\n<x:xmpmeta xmlns:x='adobe:ns:meta/'>\n  <rdf:RDF xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'>\n    <rdf:Description rdf:about='' xmlns:dc='http://purl.org/dc/elements/1.1/'>\n      <dc:title><rdf:Alt><rdf:li xml:lang='x-default'>${xmpTitle}</rdf:li></rdf:Alt></dc:title>\n      <dc:creator><rdf:Seq><rdf:li>${xmpAuthor}</rdf:li></rdf:Seq></dc:creator>\n    </rdf:Description>\n    <rdf:Description rdf:about='' xmlns:pdf='http://ns.adobe.com/pdf/1.3/'>\n      <pdf:Keywords>${xmpKeywords}</pdf:Keywords>\n    </rdf:Description>\n  </rdf:RDF>\n</x:xmpmeta>\n<?xpacket end='w'?>`;
+
+                    // Registrar y adjuntar al catálogo como Metadata
+                    const metadataStream = newPdf.context.flateStream(xmp, { Type: PDFLib.PDFName.of('Metadata'), Subtype: PDFLib.PDFName.of('XML') });
+                    const metadataRef = newPdf.context.register(metadataStream);
+                    newPdf.catalog.set(PDFLib.PDFName.of('Metadata'), metadataRef);
+                } catch (e) {
+                    console.warn('No se pudieron añadir metadatos XMP (no crítico):', e);
+                }
+
+                // Guardar el nuevo PDF modificado
+                const pdfBytes = await newPdf.save({
+                    useObjectStreams: true,
+                    addDefaultPage: false,
+                    objectsPerTick: 50
+                });
+                
+                // Crear un nuevo File con los metadatos
+                const modifiedFile = new File([pdfBytes], file.name, { type: 'application/pdf' });
+                
+                console.log(`PDF procesado: Tamaño original: ${formatFileSize(file.size)}, Tamaño nuevo: ${formatFileSize(modifiedFile.size)}`);
+
+                // Diagnóstico: volver a leer metadatos del PDF resultante y mostrarlos en consola
+                try {
+                    const checkPdf = await PDFLib.PDFDocument.load(pdfBytes);
+                    const t = checkPdf.getTitle();
+                    const a = checkPdf.getAuthor();
+                    const s = checkPdf.getSubject();
+                    const k = checkPdf.getKeywords();
+                    console.log('Metadatos del PDF final (verificación):', { title: t, author: a, subject: s, keywords: k });
+                } catch (e) {
+                    console.warn('No se pudo verificar metadatos del PDF final:', e);
+                }
+
+                return modifiedFile;
+            } catch (error) {
+                console.error('Error al agregar metadatos:', error);
+                // Si falla, retornar el archivo original
+                return file;
+            }
+        }
+
+        // Crear un PDF NO comprimido que incluya la portada generada por HTML y copie las páginas originales
+        async function crearPDFConPortadaSinComprimir(file, coverData, metadata) {
+            try {
+                // 1) Renderizar portada a imagen (JPEG)
+                const coverDiv = document.createElement('div');
+                coverDiv.style.width = '595px';
+                coverDiv.style.height = '842px';
+                coverDiv.style.position = 'absolute';
+                coverDiv.style.left = '-9999px';
+                coverDiv.style.top = '-9999px';
+                // No padding/margin on outer wrapper so the rendered image fills the A4 canvas exactly
+                coverDiv.style.padding = '0';
+                coverDiv.style.margin = '0';
+                coverDiv.style.boxSizing = 'border-box';
+                coverDiv.style.fontFamily = 'Arial, sans-serif';
+                // Inner container keeps small internal padding but the overall image will match 595x842 exactly
+                coverDiv.innerHTML = `
+                    <div style="width:595px;height:842px;box-sizing:border-box;padding:12px;background:linear-gradient(135deg,#f8fafc 0%, #e2e8f0 100%);margin:0;">
+                        <div style="display:flex;gap:16px;align-items:center;padding-top:4px;">
+                            <img src="https://i.postimg.cc/zBPmbxNT/TRANSPARENTE-min.png" style="width:90px;height:auto;"/>
+                            <div style="flex:1;">
+                                <h1 style="margin:0;color:#001749;font-size:20px;font-weight:700;letter-spacing:1px;">CAJA DE AHORRO TUPAK RANTINA</h1>
+                                <p style="margin:0;color:#3b82f6;font-size:13px;font-weight:600;">ASESORÍA DE CRÉDITOS</p>
+                            </div>
+                            <div style="text-align:right;min-width:140px;font-size:12px;color:#374151;">
+                                <div>Fecha:</div>
+                                <div>${fechaEnEspanol(new Date())}</div>
+                            </div>
+                        </div>
+                        <div style="height:8px;background:linear-gradient(90deg,#001749 0%, #001749 50%, #e48410 50%);margin:18px 0 8px 0;border-radius:4px;"></div>
+                        <div style="background:#ffffff;border-radius:10px;padding:18px 22px;box-shadow:0 8px 20px rgba(0,0,0,0.12);width:100%;max-height:520px;overflow:auto;">
+                            <h2 style="margin:0 0 6px 0;color:#0f172a;font-size:16px;font-weight:700;">Comité: <span style="color:#e48410;">${coverData.idComite}</span></h2>
+                            <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Asesor</strong><span style="color:#0f172a;font-weight:600;">${coverData.nombreAsesor}</span></div>
+                            <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Solicitante</strong><span style="color:#0f172a;font-weight:600;">${coverData.nombreCompleto}</span></div>
+                            <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Monto</strong><span style="color:#0f172a;font-weight:600;">${coverData.monto}</span></div>
+                            <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Plazo</strong><span style="color:#0f172a;font-weight:600;">${coverData.plazo}</span></div>
+                            <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Interés</strong><span style="color:#0f172a;font-weight:600;">${coverData.interes}</span></div>
+                            <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Tipo de crédito</strong><span style="color:#0f172a;font-weight:600;">${coverData.tipoCredito}</span></div>
+                            <div style="padding:10px 0;"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Destino</strong><span style="color:#0f172a;font-weight:600;">${coverData.destino}</span></div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(coverDiv);
+                const canvas = await html2canvas(coverDiv, { width:595, height:842, scale:2, useCORS:true });
+                document.body.removeChild(coverDiv);
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const imgArrayBuffer = await (await fetch(imgData)).arrayBuffer();
+
+                // 2) Cargar PDF original y crear nuevo PDF con portada + páginas originales
+                const originalBytes = await file.arrayBuffer();
+                const origPdf = await PDFLib.PDFDocument.load(originalBytes);
+                const newPdf = await PDFLib.PDFDocument.create();
+
+                // Embed JPG cover
+                let jpgImage;
+                try {
+                    jpgImage = await newPdf.embedJpg(imgArrayBuffer);
+                } catch (e) {
+                    // Fallback a PNG si falla (no esperado)
+                    jpgImage = await newPdf.embedPng(imgArrayBuffer);
+                }
+
+                const coverPage = newPdf.addPage([595,842]);
+                coverPage.drawImage(jpgImage, { x:0, y:0, width:595, height:842 });
+
+                // Copiar páginas originales
+                const copied = await newPdf.copyPages(origPdf, origPdf.getPageIndices());
+                copied.forEach(p => newPdf.addPage(p));
+
+                // Establecer metadatos
+                newPdf.setTitle(metadata.title || '');
+                newPdf.setAuthor(metadata.author || '');
+                newPdf.setSubject(metadata.subject || '');
+                newPdf.setKeywords((metadata.keywords && metadata.keywords.length) ? [metadata.keywords] : []);
+                newPdf.setProducer('Caja de Ahorro Tupak Rantina');
+                newPdf.setCreator('');
+                newPdf.setCreationDate(new Date());
+                newPdf.setModificationDate(new Date());
+
+                // Intento de XMP
+                try {
+                    const escapeXml = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+                    const xmpTitle = escapeXml(metadata.title || '');
+                    const xmpAuthor = escapeXml(metadata.author || '');
+                    const xmpKeywords = escapeXml((metadata.keywords && metadata.keywords.length) ? metadata.keywords : metadata.subject || '');
+                    const xmp = `<?xpacket begin='﻿' id='W5M0MpCehiHzreSzNTczkc9d'?>\n<x:xmpmeta xmlns:x='adobe:ns:meta/'>\n  <rdf:RDF xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'>\n    <rdf:Description rdf:about='' xmlns:dc='http://purl.org/dc/elements/1.1/'>\n      <dc:title><rdf:Alt><rdf:li xml:lang='x-default'>${xmpTitle}</rdf:li></rdf:Alt></dc:title>\n      <dc:creator><rdf:Seq><rdf:li>${xmpAuthor}</rdf:li></rdf:Seq></dc:creator>\n    </rdf:Description>\n    <rdf:Description rdf:about='' xmlns:pdf='http://ns.adobe.com/pdf/1.3/'>\n      <pdf:Keywords>${xmpKeywords}</pdf:Keywords>\n    </rdf:Description>\n  </rdf:RDF>\n</x:xmpmeta>\n<?xpacket end='w'?>`;
+                    const metadataStream = newPdf.context.flateStream(xmp, { Type: PDFLib.PDFName.of('Metadata'), Subtype: PDFLib.PDFName.of('XML') });
+                    const metadataRef = newPdf.context.register(metadataStream);
+                    newPdf.catalog.set(PDFLib.PDFName.of('Metadata'), metadataRef);
+                } catch (e) {
+                    // no crítico
+                }
+
+                const pdfBytes = await newPdf.save({ useObjectStreams: true });
+                const outFile = new File([pdfBytes], file.name, { type: 'application/pdf' });
+                return outFile;
+            } catch (err) {
+                // Si algo falla, retornar original con metadatos simples
+                try {
+                    return await agregarMetadatosPDF(file, metadata);
+                } catch (e) {
+                    return file;
+                }
+            }
+        }
+        
+    // Función para comprimir PDF con imágenes pesadas
+    async function comprimirPDF(file, onProgress, coverData, skipAddCover = false) {
+        try {
+            console.log('Iniciando compresión de PDF...');
+            
+            if (onProgress) onProgress(5);
+            
+            // Configurar PDF.js
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            
+            // Leer el archivo
+            const arrayBuffer = await file.arrayBuffer();
+            
+            if (onProgress) onProgress(10);
+            
+            // Cargar el PDF con PDF.js
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdf = await loadingTask.promise;
+            
+            if (onProgress) onProgress(15);
+            
+            // Crear nuevo PDF con jsPDF
+            const { jsPDF } = window.jspdf;
+            
+            // Load logo
+            const logoImg = new Image();
+            logoImg.crossOrigin = 'anonymous';
+            logoImg.src = 'https://i.postimg.cc/zBPmbxNT/TRANSPARENTE-min.png';
+            await new Promise((resolve, reject) => {
+                logoImg.onload = resolve;
+                logoImg.onerror = reject;
+            });
+            
+            if (onProgress) onProgress(20);
+            
+            // Crear documento A4 portrait
+            // Si skipAddCover, no agregamos portada ni página en blanco
+            const newPdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: 'a4'
+            });
+            let firstPageAdded = false;
+            if (!skipAddCover) {
+                // ...existing code for coverDiv creation and html2canvas...
+                coverDiv = document.createElement('div');
+                coverDiv.style.width = '595px';
+                coverDiv.style.height = '842px';
+                coverDiv.style.background = 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)';
+                coverDiv.style.fontFamily = 'Arial, sans-serif';
+                coverDiv.style.position = 'absolute';
+                coverDiv.style.left = '-9999px';
+                coverDiv.style.top = '-9999px';
+                coverDiv.style.padding = '40px';
+                coverDiv.style.boxSizing = 'border-box';
+                coverDiv.innerHTML = `
+                <style>
+                    .cover-container { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
+                    .cover-header { display:flex; gap:16px; align-items:center; }
+                    .cover-logo { width:90px; height:auto; }
+                    .cover-title { color:#001749; font-size:20px; font-weight:700; margin:0; letter-spacing:1px; }
+                    .cover-subtitle { color:#3b82f6; font-size:13px; margin:0; font-weight:600; }
+                    .cover-divider { width:100%; height:8px; background:linear-gradient(90deg,#001749 0%, #001749 50%, #e48410 50%); margin:18px 0 8px 0; border-radius:4px; }
+                    .cover-card { background:#ffffff; border-radius:10px; padding:22px; box-shadow:0 8px 20px rgba(0,0,0,0.12); width:100%; max-height:520px; overflow:auto; }
+                    .data-row { display:flex; flex-direction:row; justify-content:space-between; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.04); }
+                    .data-label { color:#6b7280; font-size:12px; font-weight:700; width:36%; }
+                    .data-value { color:#0f172a; font-size:14px; font-weight:600; width:64%; word-wrap:break-word; white-space:normal; }
+                    .small { font-size:12px; color:#374151; }
+                </style>
+
+                <div class="cover-container" style="height:100%; padding:10px 18px;">
+                    <div class="cover-header" style="padding-top:4px;">
+                        <img src="${logoImg.src}" class="cover-logo" alt="Logo">
+                        <div style="flex:1;">
+                            <h1 class="cover-title">CAJA DE AHORRO TUPAK RANTINA</h1>
+                            <p class="cover-subtitle">ASESORÍA DE CRÉDITOS</p>
+                        </div>
+                        <div style="text-align:right; min-width:140px;">
+                            <p class="small">Fecha:</p>
+                            <p class="small">${fechaEnEspanol(new Date())}</p>
+                        </div>
+                    </div>
+
+                    <div class="cover-divider"></div>
+
+                    <div class="cover-card">
+                        <div style="margin-bottom:6px;">
+                            <h2 style="margin:0; color:#0f172a; font-size:16px; font-weight:700;">Comité: <span style="color:#e48410;">${coverData.idComite}</span></h2>
+                        </div>
+
+                        <div class="data-row">
+                            <div class="data-label">Asesor</div>
+                            <div class="data-value">${coverData.nombreAsesor}</div>
+                        </div>
+
+                        <div class="data-row">
+                            <div class="data-label">Solicitante</div>
+                            <div class="data-value">${coverData.nombreCompleto}</div>
+                        </div>
+
+                        <div class="data-row">
+                            <div class="data-label">Monto</div>
+                            <div class="data-value">${coverData.monto}</div>
+                        </div>
+
+                        <div class="data-row">
+                            <div class="data-label">Plazo</div>
+                            <div class="data-value">${coverData.plazo}</div>
+                        </div>
+
+                        <div class="data-row">
+                            <div class="data-label">Interés</div>
+                            <div class="data-value">${coverData.interes}</div>
+                        </div>
+
+                        <div class="data-row">
+                            <div class="data-label">Tipo de crédito</div>
+                            <div class="data-value">${coverData.tipoCredito}</div>
+                        </div>
+
+                        <div class="data-row" style="border-bottom:0;">
+                            <div class="data-label">Destino</div>
+                            <div class="data-value">${coverData.destino}</div>
+                        </div>
+
+                        <!-- Leyenda eliminada por solicitud del usuario -->
+                    </div>
+                </div>
+            `;
+                document.body.appendChild(coverDiv);
+                // Capturar con html2canvas (solo si creamos la portada)
+                let coverImgData = null;
+                if (coverDiv) {
+                    const coverCanvas = await html2canvas(coverDiv, {
+                        width: 595,
+                        height: 842,
+                        // Aumentar escala para mejorar nitidez de la portada
+                        scale: 2,
+                        useCORS: true
+                    });
+                    // Convertir la portada a JPEG con mayor calidad antes de añadir al PDF
+                    coverImgData = coverCanvas.toDataURL('image/jpeg', 0.95);
+                    newPdf.addImage(coverImgData, 'JPEG', 0, 0, 595, 842, undefined, 'FAST');
+                    // Remover el div temporal
+                    document.body.removeChild(coverDiv);
+                }
+                firstPageAdded = true;
+            }
+            
+            if (onProgress) onProgress(25);
+            
+            // Procesar cada página original
+            const totalPages = pdf.numPages;
+            
+            for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                // Aumentar la escala de renderizado para mejorar la nitidez de las páginas
+                const viewport = page.getViewport({ scale: 2.5 }); // Escala 2.5 para mejor calidad
+
+                // Determinar orientación de esta página
+                const pageOrientation = viewport.width > viewport.height ? 'landscape' : 'portrait';
+                const pageWidth = viewport.width / 2;
+                const pageHeight = viewport.height / 2;
+
+                // Crear canvas con las dimensiones exactas de la página
+                const pageCanvas = document.createElement('canvas');
+                const pageContext = pageCanvas.getContext('2d');
+                pageCanvas.width = viewport.width;
+                pageCanvas.height = viewport.height;
+
+                // Renderizar página en canvas
+                await page.render({
+                    canvasContext: pageContext,
+                    viewport: viewport
+                }).promise;
+
+                // Convertir a imagen comprimida (JPEG con mayor calidad 0.85)
+                const imgData = pageCanvas.toDataURL('image/jpeg', 0.85);
+
+                // Agregar página y su imagen
+                newPdf.addPage([pageWidth, pageHeight], pageOrientation);
+                newPdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+
+                // Actualizar progreso
+                if (onProgress) {
+                    const progress = 25 + Math.floor((pageNum / totalPages) * 70);
+                    onProgress(progress);
+                }
+            }
+            
+            if (onProgress) onProgress(95);
+            
+            // Si se pasó metadata, establecerla en el PDF (title, author)
+            try {
+                if (coverData && typeof newPdf.setProperties === 'function') {
+                    newPdf.setProperties({
+                        title: coverData.idComite || '',
+                        author: coverData.nombreAsesor || ''
+                    });
+                }
+            } catch (e) {
+                console.warn('No se pudo establecer propiedades en jsPDF:', e);
+            }
+
+            // Generar el PDF comprimido
+            const pdfBlob = newPdf.output('blob');
+            
+            if (onProgress) onProgress(100);
+            
+            const compressedFile = new File([pdfBlob], file.name, { type: 'application/pdf' });
+            
+            const reduccion = ((file.size - compressedFile.size) / file.size * 100).toFixed(1);
+            console.log(`Compresión exitosa: ${formatFileSize(file.size)} → ${formatFileSize(compressedFile.size)} (${reduccion}% reducción)`);
+            
+            return compressedFile;
+        } catch (error) {
+                console.error('Error al comprimir PDF:', error);
+                alert('No se pudo comprimir el PDF. Se subirá el archivo original.');
+                return file;
+            }
+        }
+        
+        // Función para formatear tamaño de archivo
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+        
+    // Función para validar y mostrar archivo
+        async function handleFile(file) {
+            if (!file) return;
+            
+            // Validar que sea PDF
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                alert('Solo se permiten archivos PDF');
+                return;
+            }
+            
+            const originalSize = file.size;
+            
+            // Mostrar información inicial
+            dropZoneContent.classList.add('hidden');
+            fileInfo.classList.remove('hidden');
+            fileName.textContent = file.name;
+            fileSize.textContent = `Tamaño: ${formatFileSize(originalSize)}`;
+            
+            // Guardar archivo (la compresión se hará al enviar)
+            pdfFileSelected = file;
+
+            // Actualizar estado del botón según validación general
+            validateFormReady();
+
+            // Mostrar con color verde
+            dropZone.classList.add('border-green-500', 'bg-green-50');
+            dropZone.classList.remove('border-gray-300', 'bg-gray-50', 'border-yellow-500', 'bg-yellow-50');
+        }
+        
+        // Click en la zona de drop para abrir explorador
+        dropZone.addEventListener('click', function(e) {
+            if (e.target !== removeFileBtn && !removeFileBtn.contains(e.target)) {
+                pdfFileInput.click();
+            }
+        });
+        
+        // Cambio en el input file
+        pdfFileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        // Prevenir comportamiento por defecto en drag over
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('border-teal-500', 'bg-teal-50');
+        });
+        
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!pdfFileSelected) {
+                dropZone.classList.remove('border-teal-500', 'bg-teal-50');
+            }
+        });
+        
+        // Drop del archivo
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('border-teal-500', 'bg-teal-50');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+        
+        // Paste (Ctrl+V)
+        document.addEventListener('paste', function(e) {
+            const items = e.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('application/pdf') !== -1 || items[i].kind === 'file') {
+                    const file = items[i].getAsFile();
+                    if (file && file.type === 'application/pdf') {
+                        e.preventDefault();
+                        handleFile(file);
+                        break;
+                    }
+                }
+            }
+        });
+        
+        // Remover archivo
+        removeFileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            pdfFileSelected = null;
+            pdfFileInput.value = '';
+            dropZoneContent.classList.remove('hidden');
+            fileInfo.classList.add('hidden');
+            dropZone.classList.remove('border-green-500', 'bg-green-50');
+            dropZone.classList.add('border-gray-300', 'bg-gray-50');
+
+            // Validar estado del formulario cuando se remueve el archivo
+            validateFormReady();
+        });
+
+        // Enviar formulario
+        document.getElementById('comiteForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            // Asegurar que tenemos el nombre del asesor
+            if (!nombreAsesor || nombreAsesor === '') {
+                await obtenerUsuario();
+            }
+
+            // Safety guard: si el formulario no está listo, no hacer nada
+            if (!isFormReady()) {
+                console.warn('Formulario no listo — acción ignorada. Campos requeridos o PDF faltante.');
+                validateFormReady();
+                return;
+            }
+            
+            // Validar nombre completo antes de enviar
+            const nombreCompleto = document.getElementById('nombreCompleto').value.trim();
+            const palabras = nombreCompleto.split(/\s+/).filter(p => p.length > 0);
+            
+            if (palabras.length < 3) {
+                nombreError.classList.remove('hidden');
+                document.getElementById('nombreCompleto').focus();
+                return;
+            }
+            
+            // Extraer primer nombre y segundo nombre
+            const primerNombre = palabras[0];
+            const segundoNombre = palabras[1];
+            
+            // Deshabilitar botón
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...';
+            
+            // Obtener valores
+            const cedula = document.getElementById('cedula').value.trim();
+            const monto = parseFloat(document.getElementById('monto').value.replace(/,/g, ''));
+            const plazo = parseInt(document.getElementById('plazo').value);
+            const tasa = parseFloat(document.getElementById('tasa').value);
+            const tipoCredito = document.getElementById('tipoCredito').value;
+            const destino = document.getElementById('destino').value;
+            
+            // Generar ID
+            const idComite = generarIDComite(primerNombre, segundoNombre, nombreAsesor);
+            
+            // Convertir a texto
+            const montoEnTexto = numeroATexto(monto);
+            const plazoEnTexto = plazoATexto(plazo);
+            const tasaEnTexto = tasaTexto.textContent || tasa + ' POR CIENTO';
+            
+            // Preparar datos para webhook
+            const webhookData = {
+                IDCOMITE: idComite,
+                NOMBRECOMPLETO: nombreCompleto,
+                PRIMERNOMBRE: primerNombre,
+                SEGUNDONOMBRE: segundoNombre,
+                CEDULA: cedula,
+                MONTO: monto,
+                MONTO_EN_TEXTO: montoEnTexto,
+                PLAZO: plazo,
+                PLAZO_EN_TEXTO: plazoEnTexto,
+                TASA: tasa,
+                TASA_EN_TEXTO: tasaEnTexto,
+                TIPOCREDITO: tipoCredito,
+                DESTINO: destino,
+                NOMBREASESOR: nombreAsesor
+            };
+            
+            console.log('Datos a enviar (pendiente de PDF si aplica):', webhookData);
+
+            try {
+                // 1. Si hay PDF, subirlo primero y esperar la URL final
+                if (pdfFileSelected) {
+                    // Preparar nombres y path
+                    const safeNombreCompleto = nombreCompleto.replace(/\s+/g, '_').replace(/[^A-Z0-9_ÁÉÍÓÚÜÑáéíóúüñ]/gi, '');
+                    const pdfFileName = `${idComite}_${safeNombreCompleto}_${monto}.pdf`;
+                    const pdfPath = `/TUPAK_RANTINA/COMITES/${pdfFileName}`;
+
+                    console.log('Preparando subida de PDF (antes de compresión):', { fileName: pdfFileName, path: pdfPath, originalSize: formatFileSize(pdfFileSelected.size) });
+
+                    // Preparar metadatos title exacto: PRIMERNOMBRE_APELLIDO/MONTO_EN_LETRAS/PLAZO_MESES
+                    const primerNombreMeta = primerNombre || '';
+                    const ultimoNombreMeta = palabras.length >= 2 ? palabras[palabras.length - 1] : '';
+                    // Obtener monto en letras sin la parte de centavos (quitar ' CON ...')
+                    let montoEnLetrasMeta = montoEnTexto || '';
+                    const idxCon = montoEnLetrasMeta.indexOf(' CON ');
+                    if (idxCon !== -1) montoEnLetrasMeta = montoEnLetrasMeta.substring(0, idxCon);
+                    montoEnLetrasMeta = montoEnLetrasMeta.trim().replace(/\s+/g, '_');
+                    const plazoMeta = `${plazo}_MESES`;
+                    // Incluir el interés (porcentaje corto) en el Title metadata para que aparezca también allí
+                    const titleMeta = `${primerNombreMeta}_${ultimoNombreMeta}/${montoEnLetrasMeta}/${plazoMeta}/${tasa}%`;
+
+                    // Preparar datos para la portada
+                    const interesShort = `${tasa}%`;
+                    const coverData = {
+                        idComite,
+                        nombreAsesor,
+                        nombreCompleto,
+                        monto: `${formatearUSD(monto)} (${montoEnTexto})`,
+                        plazo: `${plazo} (${plazoEnTexto})`,
+                        interes: `${tasa}% (${tasaEnTexto})`,
+                        interesShort,
+                        tipoCredito,
+                        destino
+                    };
+
+                    // Generar PDF NO comprimido que incluya la portada (A4) y descargarlo para inspección
+                    let pdfToCompress = pdfFileSelected;
+                    let pdfWithCoverCreated = false;
+                    try {
+                        const pdfWithCover = await crearPDFConPortadaSinComprimir(pdfFileSelected, coverData, {
+                            title: titleMeta,
+                            author: nombreAsesor || '',
+                            subject: `${tasa}%`,
+                            keywords: `${tasa}%`
+                        });
+                        // Descargar la versión NO comprimida para verificación manual
+                        try {
+                            const blob = await pdfWithCover.arrayBuffer();
+                            const urlBlob = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+                            const a = document.createElement('a');
+                            a.href = urlBlob;
+                            a.download = 'DEBUG_UNCOMPRESSED_' + pdfFileName;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(urlBlob);
+                        } catch (e) {
+                            // ignore download failures silently
+                        }
+                        // Ahora comprimiremos la versión que incluye la portada
+                        pdfToCompress = pdfWithCover;
+                        pdfWithCoverCreated = true;
+                    } catch (e) {
+                        // Si falla, seguir con el PDF original
+                        pdfToCompress = pdfFileSelected;
+                    }
+
+                    // Comprimir SIEMPRE (sin límite)
+                    const progressBar = document.getElementById('progressBar');
+                    const compressionProgress = document.getElementById('compressionProgress');
+                    // Mostrar leyenda de compresión
+                    if (compressionProgress) {
+                        compressionProgress.classList.remove('hidden');
+                        const label = compressionProgress.querySelector('span');
+                        if (label) label.textContent = 'Comprimiendo...';
+                    }
+                    // Comprimir el archivo original; aplicaremos metadatos DESPUÉS de la compresión
+                    const pdfCompressedRaw = await comprimirPDF(pdfToCompress, (p) => {
+                        if (progressBar) progressBar.style.width = p + '%';
+                    }, coverData, pdfWithCoverCreated);
+                    // Si creamos el PDF con portada previamente, indicamos a la función de compresión
+                    // que NO añada otra portada (skipAddCover = true)
+                    // Note: pass pdfWithCoverCreated as fourth parameter
+                    // (re-call if necessary to ensure argument order)
+                    // But we already called comprimirPDF above; replace with correct call
+                    if (compressionProgress) compressionProgress.classList.add('hidden');
+
+                    console.log('PDF comprimido, tamaño final:', formatFileSize(pdfCompressedRaw.size));
+
+                    // Agregar metadatos al PDF comprimido (para que no se pierdan)
+                    // Solo establecer el título y, opcionalmente, el autor. No incluir 'Comité' ni el nombre del socio en subject/keywords.
+                    let pdfConMetadatos = await agregarMetadatosPDF(pdfCompressedRaw, {
+                        title: titleMeta,
+                        author: nombreAsesor || '',
+                        // Incluir el interés en metadatos (ej. '26%')
+                        subject: interesShort,
+                        keywords: interesShort
+                    });
+
+                    // Nota: la descarga de depuración del PDF NO comprimido ya se realizó antes de la compresión.
+
+                    console.log('PDF con metadatos listo, tamaño:', formatFileSize(pdfConMetadatos.size));
+
+                    // Preparar FormData y enviar al endpoint de subida
+                    const formData = new FormData();
+                    formData.append('file', pdfConMetadatos, pdfFileName);
+                    formData.append('fileName', pdfFileName);
+                    formData.append('path', pdfPath);
+
+                    console.log('FormData preparado (keys):', Array.from(formData.keys()));
+
+                    // Mostrar indicador de 'Enviando...' en el área de archivo
+                    if (compressionProgress) {
+                        compressionProgress.classList.remove('hidden');
+                        const label = compressionProgress.querySelector('span');
+                        if (label) label.textContent = 'Enviando...';
+                    }
+
+                    const uploadResponse = await fetch('https://lpwebhook.luispinta.com/webhook/6162a481-26e7-4c66-ba24-e58b1b1dc27e', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+
+                    const uploadText = await uploadResponse.text();
+                    console.log('Upload response status:', uploadResponse.status, 'body:', uploadText);
+
+                    if (!uploadResponse.ok) {
+                        // Restaurar indicador
+                        if (compressionProgress) compressionProgress.classList.add('hidden');
+                        throw new Error('Error al subir PDF: ' + uploadText);
+                    }
+
+                    // Parsear la URL final del upload (tolerante a varias claves comunes)
+                    let uploadJson = null;
+                    try {
+                        uploadJson = JSON.parse(uploadText);
+                    } catch (e) {
+                        console.warn('Respuesta upload no es JSON:', uploadText);
+                    }
+
+                    console.log('Upload JSON parseado:', uploadJson);
+
+                    let url = null;
+                    function extractUrl(obj) {
+                        if (!obj) return null;
+                        if (typeof obj === 'string' && obj.startsWith('http')) return obj;
+                        if (obj.finalurl) return obj.finalurl;
+                        if (obj.finalUrl) return obj.finalUrl;
+                        if (obj.downloadUrl) return obj.downloadUrl;
+                        if (obj.downloadURL) return obj.downloadURL;
+                        if (obj.url) return obj.url;
+                        if (obj.path && typeof obj.path === 'string' && obj.path.startsWith('http')) return obj.path;
+                        if (obj.data) return extractUrl(obj.data);
+                        return null;
+                    }
+
+                    if (Array.isArray(uploadJson) && uploadJson.length > 0) {
+                        for (const item of uploadJson) {
+                            const found = extractUrl(item);
+                            if (found) { url = found; break; }
+                        }
+                    } else if (typeof uploadJson === 'object') {
+                        url = extractUrl(uploadJson);
+                    } else if (typeof uploadText === 'string' && uploadText.startsWith('http')) {
+                        url = uploadText.trim();
+                    }
+
+                    // Restaurar indicador ocultándolo
+                    if (compressionProgress) compressionProgress.classList.add('hidden');
+
+                    if (!url) {
+                        throw new Error('No se recibió url desde el upload webhook. Body: ' + uploadText);
+                    }
+
+                    // Añadir la URL al body de datos
+                    webhookData.DOCUMENTO_URL = url;
+                    webhookData.DOCUMENTO_PATH = pdfPath;
+                }
+
+                // 2. Enviar datos JSON al webhook principal incluyendo DOCUMENTO_URL si existe
+                const response = await fetch('https://lpwebhook.luispinta.com/webhook/47c0cae9-6e3d-4b99-a661-227a3f6f8b69', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(webhookData)
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error('Error al enviar datos del comité: ' + errText);
+                }
+
+                // Éxito
+                statusMessage.classList.remove('hidden');
+                statusMessage.querySelector('div').className = 'p-4 rounded-lg bg-green-100 border border-green-300';
+                statusMessage.querySelector('p').className = 'text-center font-semibold text-green-800';
+                statusMessage.querySelector('p').innerHTML = '<i class="fas fa-check-circle mr-2"></i>¡Comité enviado exitosamente! ID: ' + idComite;
+                
+                // Limpiar formulario
+                document.getElementById('comiteForm').reset();
+                montoTexto.textContent = '';
+                plazoTexto.textContent = '';
+                tasaTexto.textContent = '';
+                valorMontoCentavos = 0;
+                
+                // Limpiar PDF
+                pdfFileSelected = null;
+                pdfFileInput.value = '';
+                dropZoneContent.classList.remove('hidden');
+                fileInfo.classList.add('hidden');
+                dropZone.classList.remove('border-green-500', 'bg-green-50');
+                dropZone.classList.add('border-gray-300', 'bg-gray-50');
+            } catch (error) {
+                // Error
+                statusMessage.classList.remove('hidden');
+                statusMessage.querySelector('div').className = 'p-4 rounded-lg bg-red-100 border border-red-300';
+                statusMessage.querySelector('p').className = 'text-center font-semibold text-red-800';
+                statusMessage.querySelector('p').innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>Error al enviar: ' + error.message;
+            } finally {
+                // Rehabilitar botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Enviar al Comité</span>';
+                
+                // Ocultar mensaje después de 5 segundos
+                setTimeout(() => {
+                    statusMessage.classList.add('hidden');
+                }, 5000);
+            }
+        });
+
+        // --- Validación general de formulario y control del botón ---
+        function isFormReady() {
+            const nombreCompleto = document.getElementById('nombreCompleto').value.trim();
+            const palabras = nombreCompleto.split(/\s+/).filter(p => p.length > 0);
+            if (palabras.length < 3) return false;
+
+            const cedula = document.getElementById('cedula').value.trim();
+            if (!cedula) return false;
+
+            const montoVal = parseFloat(document.getElementById('monto').value.replace(/,/g, ''));
+            if (isNaN(montoVal) || montoVal <= 0) return false;
+
+            const plazoVal = parseInt(document.getElementById('plazo').value);
+            if (isNaN(plazoVal) || plazoVal <= 0) return false;
+
+            const tasaVal = document.getElementById('tasa').value;
+            if (!tasaVal) return false;
+
+            const tipoCreditoVal = document.getElementById('tipoCredito').value;
+            if (!tipoCreditoVal) return false;
+
+            const destinoVal = document.getElementById('destino').value;
+            if (!destinoVal) return false;
+
+            // PDF debe estar listo (comprimido/seleccionado)
+            if (!pdfFileSelected) return false;
+
+            return true;
+        }
+
+        function validateFormReady() {
+            const submitBtn = document.getElementById('submitBtn');
+            if (!submitBtn) return;
+
+            if (isFormReady()) {
+                submitBtn.disabled = false;
+                // Restore original active styles
+                submitBtn.classList.remove('bg-gray-300', 'text-gray-600', 'cursor-not-allowed', 'opacity-60');
+                submitBtn.classList.add('bg-gradient-to-r', 'from-teal-500', 'to-cyan-500', 'text-white');
+            } else {
+                // Disabled and gray
+                submitBtn.disabled = true;
+                submitBtn.classList.remove('bg-gradient-to-r', 'from-teal-500', 'to-cyan-500', 'text-white');
+                submitBtn.classList.add('bg-gray-300', 'text-gray-600', 'cursor-not-allowed', 'opacity-60');
+            }
+        }
+
+        // Attach listeners to re-validate form on change
+        ['nombreCompleto','cedula','monto','plazo','tasa','tipoCredito','destino'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const ev = (id === 'tasa' || id === 'destino' || id === 'tipoCredito' || el.tagName === 'SELECT') ? 'change' : 'input';
+            el.addEventListener(ev, validateFormReady);
+        });
+
+        // Also re-validate after file selection/removal inside handleFile and removeFileBtn
+        // Initial validation on load
+        validateFormReady();
+
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOM cargado, obteniendo nombre de usuario...');
+            await obtenerNombreUsuario();
+        });
+        
+        // También intentar obtener inmediatamente por si acaso
+        obtenerNombreUsuario();
+    </script>
+</body>
+</html>
