@@ -209,36 +209,18 @@
 
     <script>
         // Configuración de Supabase (misma que en index.html)
-        const SUPABASE_URL = 'https://nxonccbgjmcxzdsqlbrv.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54b25jY2Jnam1jeHpkc3FsYnJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQxMjAxMzgsImV4cCI6MjA0OTY5NjEzOH0.pE_bCwL81xxwxJDIBrmbWH5_sYEttqfPxF6Ij-XYG58';
+        const SUPABASE_URL = 'https://lpsupabase.luispinta.com';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.bZRDLg2HoJKCXPp_B6BD5s-qcZM6-NrKO8qtxBtFGTk';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Silenciar console (elimina todos los console.log/warn/error en producción)
-        (function(){
-            if (window && window.console) {
-                console.log = function(){};
-                console.info = function(){};
-                console.warn = function(){};
-                console.error = function(){};
-            }
-        })();
-
         let nombreAsesor = '';
+        let numeroAsesorWhatsapp = '';
 
         // Obtener nombre del usuario desde localStorage o Supabase
         async function obtenerNombreUsuario() {
             console.log('Obteniendo nombre de usuario...');
             
-            // Primero intentar obtener desde localStorage (guardado desde index.html)
-            const nombreGuardado = localStorage.getItem('nombreUsuarioActual');
-            if (nombreGuardado && nombreGuardado !== 'null' && nombreGuardado !== 'undefined') {
-                nombreAsesor = nombreGuardado;
-                console.log('Nombre obtenido desde localStorage:', nombreAsesor);
-                actualizarNombreAsesor();
-                return;
-            }
-            
-            // Si no está en localStorage, intentar desde Supabase
+            // Siempre intentar obtener desde Supabase primero para tener email actualizado
             await obtenerUsuario();
         }
 
@@ -252,7 +234,22 @@
                 
                 if (error) {
                     console.error('Error obteniendo usuario:', error);
-                    nombreAsesor = 'ASESOR';
+                    // Si no hay sesión, intentar obtener desde localStorage
+                    const nombreGuardado = localStorage.getItem('nombreUsuarioActual');
+                    let emailGuardado = localStorage.getItem('emailUsuario');
+                    
+                    // Temporal: si no hay email pero hay nombre conocido, asignar email por defecto
+                    if (!emailGuardado && nombreGuardado === 'NATALIA NISHVE') {
+                        emailGuardado = 'asesor@tupakrantina.com';
+                        localStorage.setItem('emailUsuario', emailGuardado);
+                    }
+                    
+                    if (nombreGuardado && nombreGuardado !== 'null' && nombreGuardado !== 'undefined') {
+                        nombreAsesor = nombreGuardado;
+                        console.log('Nombre obtenido desde localStorage (fallback):', nombreAsesor);
+                    } else {
+                        nombreAsesor = 'ASESOR';
+                    }
                     actualizarNombreAsesor();
                     return;
                 }
@@ -268,11 +265,15 @@
                         console.log('Buscando en tabla usertr con email:', user.email);
                         const { data: userConfig, error: configError } = await supabase
                             .from('usertr')
-                            .select('user')
+                            .select('user, whatsapp')
                             .eq('correo', user.email)
                             .single();
                         
                         console.log('Resultado usertr:', { userConfig, configError });
+                        
+                        if (userConfig) {
+                            numeroAsesorWhatsapp = userConfig.whatsapp || '';
+                        }
                         
                         if (userConfig && userConfig.user && userConfig.user.toLowerCase() !== 'no') {
                             userName = userConfig.user.toUpperCase();
@@ -309,6 +310,9 @@
                     }
                     
                     nombreAsesor = userName;
+                    // Guardar tanto nombre como email en localStorage
+                    localStorage.setItem('nombreUsuarioActual', userName);
+                    localStorage.setItem('emailUsuario', user.email);
                     console.log('Nombre final del asesor:', nombreAsesor);
                     actualizarNombreAsesor();
                 } else {
@@ -1053,32 +1057,47 @@
             
             for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
                 const page = await pdf.getPage(pageNum);
-                // Aumentar la escala de renderizado para mejorar la nitidez de las páginas
-                const viewport = page.getViewport({ scale: 2.5 }); // Escala 2.5 para mejor calidad
+                
+                // Obtener tamaño real de la página
+                const realViewport = page.getViewport({ scale: 1 });
+                const pageWidth = realViewport.width;
+                const pageHeight = realViewport.height;
+                
+                // Determinar orientación
+                const pageOrientation = pageWidth > pageHeight ? 'landscape' : 'portrait';
+                
+                // Viewport para renderizado de alta calidad
+                const renderViewport = page.getViewport({ scale: 2.5 });
 
-                // Determinar orientación de esta página
-                const pageOrientation = viewport.width > viewport.height ? 'landscape' : 'portrait';
-                const pageWidth = viewport.width / 2;
-                const pageHeight = viewport.height / 2;
-
-                // Crear canvas con las dimensiones exactas de la página
+                // Crear canvas con las dimensiones renderizadas
                 const pageCanvas = document.createElement('canvas');
                 const pageContext = pageCanvas.getContext('2d');
-                pageCanvas.width = viewport.width;
-                pageCanvas.height = viewport.height;
+                pageCanvas.width = renderViewport.width;
+                pageCanvas.height = renderViewport.height;
 
                 // Renderizar página en canvas
-                await page.render({
-                    canvasContext: pageContext,
-                    viewport: viewport
-                }).promise;
+                try {
+                    await page.render({
+                        canvasContext: pageContext,
+                        viewport: renderViewport
+                    }).promise;
+                } catch (renderError) {
+                    console.warn(`Error al renderizar página ${pageNum}:`, renderError);
+                    // Si falla renderizar, saltar esta página y continuar con las demás
+                    continue;
+                }
 
                 // Convertir a imagen comprimida (JPEG con mayor calidad 0.85)
                 const imgData = pageCanvas.toDataURL('image/jpeg', 0.85);
 
                 // Agregar página y su imagen
-                newPdf.addPage([pageWidth, pageHeight], pageOrientation);
-                newPdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+                if (pageNum === 1 && skipAddCover) {
+                    // Usar la página inicial existente para evitar página en blanco
+                    newPdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+                } else {
+                    newPdf.addPage([pageWidth, pageHeight], pageOrientation);
+                    newPdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+                }
 
                 // Actualizar progreso
                 if (onProgress) {
@@ -1114,7 +1133,6 @@
             return compressedFile;
         } catch (error) {
                 console.error('Error al comprimir PDF:', error);
-                alert('No se pudo comprimir el PDF. Se subirá el archivo original.');
                 return file;
             }
         }
@@ -1300,6 +1318,8 @@
             
             console.log('Datos a enviar (pendiente de PDF si aplica):', webhookData);
 
+            let url = null; // Declarar url fuera del bloque if para que esté disponible globalmente
+            
             try {
                 // 1. Si hay PDF, subirlo primero y esperar la URL final
                 if (pdfFileSelected) {
@@ -1310,9 +1330,9 @@
 
                     console.log('Preparando subida de PDF (antes de compresión):', { fileName: pdfFileName, path: pdfPath, originalSize: formatFileSize(pdfFileSelected.size) });
 
-                    // Preparar metadatos title exacto: PRIMERNOMBRE_APELLIDO/MONTO_EN_LETRAS/PLAZO_MESES
+                    // Preparar metadatos title exacto: PRIMERNOMBRE_TERCERNOMBRE/MONTO_EN_LETRAS/PLAZO_MESES
                     const primerNombreMeta = primerNombre || '';
-                    const ultimoNombreMeta = palabras.length >= 2 ? palabras[palabras.length - 1] : '';
+                    const tercerNombreMeta = palabras.length >= 3 ? palabras[2] : '';
                     // Obtener monto en letras sin la parte de centavos (quitar ' CON ...')
                     let montoEnLetrasMeta = montoEnTexto || '';
                     const idxCon = montoEnLetrasMeta.indexOf(' CON ');
@@ -1320,7 +1340,7 @@
                     montoEnLetrasMeta = montoEnLetrasMeta.trim().replace(/\s+/g, '_');
                     const plazoMeta = `${plazo}_MESES`;
                     // Incluir el interés (porcentaje corto) en el Title metadata para que aparezca también allí
-                    const titleMeta = `${primerNombreMeta}_${ultimoNombreMeta}/${montoEnLetrasMeta}/${plazoMeta}/${tasa}%`;
+                    const titleMeta = `${primerNombreMeta}_${tercerNombreMeta}/${montoEnLetrasMeta}/${plazoMeta}/${tasa}%`;
 
                     // Preparar datos para la portada
                     const interesShort = `${tasa}%`;
@@ -1336,63 +1356,29 @@
                         destino
                     };
 
-                    // Generar PDF NO comprimido que incluya la portada (A4) y descargarlo para inspección
-                    let pdfToCompress = pdfFileSelected;
-                    let pdfWithCoverCreated = false;
+                    // PRIMERO: Comprimir el PDF original
+                    let pdfCompressed = pdfFileSelected;
                     try {
-                        const pdfWithCover = await crearPDFConPortadaSinComprimir(pdfFileSelected, coverData, {
-                            title: titleMeta,
-                            author: nombreAsesor || '',
-                            subject: `${tasa}%`,
-                            keywords: `${tasa}%`
-                        });
-                        // Descargar la versión NO comprimida para verificación manual
-                        try {
-                            const blob = await pdfWithCover.arrayBuffer();
-                            const urlBlob = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-                            const a = document.createElement('a');
-                            a.href = urlBlob;
-                            a.download = 'DEBUG_UNCOMPRESSED_' + pdfFileName;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(urlBlob);
-                        } catch (e) {
-                            // ignore download failures silently
-                        }
-                        // Ahora comprimiremos la versión que incluye la portada
-                        pdfToCompress = pdfWithCover;
-                        pdfWithCoverCreated = true;
+                        pdfCompressed = await comprimirPDF(pdfFileSelected, (p) => {
+                            if (progressBar) progressBar.style.width = p + '%';
+                        }, null, true); // coverData = null, skipAddCover = true
+                        console.log('PDF comprimido exitosamente, tamaño:', formatFileSize(pdfCompressed.size));
                     } catch (e) {
-                        // Si falla, seguir con el PDF original
-                        pdfToCompress = pdfFileSelected;
+                        console.warn('Compresión falló, usando PDF original:', e);
+                        pdfCompressed = pdfFileSelected;
                     }
 
-                    // Comprimir SIEMPRE (sin límite)
-                    const progressBar = document.getElementById('progressBar');
-                    const compressionProgress = document.getElementById('compressionProgress');
-                    // Mostrar leyenda de compresión
-                    if (compressionProgress) {
-                        compressionProgress.classList.remove('hidden');
-                        const label = compressionProgress.querySelector('span');
-                        if (label) label.textContent = 'Comprimiendo...';
-                    }
-                    // Comprimir el archivo original; aplicaremos metadatos DESPUÉS de la compresión
-                    const pdfCompressedRaw = await comprimirPDF(pdfToCompress, (p) => {
-                        if (progressBar) progressBar.style.width = p + '%';
-                    }, coverData, pdfWithCoverCreated);
-                    // Si creamos el PDF con portada previamente, indicamos a la función de compresión
-                    // que NO añada otra portada (skipAddCover = true)
-                    // Note: pass pdfWithCoverCreated as fourth parameter
-                    // (re-call if necessary to ensure argument order)
-                    // But we already called comprimirPDF above; replace with correct call
-                    if (compressionProgress) compressionProgress.classList.add('hidden');
+                    // SEGUNDO: Añadir portada al PDF comprimido
+                    const pdfWithCover = await crearPDFConPortadaSinComprimir(pdfCompressed, coverData, {
+                        title: titleMeta,
+                        author: nombreAsesor || '',
+                        subject: `${tasa}%`,
+                        keywords: `${tasa}%`
+                    });
 
-                    console.log('PDF comprimido, tamaño final:', formatFileSize(pdfCompressedRaw.size));
-
-                    // Agregar metadatos al PDF comprimido (para que no se pierdan)
+                    // Agregar metadatos al PDF con portada (para que no se pierdan)
                     // Solo establecer el título y, opcionalmente, el autor. No incluir 'Comité' ni el nombre del socio en subject/keywords.
-                    let pdfConMetadatos = await agregarMetadatosPDF(pdfCompressedRaw, {
+                    let pdfConMetadatos = await agregarMetadatosPDF(pdfWithCover, {
                         title: titleMeta,
                         author: nombreAsesor || '',
                         // Incluir el interés en metadatos (ej. '26%')
@@ -1444,7 +1430,6 @@
 
                     console.log('Upload JSON parseado:', uploadJson);
 
-                    let url = null;
                     function extractUrl(obj) {
                         if (!obj) return null;
                         if (typeof obj === 'string' && obj.startsWith('http')) return obj;
@@ -1481,16 +1466,98 @@
                     webhookData.DOCUMENTO_PATH = pdfPath;
                 }
 
-                // 2. Enviar datos JSON al webhook principal incluyendo DOCUMENTO_URL si existe
-                const response = await fetch('https://lpwebhook.luispinta.com/webhook/47c0cae9-6e3d-4b99-a661-227a3f6f8b69', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(webhookData)
-                });
-
-                if (!response.ok) {
-                    const errText = await response.text();
-                    throw new Error('Error al enviar datos del comité: ' + errText);
+                // 2. Enviar todos los datos (comité + WhatsApp) al webhook de n8n
+                try {
+                    console.warn('Iniciando envío de datos completos a n8n...');
+                    const email = localStorage.getItem('emailUsuario');
+                    console.warn('Email del usuario desde localStorage:', email);
+                    
+                    if (email) {
+                        console.warn('Email del usuario:', email);
+                        
+                        // Obtener número del administrador desde la base de datos
+                        let numeroAdmin = '';
+                        try {
+                            console.warn('Consultando número de WhatsApp del administrador...');
+                            const { data: adminConfig, error: adminError } = await supabase
+                                .from('usertr')
+                                .select('whatsapp')
+                                .eq('correo', 'contacto@tupakrantina.com')
+                                .single();
+                            
+                            if (adminConfig && adminConfig.whatsapp) {
+                                numeroAdmin = adminConfig.whatsapp;
+                                console.warn('Número del administrador obtenido:', numeroAdmin);
+                            } else {
+                                console.warn('No se encontró número de WhatsApp para el administrador');
+                            }
+                        } catch (adminQueryError) {
+                            console.warn('Error al consultar número del administrador:', adminQueryError);
+                        }
+                        
+                        // Detalles del crédito
+                        const detallesCredito = `Socio: ${nombreCompleto}, Monto: ${monto}, Plazo: ${plazo} meses, Tasa: ${tasa}%, Destino: ${destino}`;
+                        
+                        // Enlace del comité
+                        const enlaceComite = `https://comite.tupakrantina.com/comite/${idComite}`;
+                        
+                        // Preparar datos completos para n8n
+                        const datosCompletos = {
+                            // Datos del comité
+                            comite: webhookData,
+                            
+                            // Datos de WhatsApp para administrador
+                            admin: numeroAdmin && numeroAdmin.trim() !== '' ? {
+                                tipo: 'admin',
+                                numero: numeroAdmin,
+                                mensaje: `Nuevo comité cargado. ID: ${idComite}, Enlace: ${enlaceComite}, Documento: ${url}, ${detallesCredito}`,
+                                idComite: idComite,
+                                documentoUrl: url,
+                                enlaceComite: enlaceComite
+                            } : null,
+                            
+                            // Datos de WhatsApp para asesor
+                            asesor: numeroAsesorWhatsapp && numeroAsesorWhatsapp.trim() !== '' ? {
+                                tipo: 'asesor',
+                                numero: numeroAsesorWhatsapp,
+                                mensaje: `Nuevo comité asignado. Documento: ${url}, ${detallesCredito}`,
+                                idComite: idComite,
+                                documentoUrl: url,
+                                enlaceComite: enlaceComite,
+                                info: {
+                                    nombre: nombreAsesor,
+                                    email: email,
+                                    numeroWhatsapp: numeroAsesorWhatsapp
+                                }
+                            } : null,
+                            
+                            // Metadatos adicionales
+                            metadata: {
+                                fechaEnvio: new Date().toISOString(),
+                                asesorEmail: email,
+                                asesorNombre: nombreAsesor
+                            }
+                        };
+                        
+                        console.warn('Enviando datos completos a n8n...');
+                        const response = await fetch('https://lpwebhook.luispinta.com/webhook/47c0cae9-6e3d-4b99-a661-227a3f6f8b69', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(datosCompletos)
+                        });
+                        
+                        if (!response.ok) {
+                            const errText = await response.text();
+                            throw new Error('Error al enviar datos completos: ' + errText);
+                        }
+                        
+                        console.warn('Datos completos enviados exitosamente a n8n:', response.status, await response.text());
+                    } else {
+                        console.warn('No se pudo obtener el usuario o email para envío de datos');
+                    }
+                } catch (e) {
+                    console.warn('Error al enviar datos completos:', e);
+                    throw e; // Re-lanzar el error para que se maneje en el catch principal
                 }
 
                 // Éxito
