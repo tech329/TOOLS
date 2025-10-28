@@ -1,0 +1,1110 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Crédito - TUPAK RANTINA</title>
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #525659;
+            font-size: 9pt;
+        }
+
+        .preview-container {
+            max-width: 210mm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .page {
+            width: 210mm;
+            height: 297mm;
+            padding: 8mm 10mm;
+            margin: 0;
+            background: white;
+            page-break-after: always;
+            page-break-inside: avoid;
+            position: relative;
+        }
+
+        .page:last-child {
+            page-break-after: auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3px;
+            padding-bottom: 0px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            margin-left: 5px;
+        }
+
+        .logo-text h1 {
+            color: #001749;
+            font-size: 20pt;
+            font-weight: bold;
+            margin: 0;
+            line-height: 1.1;
+            text-transform: uppercase;
+        }
+
+        .logo-text p {
+            color: #3787c6;
+            font-size: 7pt;
+            margin: 0;
+            font-weight: normal;
+        }
+
+        .socio-number {
+            border: 2px solid #e48410;
+            border-radius: 8px;
+            padding: 5px 15px;
+            min-width: 180px;
+            margin-top: 5px;
+        }
+
+        .socio-number label {
+            color: #e48410;
+            font-size: 8pt;
+            font-weight: bold;
+        }
+
+        .disclaimer {
+            font-size: 6pt;
+            color: #666;
+            margin-bottom: 3px;
+            line-height: 1.1;
+        }
+
+        /* Section Headers */
+        .section-header {
+            background-color: #015cd0;
+            color: white;
+            padding: 2px 8px;
+            font-weight: bold;
+            font-size: 8pt;
+            margin-bottom: 0px;
+            margin-top: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header.green {
+            background-color: #5CB85C;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1px;
+        }
+
+        td {
+            border: 1px solid #ccc;
+            padding: 2px 4px;
+            font-size: 7pt;
+            vertical-align: top;
+            line-height: 1.2;
+        }
+
+        /* Celdas vacías para llenar datos */
+        td:empty {
+            min-height: 16px;
+            height: 16px;
+        }
+
+        /* Celdas con datos - más espacio */
+        td {
+            min-height: 18px;
+        }
+
+        .label {
+            font-size: 6pt;
+            color: #666;
+            display: block;
+            margin-bottom: 1px;
+        }
+
+        .checkbox {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border: 1px solid #666;
+            margin-right: 2px;
+            vertical-align: middle;
+        }
+
+        .section-header .checkbox {
+            background-color: white;
+            border: 1px solid #666;
+        }
+
+        .input-line {
+            border-bottom: 1px solid #333;
+            display: inline-block;
+            min-width: 80px;
+            height: 11px;
+        }
+
+        /* Grid layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 0;
+        }
+
+        /* Specific column widths */
+        .col-35 { width: 35%; }
+        .col-25 { width: 25%; }
+        .col-20 { width: 20%; }
+        .col-15 { width: 15%; }
+
+        /* Numeración en tablas */
+        .num-cell {
+            font-size: 6pt;
+            vertical-align: top;
+            padding-top: 1px !important;
+        }
+
+        /* Símbolo de dólar en tablas */
+        .dollar-cell {
+            font-size: 6pt;
+            vertical-align: top;
+            padding-top: 1px !important;
+        }
+
+        /* Botón de impresión */
+        .print-button-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .print-button {
+            background: linear-gradient(135deg, #e48410 0%, #d67309 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(228, 132, 16, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .print-button:hover {
+            background: linear-gradient(135deg, #d67309 0%, #c56608 100%);
+            box-shadow: 0 6px 16px rgba(228, 132, 16, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .print-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(228, 132, 16, 0.3);
+        }
+
+        @media print {
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .preview-container {
+                max-width: none;
+                margin: 0;
+                box-shadow: none;
+            }
+
+            .page {
+                margin: 0;
+                box-shadow: none;
+            }
+
+            .print-button-container {
+                display: none !important;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Botón de impresión flotante -->
+    <div class="print-button-container">
+        <button class="print-button" onclick="imprimirSolicitud()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Imprimir
+        </button>
+    </div>
+
+    <div class="preview-container">
+        <!-- PÁGINA 1 -->
+        <div class="page">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo-section">
+                    <img src="https://lh3.googleusercontent.com/d/1idgiPohtekZVIYJ-pmza9PSQqEamUvfH=w2048?name=TUPAK%20RANTINA%20(2).png" alt="Logo Tupak Rantina" style="height: 60px; width: auto;">
+                </div>
+                <div class="socio-number">
+                    <label>SOCIO Nº</label>
+                    <div class="input-line" style="width: 100%; margin-top: 5px;"></div>
+                </div>
+            </div>
+
+            <div class="disclaimer">
+                Todos Los datos por Usted proporcionados son de carácter confidencial y sujeto a comprobación, cualquier dato falso será causal suficiente para negar el crédito.
+            </div>
+
+            <!-- Solicitud de Crédito -->
+            <table style="margin-bottom: 0px;">
+                <tr>
+                    <td colspan="2" style="background-color: #015cd0; color: white; font-weight: bold; font-size: 8pt; padding: 2px 5px;">SOLICITUD DE CREDITO</td>
+                    <td colspan="2" style="background-color: #015cd0; color: white; font-weight: bold; font-size: 8pt; padding: 2px 5px; text-align: right;">FECHA</td>
+                    <td colspan="2" style="padding: 2px 5px; font-size: 7pt;">
+                        ______ de <span id="mesActual"></span> del <span id="anioActual"></span>
+                    </td>
+                    <td style="padding: 2px 5px; font-size: 7pt; color: #015cd0; font-weight: bold;">
+                        RESPONSABLE: <span id="nombreResponsable">MARISOL AYALA</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 2px 4px;">
+                        <span class="label">MONTO A SOLICITAR: $</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px; display: inline-block; width: 45%; vertical-align: bottom;"></div>
+                        <span class="label" style="display: inline; margin-left: 5px;">Dólares</span>
+                    </td>
+                    <td colspan="2" style="padding: 2px 4px;">
+                        <span class="label">PARA UN PLAZO DE:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="3" style="padding: 2px 4px; font-size: 6.5pt;">
+                        <span class="label" style="display: inline;">Forma de pago:</span>
+                        <span class="checkbox"></span> Mensual
+                        <span class="checkbox"></span> Trimestral
+                        <span class="checkbox"></span> Al Vencimiento
+                        <span class="checkbox"></span> Otros_______________
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 2px 4px; font-size: 6.5pt;">
+                        <span class="label" style="display: inline;">CONSUMO</span>
+                        <span class="checkbox"></span>
+                    </td>
+                    <td style="padding: 2px 4px; font-size: 6.5pt;">
+                        <span class="label" style="display: inline;">VIVIENDA</span>
+                        <span class="checkbox"></span>
+                    </td>
+                    <td style="padding: 2px 4px; font-size: 6.5pt;">
+                        <span class="label" style="display: inline;">MICROCREDITO</span>
+                        <span class="checkbox"></span>
+                    </td>
+                    <td colspan="2" style="padding: 2px 4px;">
+                        <span class="label">Fecha de pago que pueda cancelar:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 2px 4px;">
+                        <span class="label">Cuanto puede pagar:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Datos Personales y Deudor/Garante -->
+            <div class="section-header">
+                <span>DATOS PERSONALES</span>
+                <span>DEUDOR <span class="checkbox"></span></span>
+                <span>GARANTE <span class="checkbox"></span></span>
+            </div>
+
+            <table>
+                <tr>
+                    <td colspan="4" style="padding: 3px 4px;">
+                        <span class="label">Nombres y Apellidos:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td style="padding: 3px 4px;">
+                        <span class="label">Edad:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Cédula de Ciudadanía:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="padding: 3px 4px; font-size: 6.5pt;">
+                        <span class="label" style="display: inline;">Vivienda: Propia</span>
+                        <span class="checkbox"></span>
+                        <span class="label" style="display: inline; margin-left: 5px;">Arrendada</span>
+                        <span class="checkbox"></span>
+                        <span class="label" style="display: inline; margin-left: 5px;">Familiar</span>
+                        <span class="checkbox"></span>
+                        <span class="label" style="display: inline; margin-left: 5px;">Hipotecada</span>
+                        <span class="checkbox"></span>
+                    </td>
+                    <td style="padding: 3px 4px;">
+                        <span class="label">Estado Civil:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td style="padding: 3px 4px;">
+                        <span class="label">Cargas Familiares:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td style="padding: 3px 4px;">
+                        <span class="label">Nacionalidad:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Provincia:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Cantón:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="3" style="padding: 3px 4px;">
+                        <span class="label">Parroquia:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="padding: 3px 4px;">
+                        <span class="label">Dirección: Domicilio:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td style="padding: 3px 4px;">
+                        <span class="label">Barrio/Sector/Comunidad:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td style="padding: 3px 4px;">
+                        <span class="label">Tiempo Residencia:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td style="padding: 3px 4px;">
+                        <span class="label">Teléfono/Celular:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="padding: 3px 4px;">
+                        <span class="label">Nombre Empresa:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="4" style="padding: 3px 4px;">
+                        <span class="label">Teléfono/Celular Empresa:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Ocupación:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Profesión:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td style="padding: 3px 4px;">
+                        <span class="label">Cargo:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Tiempo de Trabajo:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="7" style="padding: 3px 4px;">
+                        <span class="label">Dirección de: Empresa/Institución/Negocio</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Ingresos Mensuales:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td style="padding: 3px 4px;">
+                        <span class="label">Empleo $</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Ingresos Profesionales $</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Otros Ingresos $</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="7" style="padding: 3px 4px;">
+                        <span class="label">Detalle de Otros Ingresos:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="padding: 3px 4px;">
+                        <span class="label">Trabajo Anterior/Nombre de Empresa:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Dirección:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Teléfono/Celular:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Datos Personales del Cónyuge -->
+            <div class="section-header">DATOS PERSONALES DEL CONYUGUE</div>
+
+            <table>
+                <tr>
+                    <td colspan="4" style="padding: 3px 4px;">
+                        <span class="label">Nombres y Apellidos:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Nacionalidad:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Cédula de Ciudadanía:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Ocupación:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Profesión:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Cargo:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Tiempo de Trabajo:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Nombre de: Empresa/Institución/Negocio</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="3" style="padding: 3px 4px;">
+                        <span class="label">Dirección de: Empresa/Institución/Negocio</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="3" style="padding: 3px 4px;">
+                        <span class="label">Teléfono:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Ingresos Mensuales:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td style="padding: 3px 4px;">
+                        <span class="label">Empleo $</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="2" style="padding: 3px 4px;">
+                        <span class="label">Ingresos Profesionales $</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                    <td colspan="3" style="padding: 3px 4px;">
+                        <span class="label">Otros Ingresos $</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="7" style="padding: 3px 4px;">
+                        <span class="label">Detalle de Otros Ingresos:</span>
+                        <div style="border-bottom: 1px solid #999; min-height: 14px;"></div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Crédito Vigentes -->
+            <div class="section-header">CREDITO VIGENTES EN INSTITUCIONES FINANCIERAS Y CASAS COMERCIALES (Ítem 5)</div>
+
+            <table>
+                <tr style="background-color: #015cd0; color: white; font-weight: bold; font-size: 6.5pt;">
+                    <td>Bancos/Cooperativas/Casas Comerciales</td>
+                    <td>Montos Original del Préstamo</td>
+                    <td>Plazo</td>
+                    <td>Saldo Actual</td>
+                    <td>Cuota Mensual de Pago</td>
+                </tr>
+                <tr><td class="num-cell">1.</td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="num-cell">2.</td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="num-cell">3.</td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="num-cell">4.</td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="num-cell">5.</td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="num-cell">6.</td><td></td><td></td><td></td><td></td></tr>
+            </table>
+
+            <!-- Referencias -->
+            <div class="section-header">REFERENCIAS</div>
+
+            <table>
+                <tr style="background-color: #015cd0; color: white; font-weight: bold; font-size: 6.5pt;">
+                    <td style="width: 35%;">Referencia Comercial</td>
+                    <td style="width: 15%;">Teléfono</td>
+                    <td style="width: 35%;">Referencia Personal</td>
+                    <td style="width: 15%;">Teléfono</td>
+                </tr>
+                <tr><td class="num-cell">1.</td><td></td><td></td><td></td></tr>
+                <tr><td class="num-cell">2.</td><td></td><td></td><td></td></tr>
+                <tr><td class="num-cell">3.</td><td></td><td></td><td></td></tr>
+                <tr><td class="num-cell">4.</td><td></td><td></td><td></td></tr>
+            </table>
+
+            <!-- Información Adicional -->
+            <div class="section-header">INFORMACION ADICIONAL</div>
+
+            <table style="margin-bottom: 0;">
+                <tr>
+                    <td colspan="2" style="width: 36%; border-right: 2px solid #666;">
+                        <span class="label">Detalles Bancarios Saldo de Ahorros (Ítem 1)</span>
+                    </td>
+                    <td colspan="4" style="width: 64%;">
+                        <span class="label">Propiedades Bienes Inmuebles (Ítem 2)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-20"><span class="label">Bancos/Cooperativas</span></td>
+                    <td class="col-15" style="border-right: 2px solid #666;"><span class="label">Saldos</span></td>
+                    <td class="col-15"><span class="label">Descripción del bien Inmueble</span></td>
+                    <td class="col-20"><span class="label">Ubicación</span></td>
+                    <td class="col-15"><span class="label">Avalúo Catastral</span></td>
+                    <td class="col-15"><span class="label">Avalúo Comercial</span></td>
+                </tr>
+                <tr>
+                    <td class="num-cell">1.</td>
+                    <td class="dollar-cell" style="border-right: 2px solid #666;">$</td>
+                    <td class="num-cell">1.</td>
+                    <td></td>
+                    <td class="dollar-cell">$</td>
+                    <td class="dollar-cell">$</td>
+                </tr>
+                <tr>
+                    <td class="num-cell">2.</td>
+                    <td class="dollar-cell" style="border-right: 2px solid #666;">$</td>
+                    <td class="num-cell">2.</td>
+                    <td></td>
+                    <td class="dollar-cell">$</td>
+                    <td class="dollar-cell">$</td>
+                </tr>
+                <tr>
+                    <td class="num-cell">3.</td>
+                    <td class="dollar-cell" style="border-right: 2px solid #666;">$</td>
+                    <td class="num-cell">3.</td>
+                    <td></td>
+                    <td class="dollar-cell">$</td>
+                    <td class="dollar-cell">$</td>
+                </tr>
+            </table>
+
+            <table>
+                <tr>
+                    <td colspan="3" style="background-color: #015cd0; color: white; font-weight: bold; font-size: 7pt; width: 50%;">
+                        Maquinaria (Ítem 4)
+                    </td>
+                    <td colspan="4" style="background-color: #015cd0; color: white; font-weight: bold; font-size: 7pt; width: 50%;">
+                        Vehículo (Ítem 3)
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 19%;"><span class="label">Tipo de Maquinaria</span></td>
+                    <td style="width: 15%;"><span class="label">Valor Comercial</span></td>
+                    <td style="width: 16%;"><span class="label">Marca</span></td>
+                    <td><span class="label">Tipo de Vehículo</span></td>
+                    <td><span class="label">Año</span></td>
+                    <td><span class="label">Placa</span></td>
+                    <td><span class="label">Valor Comercial</span></td>
+                </tr>
+                <tr>
+                    <td class="num-cell">1.</td>
+                    <td class="dollar-cell">$</td>
+                    <td></td>
+                    <td class="num-cell">1.</td>
+                    <td></td>
+                    <td></td>
+                    <td class="dollar-cell">$</td>
+                </tr>
+                <tr>
+                    <td class="num-cell">2.</td>
+                    <td class="dollar-cell">$</td>
+                    <td></td>
+                    <td class="num-cell">2.</td>
+                    <td></td>
+                    <td></td>
+                    <td class="dollar-cell">$</td>
+                </tr>
+                <tr>
+                    <td class="num-cell">3.</td>
+                    <td class="dollar-cell">$</td>
+                    <td></td>
+                    <td class="num-cell">3.</td>
+                    <td></td>
+                    <td></td>
+                    <td class="dollar-cell">$</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- PÁGINA 2 -->
+        <div class="page">
+            <!-- Declaración de Ingresos y Gastos -->
+            <div class="section-header">DECLARACIÓN DE INGRESOS Y GASTOS DEL SOLICITANTE / GARANTE (Mensual)</div>
+
+            <table>
+                <tr>
+                    <td class="col-50" style="background-color: #015cd0; color: white; font-weight: bold; font-size: 7pt; padding: 2px 5px;">
+                        Ingresos
+                    </td>
+                    <td class="col-50" style="background-color: #015cd0; color: white; font-weight: bold; font-size: 7pt; padding: 2px 5px;">
+                        Egresos
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 1px 5px;">
+                        <div style="margin: 1px 0;"><span class="label">Sueldo Mensual Empleado:</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 1px 0;"><span class="label">Ingresos Actividad Profesional:</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 1px 0;"><span class="label">Ingreso Cónyuge:</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 1px 0;"><span class="label">Actividad comercial / negocio propio:</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 1px 0;"><span class="label">Ingresos de Actividades de Trabajos Independientes:</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 1px 0;"><span class="label">Ingresos Agricultura y Ganadería:</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 1px 0;"><span class="label">(Otros ingresos (Arriendos, pensiones, giras):</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 2px 0; font-weight: bold;"><span class="label">Total de Ingresos:</span> <span class="input-line" style="width: 60%;"></span></div>
+                    </td>
+                    <td style="padding: 1px 5px;">
+                        <div style="margin: 1px 0;"><span class="label">Vivienda (pago por arriendo):</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 1px 0;"><span class="label">Alimentación Mensual:</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 1px 0;"><span class="label">Servicios Básicos (luz, agua, teléfono, TV cable, plan celular y otros):</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 1px 0;"><span class="label">Gastos por Educación:</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 1px 0;"><span class="label">Gastos por Movilización /Transporte:</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 1px 0;"><span class="label">Pago de Electrodomésticos:</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 1px 0;"><span class="label">Pagas de préstamos Bancos / Cooperativas (total de cuotas mensuales):</span> <span class="input-line" style="width: 60%;"></span></div>
+                        <div style="margin: 2px 0; font-weight: bold;"><span class="label">Total de Egresos:</span> <span class="input-line" style="width: 60%;"></span></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align: center; padding: 3px;">
+                        <span style="font-weight: bold; font-size: 7pt;">UTILIDAD NETA = Ingresos - Gastos:</span>
+                        <span style="display: inline-block; border: 2px solid #015cd0; padding: 2px 10px 2px 5px; margin-left: 10px; font-weight: bold; min-width: 80px; text-align: left;">$</span>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Estado de Situación Personal -->
+            <div class="section-header">ESTADO DE SITUACION PERSONAL</div>
+
+            <table>
+                <tr>
+                    <td class="col-50" style="text-align: center; background-color: #015cd0; color: white; font-weight: bold; font-size: 9pt; padding: 2px;">
+                        ACTIVOS
+                    </td>
+                    <td class="col-50" style="text-align: center; background-color: #015cd0; color: white; font-weight: bold; font-size: 9pt; padding: 2px;">
+                        PASIVOS
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 1px 5px;">
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Efectivo en caja:</span>
+                            <span>$ <span class="input-line" style="width: 120px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Dep. Bancarios (Ítem 1):</span>
+                            <span>$ <span class="input-line" style="width: 120px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Cuentas por Cobrar:</span>
+                            <span>$ <span class="input-line" style="width: 120px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Inversiones (Ítem 1):</span>
+                            <span>$ <span class="input-line" style="width: 120px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Maquinarias (Ítem 4):</span>
+                            <span>$ <span class="input-line" style="width: 120px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Mercaderías o Inventarios:</span>
+                            <span>$ <span class="input-line" style="width: 120px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Propiedades (Ítem 2):</span>
+                            <span>$ <span class="input-line" style="width: 120px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Vehículos (Ítem 3):</span>
+                            <span>$ <span class="input-line" style="width: 120px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Otros Activos (Muebles y Enseres):</span>
+                            <span>$ <span class="input-line" style="width: 120px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 2px 0; font-weight: bold; border-top: 1px solid #333; padding-top: 2px;">
+                            <span>TOTAL ACTIVO (A):</span>
+                            <span>$ <span class="input-line" style="width: 120px;"></span></span>
+                        </div>
+                    </td>
+                    <td style="padding: 1px 5px;">
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Préstamos en Bancos (Saldos Ítem 5):</span>
+                            <span>$ <span class="input-line" style="width: 100px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Préstamos Cooperativas (Saldos Ítem 5):</span>
+                            <span>$ <span class="input-line" style="width: 100px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Préstamos Electrodomésticos:</span>
+                            <span>$ <span class="input-line" style="width: 100px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Cuentas por Pagar (Proveedores):</span>
+                            <span>$ <span class="input-line" style="width: 100px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Debs. por Pagar (Letras):</span>
+                            <span>$ <span class="input-line" style="width: 100px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 1px 0;">
+                            <span class="label">Préstamos Hipotecarios (Saldos):</span>
+                            <span>$ <span class="input-line" style="width: 100px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 2px 0; font-weight: bold; border-top: 1px solid #333; padding-top: 2px;">
+                            <span>TOTAL PASIVO (B):</span>
+                            <span>$ <span class="input-line" style="width: 100px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 2px 0; font-weight: bold;">
+                            <span>PATRIMONIO (C=A-B):</span>
+                            <span>$ <span class="input-line" style="width: 100px;"></span></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 3px 0; font-weight: bold; border-top: 2px solid #333; padding-top: 2px;">
+                            <span>PASIVO Y PATIRMONIO (B+C)</span>
+                            <span style="font-size: 7pt;">TOTAL</span>
+                            <span>$ <span class="input-line" style="width: 100px;"></span></span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Croquis -->
+            <table style="margin-top: 1px;">
+                <tr>
+                    <td class="col-50" style="background-color: #015cd0; color: white; font-weight: bold; font-size: 7pt; padding: 2px 5px; text-align: center;">
+                        CROQUIS DEL DOMICILIO
+                    </td>
+                    <td class="col-50" style="background-color: #015cd0; color: white; font-weight: bold; font-size: 7pt; padding: 2px 5px; text-align: center;">
+                        CROQUIS DEL TRABAJO
+                    </td>
+                </tr>
+                <tr>
+                    <td style="height: 180px; padding: 5px;">
+                        <!-- Espacio para dibujar croquis -->
+                    </td>
+                    <td style="height: 180px; padding: 5px;">
+                        <!-- Espacio para dibujar croquis -->
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 2px 5px;">
+                        <span class="label">Descripción del Domicilio:</span>
+                        <div class="input-line" style="width: 95%;"></div>
+                    </td>
+                    <td style="padding: 2px 5px;">
+                        <span class="label">Referencia del lugar de Trabajo:</span>
+                        <div class="input-line" style="width: 95%;"></div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Autorizaciones -->
+            <div class="section-header" style="margin-top: 2px;">AUTORIZAMOS A LA CAJA DE AHORRO TUPAK RANTINA PARA QUE:</div>
+
+            <table style="margin-bottom: 2px;">
+                <tr>
+                    <td style="padding: 2px 5px; font-size: 6pt; line-height: 1.2;">
+                        <div style="margin: 1px 0;">1. Efectúe un análisis y verificación de los datos personales proporcionados a efectos de realizar el proceso de precalificación crediticia.</div>
+                        <div style="margin: 1px 0;">2. Obtenga de los burós de información crediticia que opera en el país, reportes de información de crédito sobre mi (nuestra) comportamiento crediticio, manejo de nivel (contario), tarjetas de crédito, etc., y en general sobre el cumplimiento de mis (nuestras) obligaciones y de más activos, pasivos y datos personales.</div>
+                        <div style="margin: 1px 0;">3. Pueda utilizar, transferir y/o entregar, dentro y fuera del país, a cualquier información mencionada en el párrafo anterior y otras de instituciones o personas jurídicas legal o legítimamente interesadas.</div>
+                        <div style="margin: 1px 0;">4. Consulte en el SRI la declaración del Impuesto a la Renta de mi (nuestra) propiedad.</div>
+                        <div style="margin: 1px 0;">5. Realice el análisis que considere pertinente e informe documentalmente a sus autoridades competentes en caso de investigación y/o determinación de transacciones inusuales o sospechosas.</div>
+                        <div style="margin: 1px 0;">6. Envié futuras notificaciones en forma electrónica y/o telefónica.</div>
+                        <div style="margin: 1px 0;">7. Realice notificaciones extrajudiciales, judiciales o cualquier tipo de gestión de cobranza hacia los terceros laborales en caso de atrasos como deudor o garante(s).</div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Firmas -->
+            <table style="margin-bottom: 2px;">
+                <tr>
+                    <td class="col-50" style="text-align: center; padding: 15px 5px 2px 5px; border-right: none;">
+                        <div class="input-line" style="width: 80%; margin: 0 auto;"></div>
+                        <div style="font-size: 6pt; margin-top: 2px;">Firma</div>
+                    </td>
+                    <td class="col-50" style="text-align: center; padding: 15px 5px 2px 5px; border-left: none;">
+                        <div class="input-line" style="width: 80%; margin: 0 auto;"></div>
+                        <div style="font-size: 6pt; margin-top: 2px;">Firma (Cónyuge)</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center; padding: 2px; font-size: 6pt;">C.C:</td>
+                    <td style="text-align: center; padding: 2px; font-size: 6pt;">C.C:</td>
+                </tr>
+            </table>
+
+            <!-- Uso Interno -->
+            <div class="section-header" style="font-size: 7pt;">PARA EL USO INTERNO DE LA CAJA DE AHORRO</div>
+
+            <table>
+                <tr>
+                    <td colspan="2" style="background-color: #015cd0; color: white; font-weight: bold; font-size: 6pt; padding: 2px 5px; text-align: center;">
+                        DATOS CREDITICIOS DEL SOCIO
+                    </td>
+                    <td colspan="2" style="background-color: #015cd0; color: white; font-weight: bold; font-size: 6pt; padding: 2px 5px; text-align: center;">
+                        PUNTOS DEL BURO ACTUAL SOCIO
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-size: 6pt; padding: 1px 3px;">OPERACIÓN DE CRÉDITO: NUEVO <span class="checkbox"></span></td>
+                    <td style="font-size: 6pt; padding: 1px 3px;">RECURRENTE <span class="checkbox"></span></td>
+                    <td style="font-size: 6pt; padding: 1px 3px;">RENOVACIÓN <span class="checkbox"></span></td>
+                    <td style="font-size: 6pt; padding: 1px 3px;">PUNTOS DEL BURO ACTUAL SOCIO:</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="font-size: 6pt; padding: 1px 3px;">SALDO ACTUAL EN CERTIFICADOS DE APORTACIÓN:</td>
+                    <td colspan="2" style="font-size: 6pt; padding: 1px 3px;">PUNTOS DEL BURO ACTUAL (CÓDEUDOR:</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="font-size: 6pt; padding: 1px 3px;">SALDO ACTUAL EN AHORROS:</td>
+                    <td colspan="2" style="font-size: 6pt; padding: 1px 3px;">PUNTOS DEL BURO ACTUAL GARANTE 1:</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="font-size: 6pt; padding: 1px 3px;">SALDO PLAZO FIJO:</td>
+                    <td colspan="2" style="font-size: 6pt; padding: 1px 3px;">PUNTOS DEL BURO ACTUAL CÓNYUGE:</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="font-size: 6pt; padding: 1px 3px;">No. DE OPERACIONES DE CRÉDITOS EN CAJA TUPAK RANTINA:</td>
+                    <td colspan="2" style="font-size: 6pt; padding: 1px 3px;">PUNTOS DEL BURO ACTUAL GARANTE 2:</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="font-size: 6pt; padding: 1px 3px;">FECHA DE APERTURA DE CUENTA:</td>
+                    <td colspan="2" style="font-size: 6pt; padding: 1px 3px;">PUNTOS DEL BURO ACTUAL CÓNYUGE:</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="font-size: 6pt; padding: 1px 3px;">FECHA DE RECEPCIÓN DE LA CARPETA:</td>
+                    <td colspan="2" style="font-size: 6pt; padding: 1px 3px;"></td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 8px 5px 2px 5px;">
+                        <div style="font-size: 6pt; margin-top: 8px;">Asistente de Crédito:</div>
+                        <div class="input-line" style="width: 70%; margin: 0 auto;"></div>
+                        <div style="font-size: 6pt; margin-bottom: 2px;">Firma:</div>
+                        <div class="input-line" style="width: 70%; margin: 0 auto;"></div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://lpsupabase.luispinta.com';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.bZRDLg2HoJKCXPp_B6BD5s-qcZM6-NrKO8qtxBtFGTk';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let nombreResponsable = 'MARISOL AYALA';
+
+        // Establecer mes y año actual
+        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        const fecha = new Date();
+        const mesActual = meses[fecha.getMonth()];
+        const anioActual = fecha.getFullYear();
+        
+        document.getElementById('mesActual').textContent = mesActual;
+        document.getElementById('anioActual').textContent = anioActual;
+
+        // Obtener usuario logueado y actualizar nombre
+        async function obtenerUsuario() {
+            console.log('Iniciando obtenerUsuario...');
+            
+            // PRIORIDAD 1: Intentar obtener desde localStorage primero (más rápido en iframes)
+            const nombreGuardado = localStorage.getItem('nombreUsuarioActual');
+            console.log('Nombre en localStorage:', nombreGuardado);
+            
+            if (nombreGuardado && nombreGuardado !== 'null' && nombreGuardado !== 'undefined') {
+                nombreResponsable = nombreGuardado;
+                actualizarNombreResponsable();
+                console.log('Usando nombre desde localStorage:', nombreResponsable);
+                return; // Usamos el localStorage y terminamos aquí
+            }
+            
+            // PRIORIDAD 2: Si no hay en localStorage, intentar Supabase
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                console.log('Resultado Supabase:', { user, error });
+                
+                if (error) {
+                    console.error('Error obteniendo usuario:', error);
+                    actualizarNombreResponsable();
+                    return;
+                }
+                
+                if (user) {
+                    console.log('Usuario encontrado en Supabase:', user.email);
+                    let userName = 'ASESOR';
+                    
+                    // Intentar obtener el nombre de la tabla usertr
+                    try {
+                        const { data: userConfig, error: configError } = await supabase
+                            .from('usertr')
+                            .select('user')
+                            .eq('correo', user.email)
+                            .single();
+                        
+                        console.log('Resultado usertr:', { userConfig, configError });
+                        
+                        if (userConfig && userConfig.user && userConfig.user.toLowerCase() !== 'no') {
+                            userName = userConfig.user.toUpperCase();
+                        } else {
+                            // Si no hay en usertr, usar metadatos
+                            if (user.user_metadata?.full_name) {
+                                userName = user.user_metadata.full_name.toUpperCase();
+                            } else if (user.user_metadata?.nombre) {
+                                userName = user.user_metadata.nombre.toUpperCase();
+                            } else if (user.user_metadata?.name) {
+                                userName = user.user_metadata.name.toUpperCase();
+                            } else if (user.email) {
+                                userName = user.email.split('@')[0].toUpperCase();
+                            }
+                        }
+                    } catch (configError) {
+                        console.log('Error buscando en usertr, usando metadatos:', configError);
+                        // Si falla, usar metadatos
+                        if (user.user_metadata?.full_name) {
+                            userName = user.user_metadata.full_name.toUpperCase();
+                        } else if (user.user_metadata?.nombre) {
+                            userName = user.user_metadata.nombre.toUpperCase();
+                        } else if (user.user_metadata?.name) {
+                            userName = user.user_metadata.name.toUpperCase();
+                        } else if (user.email) {
+                            userName = user.email.split('@')[0].toUpperCase();
+                        }
+                    }
+                    
+                    nombreResponsable = userName;
+                    console.log('Nombre asignado desde Supabase:', nombreResponsable);
+                    // Guardar en localStorage para futuras referencias
+                    localStorage.setItem('nombreUsuarioActual', userName);
+                    localStorage.setItem('emailUsuario', user.email);
+                } else {
+                    console.log('No hay usuario logueado en Supabase');
+                }
+            } catch (error) {
+                console.error('Error general:', error);
+            }
+            
+            actualizarNombreResponsable();
+        }
+
+        // Actualizar el nombre en el documento
+        function actualizarNombreResponsable() {
+            const elemento = document.getElementById('nombreResponsable');
+            if (elemento) {
+                elemento.textContent = nombreResponsable;
+            }
+        }
+
+        // Función para imprimir
+        function imprimirSolicitud() {
+            window.print();
+        }
+
+        // Inicializar al cargar la página
+        window.addEventListener('load', function() {
+            obtenerUsuario();
+        });
+    </script>
+</body>
+</html>

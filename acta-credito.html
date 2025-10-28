@@ -366,6 +366,9 @@
                 <button onclick="mostrarPestana('caratulas')" id="tab-caratulas" class="flex-1 py-3 px-4 text-center font-medium transition-colors border-b-2 border-transparent text-gray-600 hover:text-blue-600">
                     <i class="fas fa-layer-group mr-2"></i>Carátulas
                 </button>
+                <button onclick="mostrarPestana('solicitud')" id="tab-solicitud" class="flex-1 py-3 px-4 text-center font-medium transition-colors border-b-2 border-transparent text-gray-600 hover:text-blue-600">
+                    <i class="fas fa-file-contract mr-2"></i>Solicitud de Crédito
+                </button>
             </div>
         </div>
 
@@ -713,6 +716,29 @@
                 </div>
             </div>
         </div>
+
+        <!-- Contenido de la pestaña de Solicitud de Crédito -->
+        <div id="content-solicitud" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-12">
+                <div class="flex flex-col items-center justify-center min-h-[500px]">
+                    <div class="text-center mb-8">
+                        <i class="fas fa-file-contract text-6xl text-blue-600 mb-4"></i>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Solicitud de Crédito</h2>
+                        <p class="text-gray-600 max-w-md">Haz clic en el botón para abrir e imprimir el formulario de solicitud de crédito</p>
+                    </div>
+                    
+                    <button onclick="abrirSolicitudCredito()" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3">
+                        <i class="fas fa-print text-2xl"></i>
+                        <span class="text-lg">Imprimir Solicitud de Crédito</span>
+                    </button>
+
+                    <p class="text-sm text-gray-500 mt-6 max-w-md text-center">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Se abrirá una nueva ventana con el formulario listo para imprimir
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Custom Alert Modal -->
@@ -747,7 +773,8 @@
             const tabs = [
                 { key: 'acta', buttonId: 'tab-acta', contentId: 'content-acta' },
                 { key: 'comprobante', buttonId: 'tab-comprobante', contentId: 'content-comprobante' },
-                { key: 'caratulas', buttonId: 'tab-caratulas', contentId: 'content-caratulas' }
+                { key: 'caratulas', buttonId: 'tab-caratulas', contentId: 'content-caratulas' },
+                { key: 'solicitud', buttonId: 'tab-solicitud', contentId: 'content-solicitud' }
             ];
 
             tabs.forEach(({ buttonId, contentId }) => {
@@ -781,6 +808,43 @@
                     activeButton.classList.add('border-blue-600', 'text-blue-600', 'bg-white');
                 }
             }
+        }
+
+        // ========== FUNCIÓN PARA ABRIR SOLICITUD DE CRÉDITO ==========
+        function abrirSolicitudCredito() {
+            // Crear un iframe oculto
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = 'none';
+            iframe.style.visibility = 'hidden';
+            
+            // Añadir al documento
+            document.body.appendChild(iframe);
+            
+            // Cuando el iframe cargue, imprimir
+            iframe.onload = function() {
+                try {
+                    // Esperar un momento para que el contenido se renderice
+                    setTimeout(() => {
+                        iframe.contentWindow.print();
+                        
+                        // Remover el iframe después de imprimir o cancelar
+                        setTimeout(() => {
+                            document.body.removeChild(iframe);
+                        }, 1000);
+                    }, 500);
+                } catch (e) {
+                    console.error('Error al imprimir:', e);
+                    document.body.removeChild(iframe);
+                }
+            };
+            
+            // Cargar el contenido
+            iframe.src = 'solicitudcredito.html';
         }
 
         // ========== DESCARGAS DE CARÁTULAS ==========
