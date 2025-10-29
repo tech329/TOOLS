@@ -31,6 +31,54 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        
+        /* Estilos para los selectores de fecha de nacimiento */
+        #diaNacimiento, #mesNacimiento, #anioNacimiento {
+            scrollbar-width: thin;
+            scrollbar-color: #14b8a6 #f3f4f6;
+        }
+        
+        #diaNacimiento::-webkit-scrollbar,
+        #mesNacimiento::-webkit-scrollbar,
+        #anioNacimiento::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #diaNacimiento::-webkit-scrollbar-track,
+        #mesNacimiento::-webkit-scrollbar-track,
+        #anioNacimiento::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 10px;
+        }
+        
+        #diaNacimiento::-webkit-scrollbar-thumb,
+        #mesNacimiento::-webkit-scrollbar-thumb,
+        #anioNacimiento::-webkit-scrollbar-thumb {
+            background: #14b8a6;
+            border-radius: 10px;
+        }
+        
+        #diaNacimiento::-webkit-scrollbar-thumb:hover,
+        #mesNacimiento::-webkit-scrollbar-thumb:hover,
+        #anioNacimiento::-webkit-scrollbar-thumb:hover {
+            background: #0d9488;
+        }
+        
+        /* Estilos para las opciones seleccionadas */
+        #diaNacimiento option:checked,
+        #mesNacimiento option:checked,
+        #anioNacimiento option:checked {
+            background: linear-gradient(to right, #14b8a6, #06b6d4);
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* Hover en opciones */
+        #diaNacimiento option:hover,
+        #mesNacimiento option:hover,
+        #anioNacimiento option:hover {
+            background-color: #f0fdfa;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-teal-50 to-cyan-50 min-h-screen p-4">
@@ -83,6 +131,48 @@
                         <input type="text" id="cedula" required autocomplete="off"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                             placeholder="1234567890">
+                    </div>
+
+                    <!-- Fecha de Nacimiento -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-birthday-cake text-teal-600 mr-2"></i>Fecha de Nacimiento *
+                        </label>
+                        <div class="flex gap-2">
+                            <!-- Día -->
+                            <select id="diaNacimiento" required autocomplete="off" size="5"
+                                class="w-1/4 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition overflow-y-auto"
+                                style="height: 140px;">
+                                <option value="">Día</option>
+                            </select>
+                            
+                            <!-- Mes -->
+                            <select id="mesNacimiento" required autocomplete="off" size="5"
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition overflow-y-auto"
+                                style="height: 140px;">
+                                <option value="">Mes</option>
+                                <option value="01">ENERO</option>
+                                <option value="02">FEBRERO</option>
+                                <option value="03">MARZO</option>
+                                <option value="04">ABRIL</option>
+                                <option value="05">MAYO</option>
+                                <option value="06">JUNIO</option>
+                                <option value="07">JULIO</option>
+                                <option value="08">AGOSTO</option>
+                                <option value="09">SEPTIEMBRE</option>
+                                <option value="10">OCTUBRE</option>
+                                <option value="11">NOVIEMBRE</option>
+                                <option value="12">DICIEMBRE</option>
+                            </select>
+                            
+                            <!-- Año -->
+                            <select id="anioNacimiento" required autocomplete="off" size="5"
+                                class="w-1/4 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition overflow-y-auto"
+                                style="height: 140px;">
+                                <option value="">Año</option>
+                            </select>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Debe ser mayor de 18 años</p>
                     </div>
 
                     <!-- Monto -->
@@ -534,6 +624,55 @@
             return `${primerNombre}${rand1}${segundoNom}${rand2}${asesor}${rand3}`;
         }
 
+        // Calcular edad en años y meses con redondeo
+        function calcularEdad(dia, mes, anio) {
+            const hoy = new Date();
+            const fechaNac = new Date(anio, mes - 1, dia); // mes - 1 porque en JS los meses son 0-11
+            
+            let anios = hoy.getFullYear() - fechaNac.getFullYear();
+            let meses = hoy.getMonth() - fechaNac.getMonth();
+            let dias = hoy.getDate() - fechaNac.getDate();
+            
+            // Ajustar si los meses son negativos
+            if (meses < 0) {
+                anios--;
+                meses += 12;
+            }
+            
+            // Ajustar si los días son negativos
+            if (dias < 0) {
+                meses--;
+                if (meses < 0) {
+                    anios--;
+                    meses += 12;
+                }
+                // Calcular días del mes anterior
+                const mesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+                dias += mesAnterior.getDate();
+            }
+            
+            // Redondear meses según los días
+            if (dias >= 15) {
+                meses++;
+                if (meses >= 12) {
+                    anios++;
+                    meses = 0;
+                }
+            }
+            
+            // Formatear texto
+            let textoEdad = '';
+            if (anios > 0) {
+                textoEdad += `${anios} ${anios === 1 ? 'año' : 'años'}`;
+            }
+            if (meses > 0) {
+                if (textoEdad !== '') textoEdad += ' ';
+                textoEdad += `${meses} ${meses === 1 ? 'mes' : 'meses'}`;
+            }
+            
+            return textoEdad || '0 meses';
+        }
+
         // Auto-mayúsculas para campos de texto
         document.querySelectorAll('input[type="text"]:not(#monto)').forEach(input => {
             input.addEventListener('input', function(e) {
@@ -829,6 +968,7 @@
                             <h2 style="margin:0 0 6px 0;color:#0f172a;font-size:16px;font-weight:700;">Comité: <span style="color:#e48410;">${coverData.idComite}</span></h2>
                             <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Asesor</strong><span style="color:#0f172a;font-weight:600;">${coverData.nombreAsesor}</span></div>
                             <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Solicitante</strong><span style="color:#0f172a;font-weight:600;">${coverData.nombreCompleto}</span></div>
+                            <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Edad</strong><span style="color:#0f172a;font-weight:600;">${coverData.edad}</span></div>
                             <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Monto</strong><span style="color:#0f172a;font-weight:600;">${coverData.monto}</span></div>
                             <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Plazo</strong><span style="color:#0f172a;font-weight:600;">${coverData.plazo}</span></div>
                             <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.04);"><strong style="width:36%;display:inline-block;color:#6b7280;font-size:12px;">Interés</strong><span style="color:#0f172a;font-weight:600;">${coverData.interes}</span></div>
@@ -999,6 +1139,11 @@
                         <div class="data-row">
                             <div class="data-label">Solicitante</div>
                             <div class="data-value">${coverData.nombreCompleto}</div>
+                        </div>
+
+                        <div class="data-row">
+                            <div class="data-label">Edad</div>
+                            <div class="data-value">${coverData.edad}</div>
                         </div>
 
                         <div class="data-row">
@@ -1284,6 +1429,10 @@
             
             // Obtener valores
             const cedula = document.getElementById('cedula').value.trim();
+            const diaNacimiento = document.getElementById('diaNacimiento').value;
+            const mesNacimiento = document.getElementById('mesNacimiento').value;
+            const anioNacimiento = document.getElementById('anioNacimiento').value;
+            const fechaNacimiento = `${diaNacimiento}/${mesNacimiento}/${anioNacimiento}`;
             const monto = parseFloat(document.getElementById('monto').value.replace(/,/g, ''));
             const plazo = parseInt(document.getElementById('plazo').value);
             const tasa = parseFloat(document.getElementById('tasa').value);
@@ -1292,6 +1441,9 @@
             
             // Generar ID
             const idComite = generarIDComite(primerNombre, segundoNombre, nombreAsesor);
+            
+            // Calcular edad
+            const edadTexto = calcularEdad(parseInt(diaNacimiento), parseInt(mesNacimiento), parseInt(anioNacimiento));
             
             // Convertir a texto
             const montoEnTexto = numeroATexto(monto);
@@ -1305,6 +1457,7 @@
                 PRIMERNOMBRE: primerNombre,
                 SEGUNDONOMBRE: segundoNombre,
                 CEDULA: cedula,
+                FECHA_NACIMIENTO: fechaNacimiento,
                 MONTO: monto,
                 MONTO_EN_TEXTO: montoEnTexto,
                 PLAZO: plazo,
@@ -1348,6 +1501,7 @@
                         idComite,
                         nombreAsesor,
                         nombreCompleto,
+                        edad: edadTexto,
                         monto: `${formatearUSD(monto)} (${montoEnTexto})`,
                         plazo: `${plazo} (${plazoEnTexto})`,
                         interes: `${tasa}% (${tasaEnTexto})`,
@@ -1607,6 +1761,12 @@
             const cedula = document.getElementById('cedula').value.trim();
             if (!cedula) return false;
 
+            // Validar fecha de nacimiento
+            const diaVal = document.getElementById('diaNacimiento').value;
+            const mesVal = document.getElementById('mesNacimiento').value;
+            const anioVal = document.getElementById('anioNacimiento').value;
+            if (!diaVal || !mesVal || !anioVal) return false;
+
             const montoVal = parseFloat(document.getElementById('monto').value.replace(/,/g, ''));
             if (isNaN(montoVal) || montoVal <= 0) return false;
 
@@ -1645,8 +1805,37 @@
             }
         }
 
+        // Función para inicializar selectores de fecha de nacimiento
+        function inicializarFechaNacimiento() {
+            const diaSelect = document.getElementById('diaNacimiento');
+            const mesSelect = document.getElementById('mesNacimiento');
+            const anioSelect = document.getElementById('anioNacimiento');
+            
+            // Poblar días (01-31)
+            for (let i = 1; i <= 31; i++) {
+                const option = document.createElement('option');
+                option.value = i.toString().padStart(2, '0');
+                option.textContent = i.toString().padStart(2, '0');
+                diaSelect.appendChild(option);
+            }
+            
+            // Poblar años (desde 2008 hacia atrás hasta 1924, 100 años de rango)
+            const anioMaximo = 2008; // Año máximo para tener 17 años en 2025
+            const anioMinimo = 1924; // 100 años de rango
+            
+            for (let i = anioMaximo; i >= anioMinimo; i--) {
+                const option = document.createElement('option');
+                option.value = i.toString();
+                option.textContent = i.toString();
+                anioSelect.appendChild(option);
+            }
+        }
+        
+        // Llamar a la inicialización de fecha de nacimiento
+        inicializarFechaNacimiento();
+
         // Attach listeners to re-validate form on change
-        ['nombreCompleto','cedula','monto','plazo','tasa','tipoCredito','destino'].forEach(id => {
+        ['nombreCompleto','cedula','diaNacimiento','mesNacimiento','anioNacimiento','monto','plazo','tasa','tipoCredito','destino'].forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
             const ev = (id === 'tasa' || id === 'destino' || id === 'tipoCredito' || el.tagName === 'SELECT') ? 'change' : 'input';
