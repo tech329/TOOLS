@@ -720,9 +720,9 @@
                                             
                         <!-- Consulta Ecuador Card -->
                         <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer group max-w-sm mx-auto w-full" 
-                             onclick="window.open('https://consultasecuador.com/en-linea/personas/consultar-nombres-con-cedula', '_blank')">
+                             onclick="window.open('https://srienlinea.sri.gob.ec/sri-en-linea/SriPagosWeb/ConsultaDeudasFirmesImpugnadas/Consultas/consultaDeudasFirmesImpugnadas', '_blank')">
                             <div class="aspect-video bg-gray-200 relative overflow-hidden">
-                                <img src="https://lh3.googleusercontent.com/d/1L48JHcPA9E3vPA2pgpv-sjnU36wVClE-=w2048?name=Screenshot%202025-09-10%20165918.png" 
+                                <img src="https://lh3.googleusercontent.com/d/1pFyHvGxdIi_zqXpuwtK8WBrKQdUSFkpE" 
                                      alt="Verificar Nombres con Cédula" 
                                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                             </div>
@@ -1520,11 +1520,20 @@
                     <div id="admin-dashboard" class="mb-6 hidden">
                         <div class="bg-white rounded-lg shadow-xl overflow-hidden mb-6">
                             <div class="bg-gradient-to-r from-purple-600 to-pink-600 p-6">
-                                <h2 class="text-2xl font-bold text-white flex items-center">
-                                    <i class="fas fa-chart-line mr-3"></i>
-                                    Dashboard Administrativo
-                                </h2>
-                                <p class="text-purple-100 mt-2">Estadísticas generales de cartera</p>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h2 class="text-2xl font-bold text-white flex items-center">
+                                            <i class="fas fa-chart-line mr-3"></i>
+                                            Dashboard Administrativo
+                                        </h2>
+                                        <p class="text-purple-100 mt-2">Estadísticas generales de cartera</p>
+                                    </div>
+                                    <button onclick="generarReporteCarteraCompleto()" 
+                                            class="bg-white text-purple-600 hover:bg-purple-50 px-6 py-3 rounded-lg font-bold shadow-lg transition-all transform hover:scale-105 flex items-center space-x-2">
+                                        <i class="fas fa-file-chart-line"></i>
+                                        <span>Generar Reporte</span>
+                                    </button>
+                                </div>
                             </div>
                             
                             <div class="p-6">
@@ -5276,6 +5285,35 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
             } catch (error) {
                 console.error('Error al guardar fecha de pago:', error);
                 showCustomToast('Error al guardar: ' + error.message, 'error');
+            }
+        }
+    </script>
+
+    <!-- html2canvas para capturar HTML como imagen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- jsPDF para generar PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Script de Reportes de Cartera -->
+    <script src="cartera.js"></script>
+    <script>
+        // Función wrapper para llamar al generador de reportes PDF
+        async function generarReporteCarteraCompleto() {
+            console.log('🔍 Intentando generar reporte PDF...');
+            console.log('📦 window.CarteraReportes:', window.CarteraReportes);
+            console.log('📊 creditosData disponibles:', creditosData?.length || 0);
+            
+            if (window.CarteraReportes && typeof window.CarteraReportes.generarReporteCartera === 'function') {
+                console.log('✅ Módulo cargado, generando PDF...');
+                // Pasar los datos de creditosData que ya están cargados
+                await window.CarteraReportes.generarReporteCartera(creditosData);
+            } else {
+                console.error('❌ Módulo CarteraReportes no está disponible');
+                alert('Error: El módulo de reportes no se ha cargado correctamente. Por favor, recargue la página.');
             }
         }
     </script>
