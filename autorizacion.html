@@ -30,12 +30,12 @@
         
         <form id="authForm" class="bg-white rounded-xl shadow-xl p-8 space-y-6">
             <div>
-                <label for="nombre" class="block text-sm font-semibold text-corporate-dark mb-2">Nombre Completo</label>
-                <input type="text" id="nombre" name="nombre" placeholder="APELLIDOS Y NOMBRES ej: QUEZADA MANOBANDA LUIS ANDRES" required class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-corporate focus:border-corporate text-gray-900">
-            </div>
-            <div>
                 <label for="cedula" class="block text-sm font-semibold text-corporate-dark mb-2">Cédula de Identidad</label>
                 <input type="text" id="cedula" name="cedula" placeholder="10 dígitos sin guiones ni espacios ej: 1707123456" required class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-corporate focus:border-corporate text-gray-900">
+            </div>
+            <div>
+                <label for="nombre" class="block text-sm font-semibold text-corporate-dark mb-2">Nombre Completo</label>
+                <input type="text" id="nombre" name="nombre" placeholder="APELLIDOS Y NOMBRES ej: QUEZADA MANOBANDA LUIS ANDRES" required disabled class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-corporate focus:border-corporate text-gray-900 bg-gray-100">
             </div>
             <div>
                 <label class="block text-sm font-semibold text-corporate-dark mb-2">Fecha Actual</label>
@@ -64,6 +64,11 @@
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div id="toast" class="fixed top-5 right-5 bg-gray-800 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-[200%] z-50">
+        <p id="toastMessage"></p>
+    </div>
+
     <script>
         // Set current date in Guayaquil time
         function getGuayaquilDate() {
@@ -89,6 +94,103 @@
         // Display current date
         const fecha = getGuayaquilDate();
         document.getElementById('fechaDisplay').textContent = fecha.full;
+
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            
+            // Set color based on type
+            if (type === 'error') {
+                toast.className = 'fixed top-5 right-5 bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 z-50';
+            } else if (type === 'success') {
+                toast.className = 'fixed top-5 right-5 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 z-50';
+            } else {
+                toast.className = 'fixed top-5 right-5 bg-gray-800 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 z-50';
+            }
+            
+            // Show toast
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Hide toast after 5 seconds
+            setTimeout(() => {
+                toast.style.transform = 'translateX(200%)';
+            }, 5000);
+        }
+
+        // Fetch cedula data from API (using CORS proxy)
+        async function fetchCedulaData(cedula) {
+            const nombreInput = document.getElementById('nombre');
+            
+            // Only fetch if cedula is 10 digits
+            if (!/^\d{10}$/.test(cedula)) {
+                return;
+            }
+            
+            try {
+                showToast('Buscando información de la cédula...', 'info');
+                
+                // Use CORS proxy to bypass CORS restrictions
+                const apiUrl = `https://ced.luispinta.com/cedula?numero=${cedula}`;
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+                
+                const response = await fetch(proxyUrl);
+                const proxyData = await response.json();
+                
+                // Parse the actual API response from the proxy
+                const data = JSON.parse(proxyData.contents);
+                
+                if (data.encontrado && data.nombre) {
+                    // Convert to uppercase and fill the name field
+                    nombreInput.value = data.nombre.toUpperCase();
+                    nombreInput.disabled = false;
+                    showToast('Nombre encontrado y autorrellenado', 'success');
+                } else {
+                    // Not found, enable manual entry
+                    nombreInput.value = '';
+                    nombreInput.disabled = false;
+                    nombreInput.focus();
+                    showToast('No se encontró información. Verifica la cédula o rellena manualmente el nombre.', 'error');
+                }
+            } catch (error) {
+                // API error, enable manual entry
+                console.error('Error fetching cedula:', error);
+                nombreInput.value = '';
+                nombreInput.disabled = false;
+                nombreInput.focus();
+                showToast('No se pudo consultar la información. Verifica la cédula o rellena manualmente el nombre.', 'error');
+            }
+        }
+
+        // Add event listener to cedula field
+        document.getElementById('cedula').addEventListener('blur', function() {
+            const cedula = this.value.trim();
+            if (cedula) {
+                fetchCedulaData(cedula);
+            }
+        });
+
+        // Also trigger on Enter key
+        document.getElementById('cedula').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const cedula = this.value.trim();
+                if (cedula) {
+                    fetchCedulaData(cedula);
+                }
+            }
+        });
+
+        // Auto-convert nombre to uppercase while typing
+        document.getElementById('nombre').addEventListener('input', function(e) {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.toUpperCase();
+            this.setSelectionRange(start, end);
+        });
 
         // Modal functions
         function showModal(message, onConfirm) {
