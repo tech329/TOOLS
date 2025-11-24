@@ -712,7 +712,7 @@
             }, 5000);
         }
 
-        // Fetch cedula data from API (using CORS proxy)
+        // Fetch cedula data from API (direct call, CORS enabled on server)
         async function fetchCedulaData(cedula) {
             const nombreInput = document.getElementById('nombreCompleto');
             
@@ -724,19 +724,24 @@
             try {
                 showToast('Buscando información de la cédula...', 'info');
                 
-                // Use CORS proxy to bypass CORS restrictions
-                const apiUrl = `https://ced.luispinta.com/cedula?numero=${cedula}`;
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+                const webhookUrl = 'https://lpwebhook.luispinta.com/webhook/15581914-f69b-4950-a772-65d2102978f2';
                 
-                const response = await fetch(proxyUrl);
-                const proxyData = await response.json();
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cedula: cedula })
+                });
                 
-                // Parse the actual API response from the proxy
-                const data = JSON.parse(proxyData.contents);
+                if (!response.ok) throw new Error('Network response was not ok');
                 
-                if (data.encontrado && data.nombre) {
+                const data = await response.json();
+                
+                // The response is an array: [{ cedula: "...", encontrado: true, nombre: "..." }]
+                if (Array.isArray(data) && data.length > 0 && data[0].encontrado) {
                     // Convert to uppercase and fill the name field
-                    nombreInput.value = data.nombre.toUpperCase();
+                    nombreInput.value = data[0].nombre.toUpperCase();
                     nombreInput.disabled = false;
                     nombreInput.classList.remove('bg-gray-100');
                     showToast('Nombre encontrado y autorrellenado', 'success');

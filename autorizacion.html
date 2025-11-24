@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Autorización para Consulta de Buró de Crédito</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -43,7 +44,7 @@
             </div>
             <div class="flex space-x-4">
                 <button type="button" onclick="generarDocumento()" class="flex-1 bg-corporate-blue text-white py-3 px-6 rounded-lg hover:bg-corporate-dark focus:outline-none focus:ring-2 focus:ring-corporate focus:ring-offset-2 font-semibold transition duration-200">Imprimir Autorización</button>
-                <button type="button" onclick="descargarDocumento()" class="flex-1 bg-gray-600 text-white py-3 px-6 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 font-semibold transition duration-200">Descargar para Llenar Manualmente</button>
+                <button type="button" onclick="descargarDocumento()" class="flex-1 bg-gray-600 text-white py-3 px-6 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 font-semibold transition duration-200">Descargar PDF para Llenar</button>
             </div>
         </form>
     </div>
@@ -91,106 +92,108 @@
             return { day, month, year, full: `Machachi a los ${day} días del mes de ${month} del año ${year}, ${timeStr}.` };
         }
 
-        // Display current date
+        // Initialize date
         const fecha = getGuayaquilDate();
         document.getElementById('fechaDisplay').textContent = fecha.full;
 
-        // Toast notification function
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            toastMessage.textContent = message;
-            
-            // Set color based on type
-            if (type === 'error') {
-                toast.className = 'fixed top-5 right-5 bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 z-50';
-            } else if (type === 'success') {
-                toast.className = 'fixed top-5 right-5 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 z-50';
-            } else {
-                toast.className = 'fixed top-5 right-5 bg-gray-800 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 z-50';
-            }
-            
-            // Show toast
-            setTimeout(() => {
-                toast.style.transform = 'translateX(0)';
-            }, 100);
-            
-            // Hide toast after 5 seconds
-            setTimeout(() => {
-                toast.style.transform = 'translateX(200%)';
-            }, 5000);
-        }
+        // Input validations
+        document.getElementById('cedula').addEventListener('input', function(e) {
+            // Allow only numbers
+            this.value = this.value.replace(/\D/g, '');
+        });
 
-        // Fetch cedula data from API (using CORS proxy)
-        async function fetchCedulaData(cedula) {
-            const nombreInput = document.getElementById('nombre');
-            
-            // Only fetch if cedula is 10 digits
-            if (!/^\d{10}$/.test(cedula)) {
-                return;
-            }
-            
-            try {
-                showToast('Buscando información de la cédula...', 'info');
-                
-                // Use CORS proxy to bypass CORS restrictions
-                const apiUrl = `https://ced.luispinta.com/cedula?numero=${cedula}`;
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
-                
-                const response = await fetch(proxyUrl);
-                const proxyData = await response.json();
-                
-                // Parse the actual API response from the proxy
-                const data = JSON.parse(proxyData.contents);
-                
-                if (data.encontrado && data.nombre) {
-                    // Convert to uppercase and fill the name field
-                    nombreInput.value = data.nombre.toUpperCase();
-                    nombreInput.disabled = false;
-                    showToast('Nombre encontrado y autorrellenado', 'success');
-                } else {
-                    // Not found, enable manual entry
-                    nombreInput.value = '';
-                    nombreInput.disabled = false;
-                    nombreInput.focus();
-                    showToast('No se encontró información. Verifica la cédula o rellena manualmente el nombre.', 'error');
-                }
-            } catch (error) {
-                // API error, enable manual entry
-                console.error('Error fetching cedula:', error);
-                nombreInput.value = '';
-                nombreInput.disabled = false;
-                nombreInput.focus();
-                showToast('No se pudo consultar la información. Verifica la cédula o rellena manualmente el nombre.', 'error');
-            }
-        }
-
-        // Add event listener to cedula field
-        document.getElementById('cedula').addEventListener('blur', function() {
+        // Trigger lookup on blur (click outside)
+        document.getElementById('cedula').addEventListener('blur', function(e) {
             const cedula = this.value.trim();
-            if (cedula) {
+            if (cedula.length === 10 && /^\d{10}$/.test(cedula)) {
                 fetchCedulaData(cedula);
             }
         });
 
-        // Also trigger on Enter key
+        // Trigger lookup on Enter key
         document.getElementById('cedula').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 const cedula = this.value.trim();
-                if (cedula) {
+                if (cedula.length === 10 && /^\d{10}$/.test(cedula)) {
                     fetchCedulaData(cedula);
                 }
             }
         });
 
-        // Auto-convert nombre to uppercase while typing
-        document.getElementById('nombre').addEventListener('input', function(e) {
+        document.getElementById('nombre').addEventListener('input', function() {
             const start = this.selectionStart;
             const end = this.selectionEnd;
             this.value = this.value.toUpperCase();
             this.setSelectionRange(start, end);
         });
+
+        async function fetchCedulaData(cedula) {
+            const nombreInput = document.getElementById('nombre');
+            
+            // Show loading state
+            nombreInput.value = 'BUSCANDO...';
+            nombreInput.disabled = true;
+            nombreInput.classList.add('bg-gray-100');
+            
+            try {
+                const webhookUrl = 'https://lpwebhook.luispinta.com/webhook/15581914-f69b-4950-a772-65d2102978f2';
+                
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cedula: cedula })
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+                
+                // The response is an array: [{ cedula: "...", encontrado: true, nombre: "..." }]
+                if (Array.isArray(data) && data.length > 0 && data[0].encontrado) {
+                    nombreInput.value = data[0].nombre.toUpperCase();
+                    nombreInput.disabled = false; 
+                    nombreInput.classList.remove('bg-gray-100');
+                    showToast('Nombre encontrado exitosamente', 'success');
+                } else {
+                    throw new Error('Cedula no encontrada');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                nombreInput.value = '';
+                nombreInput.disabled = false;
+                nombreInput.classList.remove('bg-gray-100');
+                nombreInput.placeholder = "Ingrese el nombre manualmente";
+                nombreInput.focus();
+                showToast('No se encontraron datos. Ingrese el nombre manualmente.', 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            
+            // Reset classes
+            toast.className = 'fixed top-5 right-5 px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 z-50';
+            
+            if (type === 'success') {
+                toast.classList.add('bg-green-600', 'text-white');
+            } else if (type === 'error') {
+                toast.classList.add('bg-red-600', 'text-white');
+            } else {
+                toast.classList.add('bg-gray-800', 'text-white');
+            }
+            
+            toast.classList.remove('translate-x-[200%]');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-x-[200%]');
+            }, 3000);
+        }
 
         // Modal functions
         function showModal(message, onConfirm) {
@@ -371,13 +374,41 @@ ${fecha}
             });
         }
 
-        // Download blank document
+        // Download blank document as PDF
         function descargarDocumento() {
+            showToast('Generando PDF...', 'info');
+            
             const fechaManual = `Lugar y fecha: Machachi, _______ de ${fecha.month} del año ${fecha.year}`;
-            const template = generateTemplate('________________________________________', '____________________________', '____________________________', fechaManual);
-            const newWindow = window.open('', '_blank');
-            newWindow.document.write(template);
-            newWindow.document.close();
+            const htmlContent = generateTemplate('________________________________________', '____________________________', '____________________________', fechaManual);
+            
+            // Create a temporary container
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            document.body.appendChild(tempDiv);
+            
+            // Get the sheet element
+            const element = tempDiv.querySelector('.sheet');
+            
+            // PDF options
+            const opt = {
+                margin: 0,
+                filename: 'autorizacion_buro_credito.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            // Generate PDF and download
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.removeChild(tempDiv);
+                showToast('PDF descargado exitosamente', 'success');
+            }).catch((error) => {
+                console.error('Error generating PDF:', error);
+                document.body.removeChild(tempDiv);
+                showToast('Error al generar el PDF', 'error');
+            });
         }
     </script>
 </body>
