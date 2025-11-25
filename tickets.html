@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets de Soporte - WEPCOOPEC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-corporate { background: linear-gradient(135deg, #001749 0%, #3787c6 100%); }
+        .text-corporate-dark { color: #001749; }
+        .text-corporate-accent { color: #e48410; }
+        .bg-corporate-blue { background-color: #015cd0; }
+        .hover\:bg-corporate-dark:hover { background-color: #001749; }
+        .focus\:ring-corporate { --tw-ring-color: #3787c6; }
+        
+        /* Estilos para contenido markdown */
+        .markdown-content h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #001749;
+            margin-bottom: 1rem;
+        }
+        .markdown-content ol {
+            list-style-type: decimal;
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+        .markdown-content li {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+        .dynamic-input {
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.25rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+        .dynamic-input:focus {
+            outline: none;
+            border-color: #015cd0;
+            box-shadow: 0 0 0 2px rgba(1, 92, 208, 0.2);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-dark-blue': '#001749',
+                        'brand-orange': '#e48410',
+                        'brand-light-blue': '#3787c6',
+                        'brand-accent-blue': '#015cd0',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-brand-dark-blue text-white py-6 px-6 shadow-lg">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button onclick="window.location.href='index.html'" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Regresar a Herramientas</span>
+                    </button>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <img src="https://i.postimg.cc/zBPmbxNT/TRANSPARENTE-min.png" alt="Logo Tupak Rantina" class="h-12 md:h-16 w-auto">
+                    <div class="text-left">
+                        <h1 class="text-xl md:text-2xl font-bold">Soporte Técnico</h1>
+                        <p class="text-gray-300 text-xs md:text-sm">WEPCOOPEC</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="py-8 px-4">
+        <div class="max-w-4xl mx-auto">
+            <!-- Step Indicator -->
+            <div class="mb-6">
+                <div class="flex items-center justify-center space-x-4">
+                    <div id="step1-indicator" class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-brand-orange text-white flex items-center justify-center font-bold">1</div>
+                        <span class="ml-2 font-semibold text-brand-dark-blue">Describir Problema</span>
+                    </div>
+                    <div class="w-16 h-1 bg-gray-300" id="progress-bar"></div>
+                    <div id="step2-indicator" class="flex items-center opacity-50">
+                        <div class="w-10 h-10 rounded-full bg-gray-300 text-white flex items-center justify-center font-bold">2</div>
+                        <span class="ml-2 font-semibold text-gray-500">Responder Preguntas</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Card - Step 1 -->
+            <div id="step1-card" class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+                <div class="bg-brand-dark-blue text-white p-6">
+                    <div class="flex items-center space-x-4">
+                        <i class="fas fa-headset text-4xl"></i>
+                        <div>
+                            <h2 class="text-2xl font-bold">Sistema de Tickets de Soporte</h2>
+                            <p class="text-gray-300 text-sm mt-1">Paso 1: Describa el problema que está experimentando</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Form Section -->
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="ticket-problem" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Describa el problema <span class="text-red-500">*</span>
+                            </label>
+                            <textarea 
+                                id="ticket-problem" 
+                                rows="8" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-accent-blue focus:border-brand-accent-blue resize-none" 
+                                placeholder="Describa aquí el problema que está experimentando con el sistema de WEPCOOPEC...&#10;&#10;Por ejemplo:&#10;- ¿Qué estaba haciendo cuando ocurrió el problema?&#10;- ¿En qué módulo del sistema se presentó?&#10;- ¿Qué mensaje de error apareció (si aplica)?&#10;- ¿El problema se repite constantemente?"
+                            ></textarea>
+                            <p class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Sea lo más específico posible para recibir preguntas más acertadas.
+                            </p>
+                        </div>
+                        
+                        <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                            <button 
+                                id="send-ticket-btn" 
+                                class="flex-1 bg-brand-orange hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
+                            >
+                                <i class="fas fa-paper-plane"></i>
+                                <span>Enviar a Webhook 1 de 2</span>
+                            </button>
+                            <button 
+                                id="clear-ticket-btn" 
+                                class="sm:w-auto bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg transition duration-200 shadow-md hover:shadow-lg"
+                            >
+                                <i class="fas fa-eraser mr-2"></i>Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 Card - Hidden initially -->
+            <div id="step2-card" class="bg-white rounded-lg shadow-lg overflow-hidden mb-6 hidden">
+                <div class="bg-brand-dark-blue text-white p-6">
+                    <div class="flex items-center space-x-4">
+                        <i class="fas fa-question-circle text-4xl"></i>
+                        <div>
+                            <h2 class="text-2xl font-bold">Preguntas Adicionales</h2>
+                            <p class="text-gray-300 text-sm mt-1">Paso 2: Responda las siguientes preguntas para completar el ticket</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div id="questions-container" class="markdown-content mb-6">
+                        <!-- Las preguntas se generarán dinámicamente aquí -->
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                        <button 
+                            id="send-answers-btn" 
+                            class="flex-1 bg-brand-orange hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
+                        >
+                            <i class="fas fa-check-circle"></i>
+                            <span>Enviar a Webhook 2 de 2</span>
+                        </button>
+                        <button 
+                            id="back-btn" 
+                            class="sm:w-auto bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg transition duration-200 shadow-md hover:shadow-lg"
+                        >
+                            <i class="fas fa-arrow-left mr-2"></i>Volver a Paso 1
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Response Section -->
+            <div id="ticket-response-section" class="bg-white rounded-lg shadow-lg overflow-hidden hidden">
+                <div class="bg-gradient-to-r from-green-500 to-green-600 text-white p-6">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-check-circle text-4xl"></i>
+                        <div>
+                            <h3 class="text-2xl font-bold">¡Ticket Generado Exitosamente!</h3>
+                            <p class="text-green-100 text-sm mt-1">Su ticket ha sido procesado y está listo para enviar</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <!-- Mensaje del Ticket -->
+                    <div class="mb-6">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                            <i class="fas fa-file-alt mr-2 text-brand-orange"></i>
+                            Contenido del Ticket
+                        </h4>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <pre id="ticket-message" class="text-sm text-gray-800 whitespace-pre-wrap break-words font-sans leading-relaxed"></pre>
+                        </div>
+                    </div>
+                    
+                    <!-- Sugerencias -->
+                    <div id="suggestions-section" class="mb-6 hidden">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                            <i class="fas fa-lightbulb mr-2 text-yellow-500"></i>
+                            Sugerencias para Completar el Ticket
+                        </h4>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <p id="suggestions-text" class="text-sm text-gray-700 leading-relaxed"></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Botón de Acción -->
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button 
+                            id="upload-ticket-btn" 
+                            class="flex-1 bg-brand-orange hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
+                        >
+                            <i class="fas fa-upload"></i>
+                            <span>Subir Ticket a WEBCOOPEC</span>
+                        </button>
+                        <button 
+                            id="copy-ticket-btn" 
+                            class="sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
+                        >
+                            <i class="fas fa-copy"></i>
+                            <span>Copiar al Portapapeles</span>
+                        </button>
+                    </div>
+                    
+                    <p class="text-xs text-gray-500 mt-4 text-center">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        El mensaje se copiará automáticamente al hacer clic en "Subir Ticket"
+                    </p>
+                </div>
+            </div>
+
+            <!-- Help Section -->
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg mt-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-lightbulb text-blue-500 text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-semibold text-blue-800">Proceso de 2 Etapas</h3>
+                        <div class="mt-2 text-sm text-blue-700">
+                            <ol class="list-decimal list-inside space-y-1">
+                                <li><strong>Etapa 1:</strong> Describe el problema general</li>
+                                <li><strong>Etapa 2:</strong> Responde preguntas específicas generadas por IA</li>
+                                <li><strong>Resultado:</strong> Ticket completo y detallado para WEPCOOPEC</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-brand-dark-blue text-white py-4 px-6 mt-12">
+        <div class="max-w-7xl mx-auto text-center">
+            <p class="text-sm text-gray-300">© 2025 Caja de Ahorro y Crédito Tupak Rantina</p>
+        </div>
+    </footer>
+
+    <script>
+        let currentStep = 1;
+        let initialProblem = '';
+        let questionsData = []; // Para almacenar preguntas originales
+
+        // Event listeners
+        const sendTicketBtn = document.getElementById('send-ticket-btn');
+        const clearTicketBtn = document.getElementById('clear-ticket-btn');
+        const sendAnswersBtn = document.getElementById('send-answers-btn');
+        const backBtn = document.getElementById('back-btn');
+        const ticketProblemInput = document.getElementById('ticket-problem');
+        const responseSection = document.getElementById('ticket-response-section');
+
+
+        // Función para convertir markdown a HTML y reemplazar marcadores [input:idX]
+        function parseMarkdownWithInputs(markdownText) {
+            // Guardar preguntas originales
+            questionsData = [];
+            
+            // Convertir markdown a HTML básico
+            let html = marked.parse(markdownText);
+            
+            // Extraer preguntas del HTML (buscar en <li> tags)
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const listItems = tempDiv.querySelectorAll('li');
+            
+            listItems.forEach((li, index) => {
+                const text = li.textContent || li.innerText;
+                // Remover el marcador [input:xxx] del texto
+                const cleanText = text.replace(/\[input:[^\]]+\]/g, '').trim();
+                questionsData.push(cleanText);
+            });
+            
+            // Buscar y reemplazar marcadores [input:idX] con inputs
+            const inputRegex = /\[input:([^\]]+)\]/g;
+            let inputCounter = 0;
+            html = html.replace(inputRegex, (match, inputId) => {
+                const dataIndex = inputCounter++;
+                return `<input type="text" id="${inputId}" class="dynamic-input" data-question-index="${dataIndex}" required placeholder="Escriba su respuesta aquí..." />`;
+            });
+            
+            return html;
+        }
+
+        // Webhook 1: Enviar problema inicial
+        sendTicketBtn.addEventListener('click', async function() {
+            const problema = ticketProblemInput.value.trim();
+
+            if (!problema) {
+                alert('Por favor, describa el problema antes de continuar.');
+                ticketProblemInput.focus();
+                return;
+            }
+
+            initialProblem = problema;
+            sendTicketBtn.disabled = true;
+            sendTicketBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando a Webhook 1 de 2...';
+
+            try {
+                const response = await fetch('https://lpn8n.luispinta.com/webhook/995c6011-fb03-48b2-98bc-8aa9dfe3b478', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ problema: problema })
+                });
+
+                const data = await response.json();
+                
+                // Parsear la respuesta: [{"output":"markdown ..."}]
+                if (Array.isArray(data) && data.length > 0 && data[0].output) {
+                    const markdownOutput = data[0].output;
+                    const htmlContent = parseMarkdownWithInputs(markdownOutput);
+                    
+                    // Mostrar paso 2
+                    document.getElementById('questions-container').innerHTML = htmlContent;
+                    document.getElementById('step1-card').classList.add('hidden');
+                    document.getElementById('step2-card').classList.remove('hidden');
+                    
+                    // Actualizar indicadores
+                    document.getElementById('step1-indicator').classList.add('opacity-50');
+                    document.getElementById('step2-indicator').classList.remove('opacity-50');
+                    document.getElementById('progress-bar').classList.add('bg-brand-orange');
+                    
+                    currentStep = 2;
+                    
+                    // Scroll al inicio
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    throw new Error('Formato de respuesta inválido');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al comunicarse con el servidor. Por favor, inténtelo de nuevo.');
+            } finally {
+                sendTicketBtn.disabled = false;
+                sendTicketBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Enviar a Webhook 1 de 2</span>';
+            }
+        });
+
+        // Webhook 2: Enviar respuestas
+        sendAnswersBtn.addEventListener('click', async function() {
+            // Recoger todas las respuestas de los inputs dinámicos
+            const inputs = document.querySelectorAll('.dynamic-input');
+            let allFilled = true;
+            let formattedQA = '';
+
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    allFilled = false;
+                    input.classList.add('border-red-500');
+                } else {
+                    input.classList.remove('border-red-500');
+                    
+                    // Obtener el índice de la pregunta
+                    const questionIndex = parseInt(input.getAttribute('data-question-index'));
+                    const question = questionsData[questionIndex] || 'Pregunta no encontrada';
+                    const answer = input.value.trim();
+                    
+                    // Formatear: pregunta\nrespuesta\n\n
+                    formattedQA += `${question}\n${answer}\n\n`;
+                }
+            });
+
+            if (!allFilled) {
+                alert('Por favor, complete todas las preguntas antes de continuar.');
+                return;
+            }
+
+            // Eliminar el último salto de línea extra
+            formattedQA = formattedQA.trim();
+
+            sendAnswersBtn.disabled = true;
+            sendAnswersBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando a Webhook 2 de 2...';
+
+            try {
+                // Preparar payload según nuevo formato
+                const payload = {
+                    descripcion_del_problema: initialProblem,
+                    respuesta_a_preguntas_relacionadas: formattedQA
+                };
+
+                const response = await fetch('https://lpwebhook.luispinta.com/webhook/995c6011-fb03-48b2-98bc-8aa9dfe3b36b', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const responseData = await response.json();
+                
+                // Parsear respuesta: [{"output":"..."}]
+                if (Array.isArray(responseData) && responseData.length > 0 && responseData[0].output) {
+                    const fullMessage = responseData[0].output;
+                    
+                    // Separar mensaje principal de sugerencias (entre corchetes)
+                    const suggestionMatch = fullMessage.match(/\[([^\]]+)\]/);
+                    let mainMessage = fullMessage;
+                    let suggestions = '';
+                    
+                    if (suggestionMatch) {
+                        // Extraer sugerencias
+                        suggestions = suggestionMatch[1];
+                        // Remover sugerencias del mensaje principal
+                        mainMessage = fullMessage.replace(/\[[^\]]+\]/g, '').trim();
+                    }
+                    
+                    // Guardar en variable global para copiar
+                    window.ticketMessage = mainMessage;
+                    
+                    // Mostrar mensaje principal
+                    document.getElementById('ticket-message').textContent = mainMessage;
+                    
+                    // Mostrar sugerencias si existen
+                    if (suggestions) {
+                        document.getElementById('suggestions-text').textContent = suggestions;
+                        document.getElementById('suggestions-section').classList.remove('hidden');
+                    } else {
+                        document.getElementById('suggestions-section').classList.add('hidden');
+                    }
+                    
+                    // Mostrar sección de respuesta
+                    document.getElementById('ticket-response-section').classList.remove('hidden');
+                    document.getElementById('ticket-response-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
+                } else {
+                    throw new Error('Formato de respuesta inválido');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al enviar las respuestas. Por favor, inténtelo de nuevo.');
+            } finally {
+                sendAnswersBtn.disabled = false;
+                sendAnswersBtn.innerHTML = '<i class="fas fa-check-circle"></i><span>Enviar a Webhook 2 de 2</span>';
+            }
+        });
+
+        // Función para copiar al portapapeles
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (err) {
+                console.error('Error al copiar:', err);
+                return false;
+            }
+        }
+
+        // Botón para subir ticket a WEBCOOPEC
+        document.addEventListener('click', async function(e) {
+            if (e.target.id === 'upload-ticket-btn' || e.target.closest('#upload-ticket-btn')) {
+                const message = window.ticketMessage;
+                if (!message) {
+                    alert('No hay mensaje de ticket para copiar.');
+                    return;
+                }
+                
+                // Copiar al portapapeles
+                const copied = await copyToClipboard(message);
+                
+                if (copied) {
+                    // Mostrar feedback visual
+                    const btn = document.getElementById('upload-ticket-btn');
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check mr-2"></i>¡Copiado!';
+                    btn.classList.remove('bg-brand-orange', 'hover:bg-orange-600');
+                    btn.classList.add('bg-green-600');
+                    
+                    // Abrir nueva pestaña con WEBCOOPEC
+                    window.open('https://www.webcoopec.com/soporte/upload/open.php', '_blank');
+                    
+                    // Restaurar botón después de 2 segundos
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.classList.remove('bg-green-600');
+                        btn.classList.add('bg-brand-orange', 'hover:bg-orange-600');
+                    }, 2000);
+                } else {
+                    alert('No se pudo copiar el mensaje. Por favor, cópielo manualmente.');
+                }
+            }
+            
+            // Botón para solo copiar
+            if (e.target.id === 'copy-ticket-btn' || e.target.closest('#copy-ticket-btn')) {
+                const message = window.ticketMessage;
+                if (!message) {
+                    alert('No hay mensaje de ticket para copiar.');
+                    return;
+                }
+                
+                const copied = await copyToClipboard(message);
+                
+                if (copied) {
+                    const btn = document.getElementById('copy-ticket-btn');
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check mr-2"></i>¡Copiado!';
+                    btn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                    btn.classList.add('bg-green-600');
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.classList.remove('bg-green-600');
+                        btn.classList.add('bg-gray-600', 'hover:bg-gray-700');
+                    }, 2000);
+                } else {
+                    alert('No se pudo copiar el mensaje. Por favor, cópielo manualmente.');
+                }
+            }
+        });
+
+
+        // Botón volver
+        backBtn.addEventListener('click', function() {
+            document.getElementById('step2-card').classList.add('hidden');
+            document.getElementById('step1-card').classList.remove('hidden');
+            
+            document.getElementById('step1-indicator').classList.remove('opacity-50');
+            document.getElementById('step2-indicator').classList.add('opacity-50');
+            document.getElementById('progress-bar').classList.remove('bg-brand-orange');
+            
+            currentStep = 1;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Limpiar formulario
+        clearTicketBtn.addEventListener('click', function() {
+            ticketProblemInput.value = '';
+            responseSection.classList.add('hidden');
+            document.getElementById('ticket-message').textContent = '';
+            document.getElementById('suggestions-text').textContent = '';
+            window.ticketMessage = '';
+            
+            if (currentStep === 2) {
+                backBtn.click();
+            }
+        });
+
+        // Ctrl+Enter para enviar
+        ticketProblemInput.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                sendTicketBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
