@@ -21,38 +21,8 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <!-- Supabase CDN - Con detección de carga y fallback -->
-    <script>
-        window._supabaseLib = null;
-
-        function loadSupabase() {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js';
-
-            script.onload = function () {
-                window._supabaseLib = window.supabase;
-            };
-
-            script.onerror = function () {
-                const fallbackScript = document.createElement('script');
-                fallbackScript.src = 'https://unpkg.com/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js';
-
-                fallbackScript.onload = function () {
-                    window._supabaseLib = window.supabase;
-                };
-
-                fallbackScript.onerror = function () {
-                    console.error('Error crítico: No se pudo cargar Supabase desde CDN');
-                };
-
-                document.head.appendChild(fallbackScript);
-            };
-
-            document.head.appendChild(script);
-        }
-
-        loadSupabase();
-    </script>
+    <!-- Supabase CDN - Carga sincrónica para producción -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 
     <!-- Custom Styles and Tailwind Config -->
     <style>

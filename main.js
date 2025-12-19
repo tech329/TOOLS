@@ -179,6 +179,73 @@ function showModal(title, message, onConfirm = null, confirmText = 'Confirmar', 
 }
 
 // ===== GESTIÓN DE PANTALLA DE CARGA =====
+// Mostrar modal de error personalizado con botón de recarga
+function showErrorModal(message) {
+    // Ocultar loading screen primero
+    hideLoadingScreen();
+
+    // Crear overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    `;
+
+    // Crear modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        max-width: 500px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    `;
+
+    modal.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+        <h3 style="margin: 0 0 16px 0; color: #1f2937; font-size: 20px;">Error de Conexión</h3>
+        <p style="margin: 0 0 24px 0; color: #6b7280; line-height: 1.5;">${message}</p>
+        <button id="reload-button" style="
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        ">Recargar Página</button>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Agregar evento al botón
+    const reloadButton = document.getElementById('reload-button');
+    reloadButton.addEventListener('click', () => {
+        // Hard refresh (equivalente a Ctrl+Shift+F5)
+        window.location.reload(true);
+    });
+
+    // Efecto hover en botón
+    reloadButton.addEventListener('mouseenter', () => {
+        reloadButton.style.background = '#1d4ed8';
+    });
+    reloadButton.addEventListener('mouseleave', () => {
+        reloadButton.style.background = '#2563eb';
+    });
+}
+
 function showLoadingScreen() {
     const loadingScreen = document.getElementById('loading-screen');
     const app = document.getElementById('app');
@@ -253,7 +320,7 @@ async function checkAuth() {
         if (!client) {
             console.error('No se pudo obtener cliente Supabase');
             hideUserInterface();
-            alert('Error: No se pudo cargar Supabase. Por favor:\n1. Verifica tu conexión a internet\n2. Recarga la página (Ctrl+F5)\n3. Si el problema persiste, contacta soporte');
+            showErrorModal('No se pudo cargar el sistema de autenticación.<br><br>Por favor, verifica tu conexión a internet y recarga la página.<br><br>Si el problema persiste, contacta a soporte.');
             return false;
         }
 
