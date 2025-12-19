@@ -2,23 +2,77 @@
 // Gestión de navegación, sesiones y carga de módulos
 
 // ===== CONFIGURACIÓN SUPABASE =====
-const SUPABASE_URL = 'https://lpsupabase.luispinta.com';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.bZRDLg2HoJKCXPp_B6BD5s-qcZM6-NrKO8qtxBtFGTk';
+// Nota: este archivo puede ser evaluado más de una vez (por recargas en vivo o inyección de módulos).
+// Para evitar errores de "Identifier ... has already been declared", usamos `var` + `window.*`.
+var SUPABASE_URL = window.SUPABASE_URL || 'https://lpsupabase.luispinta.com';
+var SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.bZRDLg2HoJKCXPp_B6BD5s-qcZM6-NrKO8qtxBtFGTk';
+window.SUPABASE_URL = SUPABASE_URL;
+window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 
-// Crear instancia global de Supabase
-let supabase;
-if (window.TupakSupabase) {
-    supabase = window.TupakSupabase;
-} else {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true }
+// Crear instancia global de Supabase (robusto ante CDNs lentos)
+var supabase = window.TupakSupabase;
+
+function waitForSupabaseLibrary(timeoutMs = 30000, intervalMs = 100) {
+    console.log('⏱️ Esperando librería Supabase... (timeout:', timeoutMs, 'ms)');
+    return new Promise((resolve, reject) => {
+        const start = Date.now();
+        const timer = setInterval(() => {
+            const lib = window.supabase;
+            const elapsed = Date.now() - start;
+
+            if (lib && typeof lib.createClient === 'function') {
+                console.log('✅ Supabase library encontrada después de', elapsed, 'ms');
+                clearInterval(timer);
+                resolve(lib);
+                return;
+            }
+
+            if (elapsed >= timeoutMs) {
+                clearInterval(timer);
+                console.error('❌ Timeout después de', elapsed, 'ms');
+                console.error('❌ window.supabase:', window.supabase);
+                console.error('❌ typeof createClient:', typeof window.supabase?.createClient);
+                reject(new Error('Timeout: Supabase library no se cargó en ' + (timeoutMs / 1000) + ' segundos'));
+            }
+        }, intervalMs);
     });
-    window.TupakSupabase = supabase;
 }
 
+async function ensureSupabaseClient() {
+    if (supabase && supabase.auth) return supabase;
+    if (window.TupakSupabase && window.TupakSupabase.auth) {
+        supabase = window.TupakSupabase;
+        return supabase;
+    }
+
+    const lib = (window.supabase && typeof window.supabase.createClient === 'function')
+        ? window.supabase
+        : await waitForSupabaseLibrary();
+
+    supabase = window.TupakSupabase;
+    if (!supabase) {
+        // Usar sessionStorage para que la sesión se pierda al cerrar navegador
+        supabase = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                storage: sessionStorage // Sesión solo dura mientras el navegador está abierto
+            }
+        });
+        window.TupakSupabase = supabase;
+    }
+
+    return supabase;
+}
+
+window.TupakSupabaseReady = window.TupakSupabaseReady || ensureSupabaseClient().catch((err) => {
+    console.error(err?.message || err);
+    return null;
+});
+
 // ===== VARIABLES GLOBALES =====
-let currentUser = null;
-let isAuthenticated = false;
+var currentUser = null;
+var isAuthenticated = false;
 
 // ===== UTILIDADES =====
 function showToast(message, type = 'info', duration = 3000) {
@@ -35,8 +89,8 @@ function showToast(message, type = 'info', duration = 3000) {
     toast.className = `toast toast-${type} p-4 rounded-lg shadow-lg max-w-sm`;
 
     const icon = type === 'success' ? 'check-circle' :
-                 type === 'error' ? 'exclamation-circle' :
-                 type === 'warning' ? 'exclamation-triangle' : 'info-circle';
+        type === 'error' ? 'exclamation-circle' :
+            type === 'warning' ? 'exclamation-triangle' : 'info-circle';
 
     toast.innerHTML = `
         <div class="flex items-center space-x-3">
@@ -158,38 +212,73 @@ function hideLoadingScreen() {
 // ===== GESTIÓN DE AUTENTICACIÓN =====
 async function checkAuth() {
     try {
-        // Mostrar pantalla de carga inmediatamente
         showLoadingScreen();
 
-        const { data: { user }, error } = await supabase.auth.getUser();
+        let client;
 
-        if (error || !user) {
-            // Pequeño delay para mostrar el mensaje de carga
-            setTimeout(() => {
-                hideUserInterface();
-                window.location.href = 'login.html';
-            }, 500);
+        // SOLUCIÓN 1: Si TupakSupabase ya existe, usar directamente
+        if (window.TupakSupabase && window.TupakSupabase.auth) {
+            client = window.TupakSupabase;
+        }
+        // SOLUCIÓN 2: Si la librería existe pero el cliente no, CREAR EL CLIENTE AHORA
+        else if (window.supabase && typeof window.supabase.createClient === 'function') {
+            try {
+                client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                    auth: {
+                        persistSession: true,
+                        autoRefreshToken: true,
+                        storage: sessionStorage
+                    }
+                });
+                window.TupakSupabase = client;
+            } catch (createError) {
+                console.error('Error creando cliente Supabase:', createError);
+                client = null;
+            }
+        }
+        // SOLUCIÓN 3: Si ninguna de las anteriores, esperar Promise con timeout
+        else {
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Timeout esperando cliente Supabase')), 3000);
+            });
+
+            try {
+                client = await Promise.race([window.TupakSupabaseReady, timeoutPromise]);
+            } catch (timeoutError) {
+                console.error('Timeout esperando Supabase:', timeoutError.message);
+                client = window.TupakSupabase || null;
+            }
+        }
+
+        if (!client) {
+            console.error('No se pudo obtener cliente Supabase');
+            hideUserInterface();
+            alert('Error: No se pudo cargar Supabase. Por favor:\n1. Verifica tu conexión a internet\n2. Recarga la página (Ctrl+F5)\n3. Si el problema persiste, contacta soporte');
             return false;
         }
 
-        currentUser = user;
-        isAuthenticated = true;
+        supabase = client;
 
-        // Ocultar pantalla de carga y mostrar app
-        hideLoadingScreen();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError || !session?.user) {
+            hideUserInterface();
+            window.location.href = 'login.html';
+            return false;
+        }
+
+        currentUser = session.user;
+        isAuthenticated = true;
         updateUserInterface();
 
         return true;
     } catch (error) {
-        console.error('Error verificando autenticación:', error);
-
-        // Pequeño delay para mostrar el mensaje de carga
-        setTimeout(() => {
-            hideUserInterface();
-            window.location.href = 'login.html';
-        }, 500);
-
+        console.error('Error en checkAuth():', error);
+        hideUserInterface();
+        window.location.href = 'login.html';
         return false;
+    } finally {
+        hideLoadingScreen();
     }
 }
 
@@ -199,9 +288,13 @@ function updateUserInterface() {
     // Actualizar información del usuario en el header
     const userInfo = document.getElementById('user-info');
     if (userInfo) {
-        const displayName = currentUser.user_metadata?.full_name ||
-                           currentUser.email?.split('@')[0] ||
-                           'Usuario';
+        // Intentar obtener el nombre de varias fuentes
+        let displayName = sessionStorage.getItem('nombreUsuarioActual') ||
+            currentUser.user_metadata?.full_name ||
+            currentUser.user_metadata?.nombre ||
+            currentUser.user_metadata?.name ||
+            currentUser.email?.split('@')[0] ||
+            'Usuario';
         userInfo.textContent = displayName;
     }
 
@@ -241,9 +334,31 @@ async function logout() {
         '¿Está seguro que desea cerrar sesión?',
         async () => {
             try {
-                // Limpiar datos locales
-                localStorage.removeItem('tupak_remember_me');
-                
+                const client = await window.TupakSupabaseReady;
+                if (!client) {
+                    currentUser = null;
+                    isAuthenticated = false;
+                    hideUserInterface();
+                    window.location.href = 'login.html';
+                    return;
+                }
+                supabase = client;
+
+                // Limpiar datos de sesión
+                sessionStorage.clear(); // Limpiar toda la sessionStorage
+
+                // También limpiar localStorage de cualquier token antiguo de Supabase
+                try {
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && (key.includes('supabase') || key.includes('sb-') || key.includes('auth-token') || key.includes('tupak'))) {
+                            keysToRemove.push(key);
+                        }
+                    }
+                    keysToRemove.forEach(key => localStorage.removeItem(key));
+                } catch (e) { console.warn('Error limpiando localStorage:', e); }
+
                 // Limpiar caché de cartera
                 if (typeof clearCarteraAccessCache === 'function') {
                     clearCarteraAccessCache();
@@ -280,32 +395,40 @@ async function logout() {
 }
 
 // ===== ESCUCHAR CAMBIOS DE AUTENTICACIÓN =====
-supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT') {
-        // Limpiar caché de cartera al cerrar sesión
-        if (typeof clearCarteraAccessCache === 'function') {
-            clearCarteraAccessCache();
+(async () => {
+    const client = await window.TupakSupabaseReady;
+    if (!client) return;
+    supabase = client;
+
+    supabase.auth.onAuthStateChange((event, session) => {
+        console.log('Auth State Change:', event);
+        if (event === 'SIGNED_OUT') {
+            // Limpiar caché de cartera al cerrar sesión
+            if (typeof clearCarteraAccessCache === 'function') {
+                clearCarteraAccessCache();
+            }
+
+            currentUser = null;
+            isAuthenticated = false;
+            hideUserInterface();
+            // Solo redirigir si estamos seguros de que fue una acción explícita
+            // window.location.href = 'login.html'; 
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            currentUser = session?.user || null;
+            isAuthenticated = true;
+            if (document.getElementById('login-container')) {
+                document.getElementById('login-container').remove();
+                document.getElementById('app').style.display = 'block';
+            }
+            updateUserInterface();
+
+            // Verificar acceso a cartera cuando el usuario inicia sesión
+            if (typeof toggleCarteraTab === 'function') {
+                setTimeout(() => toggleCarteraTab(), 100);
+            }
         }
-        
-        currentUser = null;
-        isAuthenticated = false;
-        hideUserInterface();
-        window.location.href = 'login.html';
-    } else if (event === 'SIGNED_IN') {
-        currentUser = session?.user || null;
-        isAuthenticated = true;
-        if (document.getElementById('login-container')) {
-            document.getElementById('login-container').remove();
-            document.getElementById('app').style.display = 'block';
-        }
-        updateUserInterface();
-        
-        // Verificar acceso a cartera cuando el usuario inicia sesión
-        if (typeof toggleCarteraTab === 'function') {
-            setTimeout(() => toggleCarteraTab(), 100);
-        }
-    }
-});
+    });
+})();
 
 // ===== EXPORTAR FUNCIONES GLOBALES =====
 window.TupakAuth = {
@@ -313,7 +436,8 @@ window.TupakAuth = {
     logout,
     showToast,
     showModal,
-    supabase: () => supabase,
+    supabase: () => window.TupakSupabase || supabase,
+    supabaseReady: () => window.TupakSupabaseReady,
     getCurrentUser: () => currentUser,
     isAuthenticated: () => isAuthenticated,
     hideUserInterface,

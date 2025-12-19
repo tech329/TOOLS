@@ -988,9 +988,15 @@
 
     <script>
         // Configuración de Supabase
-        const SUPABASE_URL = 'https://lpsupabase.luispinta.com';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.bZRDLg2HoJKCXPp_B6BD5s-qcZM6-NrKO8qtxBtFGTk';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Usar `var` para permitir cargar este módulo más de una vez dentro de index.html.
+        var SUPABASE_URL = window.SUPABASE_URL || 'https://lpsupabase.luispinta.com';
+        var SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.bZRDLg2HoJKCXPp_B6BD5s-qcZM6-NrKO8qtxBtFGTk';
+        window.SUPABASE_URL = SUPABASE_URL;
+        window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+        var supabase = window.TupakSupabase || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: { persistSession: true, autoRefreshToken: true, storage: sessionStorage }
+        });
+        window.TupakSupabase = supabase;
 
         let nombreResponsable = 'MARISOL AYALA';
 
@@ -1008,18 +1014,18 @@
         async function obtenerUsuario() {
             console.log('Iniciando obtenerUsuario...');
             
-            // PRIORIDAD 1: Intentar obtener desde localStorage primero (más rápido en iframes)
-            const nombreGuardado = localStorage.getItem('nombreUsuarioActual');
-            console.log('Nombre en localStorage:', nombreGuardado);
+            // PRIORIDAD 1: Intentar obtener desde sessionStorage primero (más rápido en iframes)
+            const nombreGuardado = sessionStorage.getItem('nombreUsuarioActual');
+            console.log('Nombre en sessionStorage:', nombreGuardado);
             
             if (nombreGuardado && nombreGuardado !== 'null' && nombreGuardado !== 'undefined') {
                 nombreResponsable = nombreGuardado;
                 actualizarNombreResponsable();
-                console.log('Usando nombre desde localStorage:', nombreResponsable);
-                return; // Usamos el localStorage y terminamos aquí
+                console.log('Usando nombre desde sessionStorage:', nombreResponsable);
+                return; // Usamos el sessionStorage y terminamos aquí
             }
             
-            // PRIORIDAD 2: Si no hay en localStorage, intentar Supabase
+            // PRIORIDAD 2: Si no hay en sessionStorage, intentar Supabase
             try {
                 const { data: { user }, error } = await supabase.auth.getUser();
                 
@@ -1075,9 +1081,9 @@
                     
                     nombreResponsable = userName;
                     console.log('Nombre asignado desde Supabase:', nombreResponsable);
-                    // Guardar en localStorage para futuras referencias
-                    localStorage.setItem('nombreUsuarioActual', userName);
-                    localStorage.setItem('emailUsuario', user.email);
+                    // Guardar en sessionStorage para futuras referencias
+                    sessionStorage.setItem('nombreUsuarioActual', userName);
+                    sessionStorage.setItem('emailUsuario', user.email);
                 } else {
                     console.log('No hay usuario logueado en Supabase');
                 }

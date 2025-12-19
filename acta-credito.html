@@ -971,12 +971,17 @@
         }
 
         // Configuración de Supabase
-        const SUPABASE_URL = 'https://lpsupabase.luispinta.com'
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.bZRDLg2HoJKCXPp_B6BD5s-qcZM6-NrKO8qtxBtFGTk'
-        
-        // Inicializar Supabase
-        const { createClient } = supabase
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        // Usar `var` para permitir cargar este módulo más de una vez sin lanzar "already been declared".
+        var SUPABASE_URL = window.SUPABASE_URL || 'https://lpsupabase.luispinta.com'
+        var SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.bZRDLg2HoJKCXPp_B6BD5s-qcZM6-NrKO8qtxBtFGTk'
+        window.SUPABASE_URL = SUPABASE_URL;
+        window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+
+        // Inicializar/reusar Supabase con sessionStorage
+        var supabaseClient = window.TupakSupabase || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: { persistSession: true, autoRefreshToken: true, storage: sessionStorage }
+        })
+        window.TupakSupabase = supabaseClient;
 
         // Funciones para Custom Alerts
         function mostrarCustomAlert(titulo, mensaje, botones, icono = 'fa-info-circle', colorIcono = 'text-blue-500') {

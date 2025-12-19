@@ -1,69 +1,135 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cargar Comité</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+
     <!-- PDF-Lib para modificar metadatos -->
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    
+
     <!-- PDF.js para compresión real -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-        
+
+        body.loaded {
+            opacity: 1;
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        #loading-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .loading-brand {
+            color: white;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+
         /* Estilos para los selectores de fecha de nacimiento */
-        #diaNacimiento, #mesNacimiento, #anioNacimiento {
+        #diaNacimiento,
+        #mesNacimiento,
+        #anioNacimiento {
             scrollbar-width: thin;
             scrollbar-color: #14b8a6 #f3f4f6;
         }
-        
+
         #diaNacimiento::-webkit-scrollbar,
         #mesNacimiento::-webkit-scrollbar,
         #anioNacimiento::-webkit-scrollbar {
             width: 8px;
         }
-        
+
         #diaNacimiento::-webkit-scrollbar-track,
         #mesNacimiento::-webkit-scrollbar-track,
         #anioNacimiento::-webkit-scrollbar-track {
             background: #f3f4f6;
             border-radius: 10px;
         }
-        
+
         #diaNacimiento::-webkit-scrollbar-thumb,
         #mesNacimiento::-webkit-scrollbar-thumb,
         #anioNacimiento::-webkit-scrollbar-thumb {
             background: #14b8a6;
             border-radius: 10px;
         }
-        
+
         #diaNacimiento::-webkit-scrollbar-thumb:hover,
         #mesNacimiento::-webkit-scrollbar-thumb:hover,
         #anioNacimiento::-webkit-scrollbar-thumb:hover {
             background: #0d9488;
         }
-        
+
         /* Estilos para las opciones seleccionadas */
         #diaNacimiento option:checked,
         #mesNacimiento option:checked,
@@ -72,7 +138,7 @@
             color: white;
             font-weight: 600;
         }
-        
+
         /* Hover en opciones */
         #diaNacimiento option:hover,
         #mesNacimiento option:hover,
@@ -81,21 +147,33 @@
         }
     </style>
 </head>
+
 <body class="bg-gradient-to-br from-teal-50 to-cyan-50 min-h-screen p-4">
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: flex;">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Verificando sesión...</div>
+            <div class="loading-brand">Cargar Comité</div>
+        </div>
+    </div>
+
     <!-- Botón de regreso -->
     <div class="fixed top-4 left-4 z-50">
-        <button onclick="window.location.href='index.html'" class="flex items-center gap-2 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl">
+        <button onclick="window.location.href='index.html'"
+            class="flex items-center gap-2 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl">
             <i class="fas fa-arrow-left text-teal-600"></i>
             <span>Volver a Herramientas</span>
         </button>
     </div>
-    
+
     <div class="flex items-center justify-center min-h-screen">
         <div class="max-w-4xl w-full">
             <div class="bg-white rounded-2xl shadow-2xl p-8 md:p-12">
                 <!-- Título -->
                 <div class="text-center mb-8">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 mb-4">
+                    <div
+                        class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 mb-4">
                         <i class="fas fa-upload text-white text-2xl"></i>
                     </div>
                     <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
@@ -105,7 +183,8 @@
                         Complete los datos del comité
                     </p>
                     <p class="text-sm text-gray-500 mt-2">
-                        <i class="fas fa-user-tie mr-1"></i>Asesor: <span id="asesorNombre" class="font-semibold">Cargando...</span>
+                        <i class="fas fa-user-tie mr-1"></i>Asesor: <span id="asesorNombre"
+                            class="font-semibold">Cargando...</span>
                     </p>
                 </div>
 
@@ -119,7 +198,8 @@
                         <input type="text" id="cedula" required autocomplete="off"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                             placeholder="1234567890">
-                        <p class="text-xs text-gray-500 mt-1">Ingrese la cédula para buscar automáticamente el nombre</p>
+                        <p class="text-xs text-gray-500 mt-1">Ingrese la cédula para buscar automáticamente el nombre
+                        </p>
                     </div>
 
                     <!-- Nombre Completo del Socio (ahora segundo, se auto-completa) -->
@@ -131,7 +211,8 @@
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition uppercase bg-gray-100"
                             placeholder="JUAN CARLOS PÉREZ GARCÍA">
                         <p class="text-xs text-gray-500 mt-1">Debe contener al menos 3 palabras (nombre y apellidos)</p>
-                        <p id="nombreError" class="text-xs text-red-600 mt-1 hidden">Por favor ingrese al menos 3 palabras</p>
+                        <p id="nombreError" class="text-xs text-red-600 mt-1 hidden">Por favor ingrese al menos 3
+                            palabras</p>
                     </div>
 
                     <!-- Fecha de Nacimiento -->
@@ -146,7 +227,7 @@
                                 style="height: 140px;">
                                 <option value="">Día</option>
                             </select>
-                            
+
                             <!-- Mes -->
                             <select id="mesNacimiento" required autocomplete="off" size="5"
                                 class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition overflow-y-auto"
@@ -165,7 +246,7 @@
                                 <option value="11">NOVIEMBRE</option>
                                 <option value="12">DICIEMBRE</option>
                             </select>
-                            
+
                             <!-- Año -->
                             <select id="anioNacimiento" required autocomplete="off" size="5"
                                 class="w-1/4 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition overflow-y-auto"
@@ -221,8 +302,7 @@
                         </label>
                         <input type="text" id="tipoCredito" required readonly autocomplete="off"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed text-gray-600 font-semibold"
-                            value=""
-                            placeholder="Seleccione una tasa primero">
+                            value="" placeholder="Seleccione una tasa primero">
                     </div>
 
                     <!-- Destino -->
@@ -247,9 +327,10 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             <i class="fas fa-file-pdf text-red-600 mr-2"></i>Documento PDF *
                         </label>
-                        <div id="dropZone" 
+                        <div id="dropZone"
                             class="relative border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-teal-500 transition-all cursor-pointer bg-gray-50 hover:bg-teal-50">
-                            <input type="file" id="pdfFile" accept=".pdf,application/pdf" required autocomplete="off" class="hidden">
+                            <input type="file" id="pdfFile" accept=".pdf,application/pdf" required autocomplete="off"
+                                class="hidden">
                             <div id="dropZoneContent">
                                 <i class="fas fa-cloud-upload-alt text-5xl text-gray-400 mb-4"></i>
                                 <p class="text-gray-700 font-semibold mb-2">Arrastra tu PDF aquí</p>
@@ -266,16 +347,19 @@
                                         <span class="font-semibold">Comprimiendo PDF...</span>
                                     </div>
                                     <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
-                                        <div id="progressBar" class="bg-yellow-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                        <div id="progressBar"
+                                            class="bg-yellow-500 h-2 rounded-full transition-all duration-300"
+                                            style="width: 0%"></div>
                                     </div>
                                 </div>
-                                <button type="button" id="removeFile" 
+                                <button type="button" id="removeFile"
                                     class="text-red-600 hover:text-red-800 text-sm font-semibold">
                                     <i class="fas fa-times-circle mr-1"></i>Remover archivo
                                 </button>
                             </div>
                         </div>
-                        <p class="text-xs text-gray-500 mt-2">Solo archivos PDF. Archivos mayores a 15MB se comprimirán automáticamente</p>
+                        <p class="text-xs text-gray-500 mt-2">Solo archivos PDF. Archivos mayores a 15MB se comprimirán
+                            automáticamente</p>
                     </div>
 
                     <!-- Botón Enviar -->
@@ -299,23 +383,57 @@
     </div>
 
     <!-- Toast Container -->
-    <div id="toast" class="fixed top-5 right-5 bg-gray-800 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-[200%] z-50">
+    <div id="toast"
+        class="fixed top-5 right-5 bg-gray-800 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-[200%] z-50">
         <p id="toastMessage"></p>
     </div>
 
     <script>
         // Configuración de Supabase (misma que en index.html)
-        const SUPABASE_URL = 'https://lpsupabase.luispinta.com';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.bZRDLg2HoJKCXPp_B6BD5s-qcZM6-NrKO8qtxBtFGTk';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Usar `var` para que este módulo pueda cargarse más de una vez sin lanzar "already been declared".
+        var SUPABASE_URL = window.SUPABASE_URL || 'https://lpsupabase.luispinta.com';
+        var SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.bZRDLg2HoJKCXPp_B6BD5s-qcZM6-NrKO8qtxBtFGTk';
+        window.SUPABASE_URL = SUPABASE_URL;
+        window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+        var supabase = window.TupakSupabase || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: { persistSession: true, autoRefreshToken: true, storage: sessionStorage }
+        });
+        window.TupakSupabase = supabase;
+
+        function redirectToLogin() {
+            try {
+                // Si está embebido en iframe dentro de index.html, redirigir la ventana principal.
+                if (window.top && window.top !== window.self) {
+                    window.top.location.href = 'login.html';
+                } else {
+                    window.location.href = 'login.html';
+                }
+            } catch (e) {
+                window.location.href = 'login.html';
+            }
+        }
 
         let nombreAsesor = '';
         let numeroAsesorWhatsapp = '';
 
+        // Funciones para gestionar el loading screen
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 300);
+            }
+
+            // Mostrar el body con transition suave
+            document.body.classList.add('loaded');
+        }
+
         // Obtener nombre del usuario desde localStorage o Supabase
         async function obtenerNombreUsuario() {
             console.log('Obteniendo nombre de usuario...');
-            
+
             // Siempre intentar obtener desde Supabase primero para tener email actualizado
             await obtenerUsuario();
         }
@@ -325,37 +443,21 @@
             console.log('Iniciando obtenerUsuario...');
             try {
                 const { data: { user }, error } = await supabase.auth.getUser();
-                
+
                 console.log('Resultado getUser:', { user, error });
-                
-                if (error) {
-                    console.error('Error obteniendo usuario:', error);
-                    // Si no hay sesión, intentar obtener desde localStorage
-                    const nombreGuardado = localStorage.getItem('nombreUsuarioActual');
-                    let emailGuardado = localStorage.getItem('emailUsuario');
-                    
-                    // Temporal: si no hay email pero hay nombre conocido, asignar email por defecto
-                    if (!emailGuardado && nombreGuardado === 'NATALIA NISHVE') {
-                        emailGuardado = 'asesor@tupakrantina.com';
-                        localStorage.setItem('emailUsuario', emailGuardado);
-                    }
-                    
-                    if (nombreGuardado && nombreGuardado !== 'null' && nombreGuardado !== 'undefined') {
-                        nombreAsesor = nombreGuardado;
-                        console.log('Nombre obtenido desde localStorage (fallback):', nombreAsesor);
-                    } else {
-                        nombreAsesor = 'ASESOR';
-                    }
-                    actualizarNombreAsesor();
+
+                if (error || !user) {
+                    console.warn('Sin sesión activa. Redirigiendo a login...', error);
+                    redirectToLogin();
                     return;
                 }
-                
+
                 if (user) {
                     console.log('Usuario encontrado:', user.email);
                     console.log('Metadatos:', user.user_metadata);
-                    
+
                     let userName = 'ASESOR';
-                    
+
                     // Intentar obtener el nombre de la tabla usertr
                     try {
                         console.log('Buscando en tabla usertr con email:', user.email);
@@ -364,13 +466,13 @@
                             .select('user, whatsapp')
                             .eq('correo', user.email)
                             .single();
-                        
+
                         console.log('Resultado usertr:', { userConfig, configError });
-                        
+
                         if (userConfig) {
                             numeroAsesorWhatsapp = userConfig.whatsapp || '';
                         }
-                        
+
                         if (userConfig && userConfig.user && userConfig.user.toLowerCase() !== 'no') {
                             userName = userConfig.user.toUpperCase();
                             console.log('Nombre desde usertr:', userName);
@@ -404,11 +506,11 @@
                             userName = user.email.split('@')[0].toUpperCase();
                         }
                     }
-                    
+
                     nombreAsesor = userName;
-                    // Guardar tanto nombre como email en localStorage
-                    localStorage.setItem('nombreUsuarioActual', userName);
-                    localStorage.setItem('emailUsuario', user.email);
+                    // Guardar tanto nombre como email en sessionStorage
+                    sessionStorage.setItem('nombreUsuarioActual', userName);
+                    sessionStorage.setItem('emailUsuario', user.email);
                     console.log('Nombre final del asesor:', nombreAsesor);
                     actualizarNombreAsesor();
                 } else {
@@ -417,12 +519,17 @@
                     actualizarNombreAsesor();
                 }
             } catch (err) {
-                console.error('Error general:', err);
+                console.error('Error general en obtenerUsuario:', err);
+                console.error('Stack trace:', err.stack);
                 nombreAsesor = 'ASESOR';
                 actualizarNombreAsesor();
+            } finally {
+                // SIEMPRE ocultar el loading screen, incluso si hay error
+                console.log('Ocultando loading screen en finally...');
+                hideLoadingScreen();
             }
         }
-        
+
         // Actualizar nombre del asesor en la UI
         function actualizarNombreAsesor() {
             const asesorElement = document.getElementById('asesorNombre');
@@ -443,7 +550,7 @@
         // Formatear fecha en español: "22 DE OCTUBRE DE 2025"
         function fechaEnEspanol(fecha) {
             try {
-                const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+                const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
                 const d = fecha.getDate();
                 const m = fecha.getMonth();
                 const y = fecha.getFullYear();
@@ -456,26 +563,26 @@
         // Función mejorada para convertir número a texto en español
         function numeroATexto(numero) {
             if (!numero || isNaN(numero)) return '';
-            
+
             const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
             const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
             const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
             const centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
             const veintes = ['VEINTE', 'VEINTIÚN', 'VEINTIDÓS', 'VEINTITRÉS', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISÉIS', 'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE'];
-            
+
             function convertirGrupo(n) {
                 if (n === 0) return '';
                 if (n === 100) return 'CIEN';
-                
+
                 let texto = '';
                 const c = Math.floor(n / 100);
                 const d = Math.floor((n % 100) / 10);
                 const u = n % 10;
-                
+
                 if (c > 0) texto += centenas[c] + ' ';
-                
+
                 const dosDigitos = n % 100;
-                
+
                 if (dosDigitos >= 10 && dosDigitos < 20) {
                     texto += especiales[dosDigitos - 10];
                 } else if (dosDigitos >= 20 && dosDigitos < 30) {
@@ -485,15 +592,15 @@
                     if (d > 2 && u > 0) texto += ' Y ';
                     if (u > 0 && (d === 0 || d > 2)) texto += unidades[u];
                 }
-                
+
                 return texto.trim();
             }
-            
+
             const entero = Math.floor(numero);
             const decimales = Math.round((numero - entero) * 100);
-            
+
             let texto = '';
-            
+
             // Si el entero es 0, solo mostrar centavos si hay
             if (entero === 0) {
                 if (decimales > 0) {
@@ -512,7 +619,7 @@
                 const millones = Math.floor(entero / 1000000);
                 const miles = Math.floor((entero % 1000000) / 1000);
                 const cientos = entero % 1000;
-                
+
                 if (millones > 0) {
                     if (millones === 1) {
                         texto += 'UN MILLÓN ';
@@ -520,7 +627,7 @@
                         texto += convertirGrupo(millones) + ' MILLONES ';
                     }
                 }
-                
+
                 if (miles > 0) {
                     if (miles === 1) {
                         texto += 'MIL ';
@@ -528,13 +635,13 @@
                         texto += convertirGrupo(miles) + ' MIL ';
                     }
                 }
-                
+
                 if (cientos > 0) {
                     texto += convertirGrupo(cientos);
                 }
-                
+
                 texto = texto.trim();
-                
+
                 // Agregar DÓLAR o DÓLARES según el número
                 if (entero === 1) {
                     texto += ' DÓLAR';
@@ -542,7 +649,7 @@
                     // Para terminaciones en UN (21, 31, etc.) antes de DÓLARES
                     texto += ' DÓLARES';
                 }
-                
+
                 // Agregar centavos si existen
                 if (decimales > 0) {
                     let textoCentavos = convertirGrupo(decimales);
@@ -553,33 +660,33 @@
                     }
                 }
             }
-            
+
             return texto;
         }
 
         // Función para convertir número de meses a texto
         function plazoATexto(numero) {
             if (!numero || isNaN(numero) || numero <= 0) return '';
-            
+
             const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
             const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
             const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
             const veintes = ['VEINTE', 'VEINTIÚN', 'VEINTIDÓS', 'VEINTITRÉS', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISÉIS', 'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE'];
             const centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
-            
+
             function convertirGrupo(n) {
                 if (n === 0) return '';
                 if (n === 100) return 'CIEN';
-                
+
                 let texto = '';
                 const c = Math.floor(n / 100);
                 const d = Math.floor((n % 100) / 10);
                 const u = n % 10;
-                
+
                 if (c > 0) texto += centenas[c] + ' ';
-                
+
                 const dosDigitos = n % 100;
-                
+
                 if (dosDigitos >= 10 && dosDigitos < 20) {
                     texto += especiales[dosDigitos - 10];
                 } else if (dosDigitos >= 20 && dosDigitos < 30) {
@@ -589,31 +696,31 @@
                     if (d > 2 && u > 0) texto += ' Y ';
                     if (u > 0 && (d === 0 || d > 2)) texto += unidades[u];
                 }
-                
+
                 return texto.trim();
             }
-            
+
             let texto = '';
-            
+
             if (numero >= 1000) {
                 const miles = Math.floor(numero / 1000);
                 const resto = numero % 1000;
-                
+
                 if (miles === 1) {
                     texto += 'MIL';
                 } else {
                     texto += convertirGrupo(miles) + ' MIL';
                 }
-                
+
                 if (resto > 0) {
                     texto += ' ' + convertirGrupo(resto);
                 }
             } else {
                 texto = convertirGrupo(numero);
             }
-            
+
             texto = texto.trim();
-            
+
             return texto + (numero === 1 ? ' MES' : ' MESES');
         }
 
@@ -622,11 +729,11 @@
             const rand1 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
             const rand2 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
             const rand3 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-            
+
             const primerNombre = nombreSocio.trim().substring(0, 2).toUpperCase();
             const segundoNom = segundoNombre.trim().substring(0, 2).toUpperCase();
             const asesor = nombreAsesor.trim().substring(0, 2).toUpperCase();
-            
+
             return `${primerNombre}${rand1}${segundoNom}${rand2}${asesor}${rand3}`;
         }
 
@@ -634,17 +741,17 @@
         function calcularEdad(dia, mes, anio) {
             const hoy = new Date();
             const fechaNac = new Date(anio, mes - 1, dia); // mes - 1 porque en JS los meses son 0-11
-            
+
             let anios = hoy.getFullYear() - fechaNac.getFullYear();
             let meses = hoy.getMonth() - fechaNac.getMonth();
             let dias = hoy.getDate() - fechaNac.getDate();
-            
+
             // Ajustar si los meses son negativos
             if (meses < 0) {
                 anios--;
                 meses += 12;
             }
-            
+
             // Ajustar si los días son negativos
             if (dias < 0) {
                 meses--;
@@ -656,7 +763,7 @@
                 const mesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
                 dias += mesAnterior.getDate();
             }
-            
+
             // Redondear meses según los días
             if (dias >= 15) {
                 meses++;
@@ -665,7 +772,7 @@
                     meses = 0;
                 }
             }
-            
+
             // Formatear texto
             let textoEdad = '';
             if (anios > 0) {
@@ -675,13 +782,13 @@
                 if (textoEdad !== '') textoEdad += ' ';
                 textoEdad += `${meses} ${meses === 1 ? 'mes' : 'meses'}`;
             }
-            
+
             return textoEdad || '0 meses';
         }
 
         // Auto-mayúsculas para campos de texto
         document.querySelectorAll('input[type="text"]:not(#monto):not(#cedula)').forEach(input => {
-            input.addEventListener('input', function(e) {
+            input.addEventListener('input', function (e) {
                 this.value = this.value.toUpperCase();
             });
         });
@@ -691,7 +798,7 @@
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toastMessage');
             toastMessage.textContent = message;
-            
+
             // Set color based on type
             if (type === 'error') {
                 toast.className = 'fixed top-5 right-5 bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 z-50';
@@ -700,12 +807,12 @@
             } else {
                 toast.className = 'fixed top-5 right-5 bg-gray-800 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 z-50';
             }
-            
+
             // Show toast
             setTimeout(() => {
                 toast.style.transform = 'translateX(0)';
             }, 100);
-            
+
             // Hide toast after 5 seconds
             setTimeout(() => {
                 toast.style.transform = 'translateX(200%)';
@@ -715,17 +822,17 @@
         // Fetch cedula data from API (direct call, CORS enabled on server)
         async function fetchCedulaData(cedula) {
             const nombreInput = document.getElementById('nombreCompleto');
-            
+
             // Only fetch if cedula is 10 digits
             if (!/^\d{10}$/.test(cedula)) {
                 return;
             }
-            
+
             try {
                 showToast('Buscando información de la cédula...', 'info');
-                
+
                 const webhookUrl = 'https://lpwebhook.luispinta.com/webhook/15581914-f69b-4950-a772-65d2102978f2';
-                
+
                 const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
@@ -733,11 +840,11 @@
                     },
                     body: JSON.stringify({ cedula: cedula })
                 });
-                
+
                 if (!response.ok) throw new Error('Network response was not ok');
-                
+
                 const data = await response.json();
-                
+
                 // The response is an array: [{ cedula: "...", encontrado: true, nombre: "..." }]
                 if (Array.isArray(data) && data.length > 0 && data[0].encontrado) {
                     // Convert to uppercase and fill the name field
@@ -766,7 +873,7 @@
 
         // Add event listener to cedula field
         const cedulaInput = document.getElementById('cedula');
-        cedulaInput.addEventListener('blur', function() {
+        cedulaInput.addEventListener('blur', function () {
             const cedula = this.value.trim();
             if (cedula) {
                 fetchCedulaData(cedula);
@@ -774,7 +881,7 @@
         });
 
         // Also trigger on Enter key
-        cedulaInput.addEventListener('keypress', function(e) {
+        cedulaInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 const cedula = this.value.trim();
@@ -787,8 +894,8 @@
         // Validar nombre completo
         const nombreCompletoInput = document.getElementById('nombreCompleto');
         const nombreError = document.getElementById('nombreError');
-        
-        nombreCompletoInput.addEventListener('blur', function(e) {
+
+        nombreCompletoInput.addEventListener('blur', function (e) {
             const palabras = this.value.trim().split(/\s+/).filter(p => p.length > 0);
             if (palabras.length < 3) {
                 nombreError.classList.remove('hidden');
@@ -798,8 +905,8 @@
                 this.setCustomValidity('');
             }
         });
-        
-        nombreCompletoInput.addEventListener('input', function(e) {
+
+        nombreCompletoInput.addEventListener('input', function (e) {
             const palabras = this.value.trim().split(/\s+/).filter(p => p.length > 0);
             if (palabras.length >= 3) {
                 nombreError.classList.add('hidden');
@@ -811,16 +918,16 @@
         const montoInput = document.getElementById('monto');
         const montoTexto = document.getElementById('montoTexto');
         let valorMontoCentavos = 0; // Almacenar el valor en centavos
-        
-        montoInput.addEventListener('keydown', function(e) {
+
+        montoInput.addEventListener('keydown', function (e) {
             // Permitir solo números, backspace, delete y flechas
             const permitidas = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'];
-            
+
             if (!permitidas.includes(e.key) && (e.key < '0' || e.key > '9')) {
                 e.preventDefault();
                 return;
             }
-            
+
             if (e.key >= '0' && e.key <= '9') {
                 e.preventDefault();
                 // Agregar dígito (multiplicar por 10 y sumar el nuevo dígito)
@@ -833,11 +940,11 @@
                 actualizarMonto();
             }
         });
-        
+
         function actualizarMonto() {
             const numero = valorMontoCentavos / 100;
             montoInput.value = formatearUSD(numero).replace('$', '');
-            
+
             if (numero > 0) {
                 montoTexto.textContent = numeroATexto(numero);
             } else {
@@ -850,8 +957,8 @@
         // Convertir plazo a texto
         const plazoInput = document.getElementById('plazo');
         const plazoTexto = document.getElementById('plazoTexto');
-        
-        plazoInput.addEventListener('input', function(e) {
+
+        plazoInput.addEventListener('input', function (e) {
             const numero = parseInt(this.value);
             if (!isNaN(numero) && numero > 0) {
                 plazoTexto.textContent = plazoATexto(numero);
@@ -864,10 +971,10 @@
         const tasaInput = document.getElementById('tasa');
         const tasaTexto = document.getElementById('tasaTexto');
         const tipoCreditoSelect = document.getElementById('tipoCredito');
-        
-        tasaInput.addEventListener('change', function(e) {
+
+        tasaInput.addEventListener('change', function (e) {
             const tasa = parseFloat(this.value);
-            
+
             if (!isNaN(tasa) && tasa > 0) {
                 // Determinar tipo de crédito según la tasa
                 let tipoCredito = '';
@@ -878,24 +985,24 @@
                 } else if (tasa === 19) {
                     tipoCredito = 'CRÉDITO DE CONSUMO';
                 }
-                
+
                 // Actualizar selector de tipo de crédito
                 if (tipoCredito) {
                     tipoCreditoSelect.value = tipoCredito;
                 }
-                
+
                 // Convertir tasa a texto
                 const entero = Math.floor(tasa);
                 const decimales = Math.round((tasa - entero) * 100);
-                
+
                 let texto = '';
-                
+
                 if (entero > 0) {
                     const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
                     const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
                     const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
                     const veintes = ['VEINTE', 'VEINTIÚN', 'VEINTIDÓS', 'VEINTITRÉS', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISÉIS', 'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE'];
-                    
+
                     if (entero < 10) {
                         texto = unidades[entero];
                     } else if (entero >= 10 && entero < 20) {
@@ -911,13 +1018,13 @@
                         }
                     }
                 }
-                
+
                 if (decimales > 0) {
                     const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
                     const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
                     const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
                     const veintes = ['VEINTE', 'VEINTIÚN', 'VEINTIDÓS', 'VEINTITRÉS', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISÉIS', 'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE'];
-                    
+
                     let textoDecimal = '';
                     if (decimales < 10) {
                         textoDecimal = 'CERO ' + unidades[decimales];
@@ -933,14 +1040,14 @@
                             textoDecimal += ' Y ' + unidades[u];
                         }
                     }
-                    
+
                     if (entero > 0) {
                         texto += ' PUNTO ' + textoDecimal;
                     } else {
                         texto = 'CERO PUNTO ' + textoDecimal;
                     }
                 }
-                
+
                 texto += ' POR CIENTO';
                 tasaTexto.textContent = texto;
                 // Re-validar porque el tipo de crédito puede haberse actualizado programáticamente
@@ -954,7 +1061,7 @@
 
         // === MANEJO DE SUBIDA DE PDF ===
         let pdfFileSelected = null;
-        
+
         const dropZone = document.getElementById('dropZone');
         const pdfFileInput = document.getElementById('pdfFile');
         const dropZoneContent = document.getElementById('dropZoneContent');
@@ -962,13 +1069,13 @@
         const fileName = document.getElementById('fileName');
         const fileSize = document.getElementById('fileSize');
         const removeFileBtn = document.getElementById('removeFile');
-        
+
         // Función para agregar metadatos al PDF
         async function agregarMetadatosPDF(file, metadata) {
             try {
                 // Leer el archivo como array buffer
                 const arrayBuffer = await file.arrayBuffer();
-                
+
                 // Cargar el PDF
                 const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
 
@@ -1012,10 +1119,10 @@
                     addDefaultPage: false,
                     objectsPerTick: 50
                 });
-                
+
                 // Crear un nuevo File con los metadatos
                 const modifiedFile = new File([pdfBytes], file.name, { type: 'application/pdf' });
-                
+
                 console.log(`PDF procesado: Tamaño original: ${formatFileSize(file.size)}, Tamaño nuevo: ${formatFileSize(modifiedFile.size)}`);
 
                 // Diagnóstico: volver a leer metadatos del PDF resultante y mostrarlos en consola
@@ -1082,7 +1189,7 @@
                     </div>
                 `;
                 document.body.appendChild(coverDiv);
-                const canvas = await html2canvas(coverDiv, { width:595, height:842, scale:2, useCORS:true });
+                const canvas = await html2canvas(coverDiv, { width: 595, height: 842, scale: 2, useCORS: true });
                 document.body.removeChild(coverDiv);
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
                 const imgArrayBuffer = await (await fetch(imgData)).arrayBuffer();
@@ -1101,8 +1208,8 @@
                     jpgImage = await newPdf.embedPng(imgArrayBuffer);
                 }
 
-                const coverPage = newPdf.addPage([595,842]);
-                coverPage.drawImage(jpgImage, { x:0, y:0, width:595, height:842 });
+                const coverPage = newPdf.addPage([595, 842]);
+                coverPage.drawImage(jpgImage, { x: 0, y: 0, width: 595, height: 842 });
 
                 // Copiar páginas originales
                 const copied = await newPdf.copyPages(origPdf, origPdf.getPageIndices());
@@ -1120,7 +1227,7 @@
 
                 // Intento de XMP
                 try {
-                    const escapeXml = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+                    const escapeXml = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
                     const xmpTitle = escapeXml(metadata.title || '');
                     const xmpAuthor = escapeXml(metadata.author || '');
                     const xmpKeywords = escapeXml((metadata.keywords && metadata.keywords.length) ? metadata.keywords : metadata.subject || '');
@@ -1144,63 +1251,63 @@
                 }
             }
         }
-        
-    // Función para comprimir PDF con imágenes pesadas
-    async function comprimirPDF(file, onProgress, coverData, skipAddCover = false) {
-        try {
-            console.log('Iniciando compresión de PDF...');
-            
-            if (onProgress) onProgress(5);
-            
-            // Configurar PDF.js
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            
-            // Leer el archivo
-            const arrayBuffer = await file.arrayBuffer();
-            
-            if (onProgress) onProgress(10);
-            
-            // Cargar el PDF con PDF.js
-            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-            const pdf = await loadingTask.promise;
-            
-            if (onProgress) onProgress(15);
-            
-            // Crear nuevo PDF con jsPDF
-            const { jsPDF } = window.jspdf;
-            
-            // Load logo
-            const logoImg = new Image();
-            logoImg.crossOrigin = 'anonymous';
-            logoImg.src = 'https://i.postimg.cc/zBPmbxNT/TRANSPARENTE-min.png';
-            await new Promise((resolve, reject) => {
-                logoImg.onload = resolve;
-                logoImg.onerror = reject;
-            });
-            
-            if (onProgress) onProgress(20);
-            
-            // Crear documento A4 portrait
-            // Si skipAddCover, no agregamos portada ni página en blanco
-            const newPdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'pt',
-                format: 'a4'
-            });
-            let firstPageAdded = false;
-            if (!skipAddCover) {
-                // ...existing code for coverDiv creation and html2canvas...
-                coverDiv = document.createElement('div');
-                coverDiv.style.width = '595px';
-                coverDiv.style.height = '842px';
-                coverDiv.style.background = 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)';
-                coverDiv.style.fontFamily = 'Arial, sans-serif';
-                coverDiv.style.position = 'absolute';
-                coverDiv.style.left = '-9999px';
-                coverDiv.style.top = '-9999px';
-                coverDiv.style.padding = '40px';
-                coverDiv.style.boxSizing = 'border-box';
-                coverDiv.innerHTML = `
+
+        // Función para comprimir PDF con imágenes pesadas
+        async function comprimirPDF(file, onProgress, coverData, skipAddCover = false) {
+            try {
+                console.log('Iniciando compresión de PDF...');
+
+                if (onProgress) onProgress(5);
+
+                // Configurar PDF.js
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+                // Leer el archivo
+                const arrayBuffer = await file.arrayBuffer();
+
+                if (onProgress) onProgress(10);
+
+                // Cargar el PDF con PDF.js
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                const pdf = await loadingTask.promise;
+
+                if (onProgress) onProgress(15);
+
+                // Crear nuevo PDF con jsPDF
+                const { jsPDF } = window.jspdf;
+
+                // Load logo
+                const logoImg = new Image();
+                logoImg.crossOrigin = 'anonymous';
+                logoImg.src = 'https://i.postimg.cc/zBPmbxNT/TRANSPARENTE-min.png';
+                await new Promise((resolve, reject) => {
+                    logoImg.onload = resolve;
+                    logoImg.onerror = reject;
+                });
+
+                if (onProgress) onProgress(20);
+
+                // Crear documento A4 portrait
+                // Si skipAddCover, no agregamos portada ni página en blanco
+                const newPdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'pt',
+                    format: 'a4'
+                });
+                let firstPageAdded = false;
+                if (!skipAddCover) {
+                    // ...existing code for coverDiv creation and html2canvas...
+                    coverDiv = document.createElement('div');
+                    coverDiv.style.width = '595px';
+                    coverDiv.style.height = '842px';
+                    coverDiv.style.background = 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)';
+                    coverDiv.style.fontFamily = 'Arial, sans-serif';
+                    coverDiv.style.position = 'absolute';
+                    coverDiv.style.left = '-9999px';
+                    coverDiv.style.top = '-9999px';
+                    coverDiv.style.padding = '40px';
+                    coverDiv.style.boxSizing = 'border-box';
+                    coverDiv.innerHTML = `
                 <style>
                     .cover-container { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
                     .cover-header { display:flex; gap:16px; align-items:center; }
@@ -1279,113 +1386,113 @@
                     </div>
                 </div>
             `;
-                document.body.appendChild(coverDiv);
-                // Capturar con html2canvas (solo si creamos la portada)
-                let coverImgData = null;
-                if (coverDiv) {
-                    const coverCanvas = await html2canvas(coverDiv, {
-                        width: 595,
-                        height: 842,
-                        // Aumentar escala para mejorar nitidez de la portada
-                        scale: 2,
-                        useCORS: true
-                    });
-                    // Convertir la portada a JPEG con mayor calidad antes de añadir al PDF
-                    coverImgData = coverCanvas.toDataURL('image/jpeg', 0.95);
-                    newPdf.addImage(coverImgData, 'JPEG', 0, 0, 595, 842, undefined, 'FAST');
-                    // Remover el div temporal
-                    document.body.removeChild(coverDiv);
+                    document.body.appendChild(coverDiv);
+                    // Capturar con html2canvas (solo si creamos la portada)
+                    let coverImgData = null;
+                    if (coverDiv) {
+                        const coverCanvas = await html2canvas(coverDiv, {
+                            width: 595,
+                            height: 842,
+                            // Aumentar escala para mejorar nitidez de la portada
+                            scale: 2,
+                            useCORS: true
+                        });
+                        // Convertir la portada a JPEG con mayor calidad antes de añadir al PDF
+                        coverImgData = coverCanvas.toDataURL('image/jpeg', 0.95);
+                        newPdf.addImage(coverImgData, 'JPEG', 0, 0, 595, 842, undefined, 'FAST');
+                        // Remover el div temporal
+                        document.body.removeChild(coverDiv);
+                    }
+                    firstPageAdded = true;
                 }
-                firstPageAdded = true;
-            }
-            
-            if (onProgress) onProgress(25);
-            
-            // Procesar cada página original
-            const totalPages = pdf.numPages;
-            
-            for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-                const page = await pdf.getPage(pageNum);
-                
-                // Obtener tamaño real de la página
-                const realViewport = page.getViewport({ scale: 1 });
-                const pageWidth = realViewport.width;
-                const pageHeight = realViewport.height;
-                
-                // Determinar orientación
-                const pageOrientation = pageWidth > pageHeight ? 'landscape' : 'portrait';
-                
-                // Viewport para renderizado de alta calidad
-                const renderViewport = page.getViewport({ scale: 2.5 });
 
-                // Crear canvas con las dimensiones renderizadas
-                const pageCanvas = document.createElement('canvas');
-                const pageContext = pageCanvas.getContext('2d');
-                pageCanvas.width = renderViewport.width;
-                pageCanvas.height = renderViewport.height;
+                if (onProgress) onProgress(25);
 
-                // Renderizar página en canvas
+                // Procesar cada página original
+                const totalPages = pdf.numPages;
+
+                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+
+                    // Obtener tamaño real de la página
+                    const realViewport = page.getViewport({ scale: 1 });
+                    const pageWidth = realViewport.width;
+                    const pageHeight = realViewport.height;
+
+                    // Determinar orientación
+                    const pageOrientation = pageWidth > pageHeight ? 'landscape' : 'portrait';
+
+                    // Viewport para renderizado de alta calidad
+                    const renderViewport = page.getViewport({ scale: 2.5 });
+
+                    // Crear canvas con las dimensiones renderizadas
+                    const pageCanvas = document.createElement('canvas');
+                    const pageContext = pageCanvas.getContext('2d');
+                    pageCanvas.width = renderViewport.width;
+                    pageCanvas.height = renderViewport.height;
+
+                    // Renderizar página en canvas
+                    try {
+                        await page.render({
+                            canvasContext: pageContext,
+                            viewport: renderViewport
+                        }).promise;
+                    } catch (renderError) {
+                        console.warn(`Error al renderizar página ${pageNum}:`, renderError);
+                        // Si falla renderizar, saltar esta página y continuar con las demás
+                        continue;
+                    }
+
+                    // Convertir a imagen comprimida (JPEG con mayor calidad 0.85)
+                    const imgData = pageCanvas.toDataURL('image/jpeg', 0.85);
+
+                    // Agregar página y su imagen
+                    if (pageNum === 1 && skipAddCover) {
+                        // Usar la página inicial existente para evitar página en blanco
+                        newPdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+                    } else {
+                        newPdf.addPage([pageWidth, pageHeight], pageOrientation);
+                        newPdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+                    }
+
+                    // Actualizar progreso
+                    if (onProgress) {
+                        const progress = 25 + Math.floor((pageNum / totalPages) * 70);
+                        onProgress(progress);
+                    }
+                }
+
+                if (onProgress) onProgress(95);
+
+                // Si se pasó metadata, establecerla en el PDF (title, author)
                 try {
-                    await page.render({
-                        canvasContext: pageContext,
-                        viewport: renderViewport
-                    }).promise;
-                } catch (renderError) {
-                    console.warn(`Error al renderizar página ${pageNum}:`, renderError);
-                    // Si falla renderizar, saltar esta página y continuar con las demás
-                    continue;
+                    if (coverData && typeof newPdf.setProperties === 'function') {
+                        newPdf.setProperties({
+                            title: coverData.idComite || '',
+                            author: coverData.nombreAsesor || ''
+                        });
+                    }
+                } catch (e) {
+                    console.warn('No se pudo establecer propiedades en jsPDF:', e);
                 }
 
-                // Convertir a imagen comprimida (JPEG con mayor calidad 0.85)
-                const imgData = pageCanvas.toDataURL('image/jpeg', 0.85);
+                // Generar el PDF comprimido
+                const pdfBlob = newPdf.output('blob');
 
-                // Agregar página y su imagen
-                if (pageNum === 1 && skipAddCover) {
-                    // Usar la página inicial existente para evitar página en blanco
-                    newPdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
-                } else {
-                    newPdf.addPage([pageWidth, pageHeight], pageOrientation);
-                    newPdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
-                }
+                if (onProgress) onProgress(100);
 
-                // Actualizar progreso
-                if (onProgress) {
-                    const progress = 25 + Math.floor((pageNum / totalPages) * 70);
-                    onProgress(progress);
-                }
-            }
-            
-            if (onProgress) onProgress(95);
-            
-            // Si se pasó metadata, establecerla en el PDF (title, author)
-            try {
-                if (coverData && typeof newPdf.setProperties === 'function') {
-                    newPdf.setProperties({
-                        title: coverData.idComite || '',
-                        author: coverData.nombreAsesor || ''
-                    });
-                }
-            } catch (e) {
-                console.warn('No se pudo establecer propiedades en jsPDF:', e);
-            }
+                const compressedFile = new File([pdfBlob], file.name, { type: 'application/pdf' });
 
-            // Generar el PDF comprimido
-            const pdfBlob = newPdf.output('blob');
-            
-            if (onProgress) onProgress(100);
-            
-            const compressedFile = new File([pdfBlob], file.name, { type: 'application/pdf' });
-            
-            const reduccion = ((file.size - compressedFile.size) / file.size * 100).toFixed(1);
-            console.log(`Compresión exitosa: ${formatFileSize(file.size)} → ${formatFileSize(compressedFile.size)} (${reduccion}% reducción)`);
-            
-            return compressedFile;
-        } catch (error) {
+                const reduccion = ((file.size - compressedFile.size) / file.size * 100).toFixed(1);
+                console.log(`Compresión exitosa: ${formatFileSize(file.size)} → ${formatFileSize(compressedFile.size)} (${reduccion}% reducción)`);
+
+                return compressedFile;
+            } catch (error) {
                 console.error('Error al comprimir PDF:', error);
                 return file;
             }
         }
-        
+
         // Función para formatear tamaño de archivo
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
@@ -1394,25 +1501,25 @@
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
         }
-        
-    // Función para validar y mostrar archivo
+
+        // Función para validar y mostrar archivo
         async function handleFile(file) {
             if (!file) return;
-            
+
             // Validar que sea PDF
             if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
                 alert('Solo se permiten archivos PDF');
                 return;
             }
-            
+
             const originalSize = file.size;
-            
+
             // Mostrar información inicial
             dropZoneContent.classList.add('hidden');
             fileInfo.classList.remove('hidden');
             fileName.textContent = file.name;
             fileSize.textContent = `Tamaño: ${formatFileSize(originalSize)}`;
-            
+
             // Guardar archivo (la compresión se hará al enviar)
             pdfFileSelected = file;
 
@@ -1423,50 +1530,50 @@
             dropZone.classList.add('border-green-500', 'bg-green-50');
             dropZone.classList.remove('border-gray-300', 'bg-gray-50', 'border-yellow-500', 'bg-yellow-50');
         }
-        
+
         // Click en la zona de drop para abrir explorador
-        dropZone.addEventListener('click', function(e) {
+        dropZone.addEventListener('click', function (e) {
             if (e.target !== removeFileBtn && !removeFileBtn.contains(e.target)) {
                 pdfFileInput.click();
             }
         });
-        
+
         // Cambio en el input file
-        pdfFileInput.addEventListener('change', function(e) {
+        pdfFileInput.addEventListener('change', function (e) {
             if (e.target.files.length > 0) {
                 handleFile(e.target.files[0]);
             }
         });
-        
+
         // Prevenir comportamiento por defecto en drag over
-        dropZone.addEventListener('dragover', function(e) {
+        dropZone.addEventListener('dragover', function (e) {
             e.preventDefault();
             e.stopPropagation();
             dropZone.classList.add('border-teal-500', 'bg-teal-50');
         });
-        
-        dropZone.addEventListener('dragleave', function(e) {
+
+        dropZone.addEventListener('dragleave', function (e) {
             e.preventDefault();
             e.stopPropagation();
             if (!pdfFileSelected) {
                 dropZone.classList.remove('border-teal-500', 'bg-teal-50');
             }
         });
-        
+
         // Drop del archivo
-        dropZone.addEventListener('drop', function(e) {
+        dropZone.addEventListener('drop', function (e) {
             e.preventDefault();
             e.stopPropagation();
             dropZone.classList.remove('border-teal-500', 'bg-teal-50');
-            
+
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 handleFile(files[0]);
             }
         });
-        
+
         // Paste (Ctrl+V)
-        document.addEventListener('paste', function(e) {
+        document.addEventListener('paste', function (e) {
             const items = e.clipboardData.items;
             for (let i = 0; i < items.length; i++) {
                 if (items[i].type.indexOf('application/pdf') !== -1 || items[i].kind === 'file') {
@@ -1479,9 +1586,9 @@
                 }
             }
         });
-        
+
         // Remover archivo
-        removeFileBtn.addEventListener('click', function(e) {
+        removeFileBtn.addEventListener('click', function (e) {
             e.stopPropagation();
             pdfFileSelected = null;
             pdfFileInput.value = '';
@@ -1495,12 +1602,12 @@
         });
 
         // Enviar formulario
-        document.getElementById('comiteForm').addEventListener('submit', async function(e) {
+        document.getElementById('comiteForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const submitBtn = document.getElementById('submitBtn');
             const statusMessage = document.getElementById('statusMessage');
-            
+
             // Asegurar que tenemos el nombre del asesor
             if (!nombreAsesor || nombreAsesor === '') {
                 await obtenerUsuario();
@@ -1512,25 +1619,25 @@
                 validateFormReady();
                 return;
             }
-            
+
             // Validar nombre completo antes de enviar
             const nombreCompleto = document.getElementById('nombreCompleto').value.trim();
             const palabras = nombreCompleto.split(/\s+/).filter(p => p.length > 0);
-            
+
             if (palabras.length < 3) {
                 nombreError.classList.remove('hidden');
                 document.getElementById('nombreCompleto').focus();
                 return;
             }
-            
+
             // Extraer primer nombre y segundo nombre
             const primerNombre = palabras[0];
             const segundoNombre = palabras[1];
-            
+
             // Deshabilitar botón
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...';
-            
+
             // Obtener valores
             const cedula = document.getElementById('cedula').value.trim();
             const diaNacimiento = document.getElementById('diaNacimiento').value;
@@ -1542,18 +1649,18 @@
             const tasa = parseFloat(document.getElementById('tasa').value);
             const tipoCredito = document.getElementById('tipoCredito').value;
             const destino = document.getElementById('destino').value;
-            
+
             // Generar ID
             const idComite = generarIDComite(primerNombre, segundoNombre, nombreAsesor);
-            
+
             // Calcular edad
             const edadTexto = calcularEdad(parseInt(diaNacimiento), parseInt(mesNacimiento), parseInt(anioNacimiento));
-            
+
             // Convertir a texto
             const montoEnTexto = numeroATexto(monto);
             const plazoEnTexto = plazoATexto(plazo);
             const tasaEnTexto = tasaTexto.textContent || tasa + ' POR CIENTO';
-            
+
             // Preparar datos para webhook
             const webhookData = {
                 IDCOMITE: idComite,
@@ -1572,11 +1679,11 @@
                 DESTINO: destino,
                 NOMBREASESOR: nombreAsesor
             };
-            
+
             console.log('Datos a enviar (pendiente de PDF si aplica):', webhookData);
 
             let url = null; // Declarar url fuera del bloque if para que esté disponible globalmente
-            
+
             try {
                 // 1. Si hay PDF, subirlo primero y esperar la URL final
                 if (pdfFileSelected) {
@@ -1729,10 +1836,10 @@
                     console.warn('Iniciando envío de datos completos a n8n...');
                     const email = localStorage.getItem('emailUsuario');
                     console.warn('Email del usuario desde localStorage:', email);
-                    
+
                     if (email) {
                         console.warn('Email del usuario:', email);
-                        
+
                         // Obtener número del administrador desde la base de datos
                         let numeroAdmin = '';
                         try {
@@ -1742,7 +1849,7 @@
                                 .select('whatsapp')
                                 .eq('correo', 'contacto@tupakrantina.com')
                                 .single();
-                            
+
                             if (adminConfig && adminConfig.whatsapp) {
                                 numeroAdmin = adminConfig.whatsapp;
                                 console.warn('Número del administrador obtenido:', numeroAdmin);
@@ -1752,18 +1859,18 @@
                         } catch (adminQueryError) {
                             console.warn('Error al consultar número del administrador:', adminQueryError);
                         }
-                        
+
                         // Detalles del crédito
                         const detallesCredito = `Socio: ${nombreCompleto}, Monto: ${monto}, Plazo: ${plazo} meses, Tasa: ${tasa}%, Destino: ${destino}`;
-                        
+
                         // Enlace del comité
                         const enlaceComite = `https://comite.tupakrantina.com/comite/${idComite}`;
-                        
+
                         // Preparar datos completos para n8n
                         const datosCompletos = {
                             // Datos del comité
                             comite: webhookData,
-                            
+
                             // Datos de WhatsApp para administrador
                             admin: numeroAdmin && numeroAdmin.trim() !== '' ? {
                                 tipo: 'admin',
@@ -1773,7 +1880,7 @@
                                 documentoUrl: url,
                                 enlaceComite: enlaceComite
                             } : null,
-                            
+
                             // Datos de WhatsApp para asesor
                             asesor: numeroAsesorWhatsapp && numeroAsesorWhatsapp.trim() !== '' ? {
                                 tipo: 'asesor',
@@ -1788,7 +1895,7 @@
                                     numeroWhatsapp: numeroAsesorWhatsapp
                                 }
                             } : null,
-                            
+
                             // Metadatos adicionales
                             metadata: {
                                 fechaEnvio: new Date().toISOString(),
@@ -1796,19 +1903,19 @@
                                 asesorNombre: nombreAsesor
                             }
                         };
-                        
+
                         console.warn('Enviando datos completos a n8n...');
                         const response = await fetch('https://lpwebhook.luispinta.com/webhook/47c0cae9-6e3d-4b99-a661-227a3f6f8b69', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(datosCompletos)
                         });
-                        
+
                         if (!response.ok) {
                             const errText = await response.text();
                             throw new Error('Error al enviar datos completos: ' + errText);
                         }
-                        
+
                         console.warn('Datos completos enviados exitosamente a n8n:', response.status, await response.text());
                     } else {
                         console.warn('No se pudo obtener el usuario o email para envío de datos');
@@ -1823,14 +1930,14 @@
                 statusMessage.querySelector('div').className = 'p-4 rounded-lg bg-green-100 border border-green-300';
                 statusMessage.querySelector('p').className = 'text-center font-semibold text-green-800';
                 statusMessage.querySelector('p').innerHTML = '<i class="fas fa-check-circle mr-2"></i>¡Comité enviado exitosamente! ID: ' + idComite;
-                
+
                 // Limpiar formulario
                 document.getElementById('comiteForm').reset();
                 montoTexto.textContent = '';
                 plazoTexto.textContent = '';
                 tasaTexto.textContent = '';
                 valorMontoCentavos = 0;
-                
+
                 // Limpiar PDF
                 pdfFileSelected = null;
                 pdfFileInput.value = '';
@@ -1848,7 +1955,7 @@
                 // Rehabilitar botón
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Enviar al Comité</span>';
-                
+
                 // Ocultar mensaje después de 5 segundos
                 setTimeout(() => {
                     statusMessage.classList.add('hidden');
@@ -1914,7 +2021,7 @@
             const diaSelect = document.getElementById('diaNacimiento');
             const mesSelect = document.getElementById('mesNacimiento');
             const anioSelect = document.getElementById('anioNacimiento');
-            
+
             // Poblar días (01-31)
             for (let i = 1; i <= 31; i++) {
                 const option = document.createElement('option');
@@ -1922,11 +2029,11 @@
                 option.textContent = i.toString().padStart(2, '0');
                 diaSelect.appendChild(option);
             }
-            
+
             // Poblar años (desde 2008 hacia atrás hasta 1924, 100 años de rango)
             const anioMaximo = 2008; // Año máximo para tener 17 años en 2025
             const anioMinimo = 1924; // 100 años de rango
-            
+
             for (let i = anioMaximo; i >= anioMinimo; i--) {
                 const option = document.createElement('option');
                 option.value = i.toString();
@@ -1934,12 +2041,12 @@
                 anioSelect.appendChild(option);
             }
         }
-        
+
         // Llamar a la inicialización de fecha de nacimiento
         inicializarFechaNacimiento();
 
         // Attach listeners to re-validate form on change
-        ['nombreCompleto','cedula','diaNacimiento','mesNacimiento','anioNacimiento','monto','plazo','tasa','tipoCredito','destino'].forEach(id => {
+        ['nombreCompleto', 'cedula', 'diaNacimiento', 'mesNacimiento', 'anioNacimiento', 'monto', 'plazo', 'tasa', 'tipoCredito', 'destino'].forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
             const ev = (id === 'tasa' || id === 'destino' || id === 'tipoCredito' || el.tagName === 'SELECT') ? 'change' : 'input';
@@ -1950,14 +2057,20 @@
         // Initial validation on load
         validateFormReady();
 
-        // Inicializar cuando el DOM esté listo
-        document.addEventListener('DOMContentLoaded', async function() {
+        // Inicializar una sola vez (evita doble ejecución por DOMContentLoaded + llamada inmediata)
+        async function initCargacomiteOnce() {
+            if (window.__cargacomiteInitDone) return;
+            window.__cargacomiteInitDone = true;
             console.log('DOM cargado, obteniendo nombre de usuario...');
             await obtenerNombreUsuario();
-        });
-        
-        // También intentar obtener inmediatamente por si acaso
-        obtenerNombreUsuario();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initCargacomiteOnce);
+        } else {
+            initCargacomiteOnce();
+        }
     </script>
 </body>
+
 </html>
