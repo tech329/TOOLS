@@ -232,9 +232,19 @@ function showErrorModal(message) {
 
     // Agregar evento al botón
     const reloadButton = document.getElementById('reload-button');
-    reloadButton.addEventListener('click', () => {
-        // Redirigir a login en la misma ventana
-        window.location.href = 'https://tools.tupakrantina.com';
+    reloadButton.addEventListener('click', async () => {
+        try {
+            // Intentar cerrar sesión antes de redirigir
+            if (window.TupakSupabase && window.TupakSupabase.auth) {
+                await window.TupakSupabase.auth.signOut();
+                console.log('✅ Sesión cerrada antes de redirigir');
+            }
+        } catch (error) {
+            console.error('Error cerrando sesión:', error);
+        } finally {
+            // Redirigir a login (limpia automáticamente cualquier estado residual)
+            window.location.href = 'https://tools.tupakrantina.com';
+        }
     });
 
     // Efecto hover en botón

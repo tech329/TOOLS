@@ -21,9 +21,10 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <!-- Supabase CDN - Versión estable con múltiples fallbacks -->
+    <!-- Supabase CDN - Con Promise global -->
     <script>
-        (function () {
+        // Crear Promise global que main.js puede await
+        window.TupakSupabaseReady = new Promise((resolve, reject) => {
             const cdns = [
                 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
                 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js',
@@ -35,6 +36,7 @@
             function tryLoadSupabase() {
                 if (currentIndex >= cdns.length) {
                     console.error('CRÍTICO: No se pudo cargar Supabase desde ningún CDN');
+                    reject(new Error('Failed to load Supabase'));
                     return;
                 }
 
@@ -44,6 +46,14 @@
 
                 script.onload = function () {
                     console.log('✅ Supabase cargado desde:', cdns[currentIndex]);
+
+                    if (window.supabase) {
+                        console.log('✅ window.supabase disponible, resolviendo Promise');
+                        resolve(window.supabase); // RESOLVER PROMISE
+                    } else {
+                        console.error('❌ window.supabase NO disponible');
+                        reject(new Error('window.supabase not available'));
+                    }
                 };
 
                 script.onerror = function () {
@@ -56,7 +66,7 @@
             }
 
             tryLoadSupabase();
-        })();
+        });
     </script>
 
     <!-- Custom Styles and Tailwind Config -->
