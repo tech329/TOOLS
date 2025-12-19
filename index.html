@@ -21,8 +21,43 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <!-- Supabase CDN - Carga sincrónica para producción -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <!-- Supabase CDN - Versión estable con múltiples fallbacks -->
+    <script>
+        (function () {
+            const cdns = [
+                'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
+                'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js',
+                'https://esm.sh/@supabase/supabase-js@2'
+            ];
+
+            let currentIndex = 0;
+
+            function tryLoadSupabase() {
+                if (currentIndex >= cdns.length) {
+                    console.error('CRÍTICO: No se pudo cargar Supabase desde ningún CDN');
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = cdns[currentIndex];
+                script.async = false;
+
+                script.onload = function () {
+                    console.log('✅ Supabase cargado desde:', cdns[currentIndex]);
+                };
+
+                script.onerror = function () {
+                    console.warn('Failed:', cdns[currentIndex]);
+                    currentIndex++;
+                    tryLoadSupabase();
+                };
+
+                document.head.appendChild(script);
+            }
+
+            tryLoadSupabase();
+        })();
+    </script>
 
     <!-- Custom Styles and Tailwind Config -->
     <style>

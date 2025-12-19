@@ -211,9 +211,9 @@ function showErrorModal(message) {
     `;
 
     modal.innerHTML = `
-        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-        <h3 style="margin: 0 0 16px 0; color: #1f2937; font-size: 20px;">Error de Conexión</h3>
-        <p style="margin: 0 0 24px 0; color: #6b7280; line-height: 1.5;">${message}</p>
+        <div style="font-size: 48px; margin-bottom: 16px;">⏱️</div>
+        <h3 style="margin: 0 0 16px 0; color: #1f2937; font-size: 20px;">Sesión Expirada</h3>
+        <p style="margin: 0 0 24px 0; color: #6b7280; line-height: 1.5;">Tu sesión ha caducado.<br>Inicia sesión nuevamente.</p>
         <button id="reload-button" style="
             background: #2563eb;
             color: white;
@@ -224,7 +224,7 @@ function showErrorModal(message) {
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s;
-        ">Recargar Página</button>
+        ">Iniciar Sesión</button>
     `;
 
     overlay.appendChild(modal);
@@ -233,8 +233,8 @@ function showErrorModal(message) {
     // Agregar evento al botón
     const reloadButton = document.getElementById('reload-button');
     reloadButton.addEventListener('click', () => {
-        // Hard refresh (equivalente a Ctrl+Shift+F5)
-        window.location.reload(true);
+        // Redirigir a login en la misma ventana
+        window.location.href = 'https://tools.tupakrantina.com';
     });
 
     // Efecto hover en botón
