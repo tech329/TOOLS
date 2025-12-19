@@ -9,8 +9,8 @@ var SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI
 window.SUPABASE_URL = SUPABASE_URL;
 window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 
-// Crear instancia global de Supabase (robusto ante CDNs lentos)
-var supabase = window.TupakSupabase;
+// NO asignar supabase aquí - se asigna dinámicamente cuando esté listo
+var supabase = null;
 
 function waitForSupabaseLibrary(timeoutMs = 30000, intervalMs = 100) {
     console.log('⏱️ Esperando librería Supabase... (timeout:', timeoutMs, 'ms)');
