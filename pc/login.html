@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#001749">
+    <title>Acceso - Centro de Herramientas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="../shared/img/logo.webp" type="image/png">
+    <style>
+        :root {
+            --primary: #001749;
+            --secondary: #e48410;
+            --accent: #3787c6;
+            --blue: #015cd0;
+            --bg-light: #f5f7fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            overflow: hidden;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 1000px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            max-height: calc(100vh - 60px);
+            height: 100%;
+        }
+
+        .login-left {
+            background: linear-gradient(135deg, var(--primary), var(--blue));
+            color: white;
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-left::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('../shared/img/logo.webp') no-repeat center;
+            background-size: 80%;
+            opacity: 0.1;
+        }
+
+        .login-left-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .logo-img {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+
+        .login-left h1 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .login-left p {
+            font-size: 1em;
+            opacity: 0.9;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .features {
+            margin-top: 5px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .feature-icon {
+            background: rgba(255, 255, 255, 0.15);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            flex-shrink: 0;
+        }
+
+        .login-right {
+            padding: 35px 40px 25px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .login-form-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-form-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .login-form-header h2 {
+            color: var(--primary);
+            font-size: 1.6em;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .login-form-header p {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent);
+            font-size: 1.1em;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(55, 135, 198, 0.1);
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 16px;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-action:hover {
+            background: #c87010;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(228, 132, 16, 0.3);
+        }
+
+        .btn-action:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Animaciones */
+        .slide-out-left { 
+            animation: slideOutLeft 0.5s forwards cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .slide-in-right { 
+            animation: slideInRight 0.5s forwards cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+
+        @keyframes slideOutLeft {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(-100px); }
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .fade-out { opacity: 0; transform: translateX(-20px); transition: all 0.4s ease; }
+        .fade-in { opacity: 1; transform: translateX(0); transition: all 0.4s ease; }
+        .hidden { display: none !important; }
+
+        .modal-closing {
+            opacity: 0 !important;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal-closing .modal-card {
+            transform: scale(0.9) translateY(20px) !important;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #ef4444;
+            font-size: 0.9em;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .loader {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Loader de Sesión */
+        #session-loader {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--primary);
+            z-index: 20000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .loader-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .main-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-text {
+            font-weight: 700;
+            letter-spacing: 1px;
+            font-size: 1.25em;
+            max-width: 300px;
+            text-transform: uppercase;
+        }
+
+        .loader-footer {
+            position: absolute;
+            bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0.8;
+        }
+
+        .loader-footer span {
+            font-size: 0.75em;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .loader-footer img {
+            height: 20px;
+            filter: brightness(0) invert(1);
+        }
+
+        .footer-info {
+            text-align: center;
+            margin-top: 25px;
+            color: #94a3b8;
+            font-size: 0.8em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .powered-by {
+            margin-top: 10px;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .powered-by:hover { opacity: 1; }
+        .powered-by span { font-size: 0.75em; letter-spacing: 1px; font-weight: 600; color: #64748b; }
+        .powered-by img {
+            height: 18px;
+            filter: grayscale(1);
+            transition: filter 0.3s;
+        }
+        .powered-by:hover img { filter: grayscale(0); }
+
+        /* OTP Specific */
+        #otp-input {
+            letter-spacing: 8px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.4em;
+            padding-left: 15px;
+            text-transform: uppercase;
+        }
+
+        .greeting-name {
+            color: var(--secondary);
+            font-weight: 800;
+        }
+
+        /* Caja de Info WhatsApp */
+        .whatsapp-info-box {
+            background: #f0fdf4;
+            border: 1px dashed #22c55e;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #166534;
+            font-size: 0.9em;
+        }
+        .whatsapp-info-box i {
+            color: #25d366;
+            font-size: 1.8em;
+        }
+        .whatsapp-number {
+            font-weight: 800;
+            color: var(--primary);
+            font-size: 1.1em;
+            letter-spacing: 1px;
+        }
+
+        /* Modal Terms */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85); z-index: 10000;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+            backdrop-filter: blur(5px);
+            transition: all 0.4s ease;
+            opacity: 1;
+        }
+        .modal-card {
+            background: white; border-radius: 16px; max-width: 700px; width: 100%;
+            max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: scale(1) translateY(0);
+        }
+        .modal-header { background: var(--primary); color: white; padding: 25px; display: flex; align-items: center; gap: 15px; }
+        .modal-body { 
+            padding: 30px; 
+            overflow-y: auto; 
+            line-height: 1.6; 
+            color: #1e293b; 
+            font-size: 0.95em;
+            background: #fff;
+        }
+        .modal-body h4 { color: var(--primary); margin: 20px 0 10px 0; font-size: 1.1em; border-bottom: 2px solid var(--secondary); display: inline-block; }
+        .modal-footer { padding: 20px 30px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 15px; }
+        
+        .checkbox-row { display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 12px; border-radius: 8px; background: #fff; border: 1px solid #e2e8f0; transition: all 0.2s; }
+        .checkbox-row:hover { border-color: var(--accent); background: #f0f9ff; }
+        .checkbox-row input { width: 20px; height: 20px; cursor: pointer; }
+
+        .scroll-warning {
+            font-size: 0.8em;
+            color: #ef4444;
+            text-align: center;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .terms-content p { margin-bottom: 15px; text-align: justify; }
+        .terms-content ul { margin-left: 20px; margin-bottom: 15px; }
+        .terms-content li { margin-bottom: 8px; }
+
+        @media (max-width: 768px) {
+            .login-container { 
+                grid-template-columns: 1fr; 
+                min-height: auto;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            body { padding: 0; background: white; }
+            .login-left { display: none; }
+            .login-right { 
+                padding: 40px 25px 20px 25px; 
+                min-height: 100vh;
+            }
+            .logo-mobile {
+                display: block !important;
+                max-width: 120px;
+                margin: 0 auto 30px auto;
+            }
+            .footer-info {
+                margin-top: auto;
+                padding-top: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-left">
+            <div class="login-left-content">
+                <div class="logo-section">
+                    <img src="../shared/img/logo.webp" alt="TUPAK RANTINA" class="logo-img">
+                </div>
+                <h1>Centro de Herramientas</h1>
+                <p>Acceso para colaboradores de la Caja de Ahorro y Crédito TUPAK RANTINA</p>
+
+                <div class="features">
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div>
+                            <strong>Acceso Seguro</strong>
+                            <p style="font-size: 0.85em; margin: 0; opacity: 0.8;">Verificación por WhatsApp</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-tools"></i></div>
+                        <div>
+                            <strong>Herramientas Internas</strong>
+                            <p style="font-size: 0.85em; margin: 0; opacity: 0.8;">Carga de documentos y más</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                        <div>
+                            <strong>Disponible 24/7</strong>
+                            <p style="font-size: 0.85em; margin: 0; opacity: 0.8;">Accede desde cualquier dispositivo</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="login-right">
+            <img src="../shared/img/logo.webp" alt="TUPAK RANTINA" class="logo-mobile" style="display:none">
+            <div class="login-form-content">
+                <div id="login-step" class="fade-in">
+                    <div class="login-form-header">
+                        <h2>Iniciar Sesión</h2>
+                        <p>Ingresa tu número de cédula para continuar</p>
+                    </div>
+
+                    <div id="error-box" class="error-message"></div>
+
+                    <form id="form-cedula">
+                        <div class="form-group">
+                            <label for="cedula">Cédula de Identidad</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-id-card input-icon"></i>
+                                <input type="text" id="cedula" class="form-control" placeholder="Ej: 1002345678" maxlength="10" required inputmode="numeric">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btn-cedula" class="btn-action">
+                            <span>Validar Acceso</span> <i id="arrow-cedula" class="fas fa-arrow-right"></i>
+                            <div id="loader-cedula" class="loader hidden"></div>
+                        </button>
+                        
+                        <p style="text-align: center; margin-top: 20px; font-size: 0.85em; color: #64748b;">
+                            Acepta los <a href="#" id="open-terms" style="color: var(--blue); text-decoration: none; font-weight: 600;">términos y condiciones</a> para continuar.
+                        </p>
+                    </form>
+                </div>
+
+                <div id="otp-step" class="hidden">
+                    <div class="login-form-header">
+                        <h2 id="greeting-title">¡Hola!</h2>
+                        <p id="otp-instruction">Ingresa el código que enviamos a tu WhatsApp</p>
+                    </div>
+
+                    <div class="whatsapp-info-box">
+                        <i class="fab fa-whatsapp"></i>
+                        <div>
+                            <p style="margin:0; opacity: 0.8;">Código enviado al número:</p>
+                            <span class="whatsapp-number">*******<span id="last-digits">0000</span></span>
+                        </div>
+                    </div>
+
+                    <form id="form-otp">
+                        <div class="form-group">
+                            <label for="otp-input">Código de Seguridad</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-key input-icon"></i>
+                                <input type="text" id="otp-input" class="form-control" placeholder="••••••" maxlength="6" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btn-otp" class="btn-action">
+                            <span>Ingresar</span> <i id="arrow-otp" class="fas fa-sign-in-alt"></i>
+                            <div id="loader-otp" class="loader hidden"></div>
+                        </button>
+
+                        <button type="button" onclick="location.reload()" style="width:100%; background:none; border:none; color:var(--accent); margin-top: 15px; cursor:pointer; font-weight:600; font-size:0.9em;">
+                            <i class="fas fa-arrow-left"></i> Volver a empezar
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="footer-info">
+                <p>&copy; 2026 TUPAK RANTINA</p>
+                <p>Centro de Herramientas</p>
+                <div class="powered-by">
+                    <span>POWERED BY</span>
+                    <img src="../shared/img/lpsolutionsblack.webp" alt="LP Solutions">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="session-loader">
+        <div class="loader-content">
+            <div class="main-spinner"></div>
+            <p class="loader-text">ACCEDISTE CORRECTAMENTE,<br>ESTAMOS PREPARANDO TU SESIÓN</p>
+        </div>
+        <div class="loader-footer">
+            <span>POWERED BY</span>
+            <img src="../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <div id="modal-terms" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <i class="fas fa-file-contract fa-2x"></i>
+                <div>
+                    <h3 style="margin:0; font-size: 1.25em;">Términos y Condiciones</h3>
+                    <p style="margin:0; font-size: 0.8em; opacity: 0.8;">Política de Seguridad y Confidencialidad</p>
+                </div>
+            </div>
+            <div id="terms-scroll-body" class="modal-body">
+                <div class="terms-content">
+                    <p style="text-align: center; font-weight: 800; color: var(--primary); font-size: 1.1em; border-bottom: 2px solid var(--secondary); padding-bottom: 10px; margin-bottom: 25px;">CAJA DE AHORRO Y CRÉDITO TUPAK RANTINA</p>
+                    
+                    <h4>1. NATURALEZA Y PROPÓSITO DEL SISTEMA</h4>
+                    <p>El Centro de Herramientas (en adelante, "el Sistema") es una plataforma tecnológica de propiedad exclusiva de la CAJA DE AHORRO Y CRÉDITO TUPAK RANTINA. Su propósito es facilitar el acceso a herramientas internas para el desempeño de funciones específicas.</p>
+
+                    <h4>2. CARÁCTER CONFIDENCIAL DE LA INFORMACIÓN</h4>
+                    <p>Toda la información procesada a través del Sistema tiene el carácter de <strong>ESTRICTAMENTE CONFIDENCIAL</strong> y constituye un secreto comercial y operativo.</p>
+
+                    <h4>3. AUTORIZACIÓN DE USO</h4>
+                    <p>El acceso se concede de forma personal e intransferible a colaboradores debidamente autorizados. El uso de la información está restringido exclusivamente al ámbito institucional.</p>
+
+                    <h4>4. PROHIBICIONES EXPRESAS</h4>
+                    <p>Queda terminantemente prohibido a los usuarios:</p>
+                    <ul>
+                        <li>Compartir credenciales de acceso con terceros.</li>
+                        <li>Copiar, reproducir o distribuir el contenido por cualquier medio.</li>
+                        <li>Permitir que personas no autorizadas visualicen la información.</li>
+                        <li>Intentar eludir cualquier medida de seguridad del Sistema.</li>
+                    </ul>
+
+                    <h4>5. PROPIEDAD INTELECTUAL</h4>
+                    <p>Los derechos de autor y propiedad intelectual del Sistema pertenecen a la CAJA DE AHORRO Y CRÉDITO TUPAK RANTINA.</p>
+
+                    <h4>6. REGISTRO DE ACTIVIDAD</h4>
+                    <p>El Sistema registra: identidad del usuario, fecha y hora de acceso, y acciones realizadas. Estos registros podrán ser utilizados en procesos internos.</p>
+
+                    <h4>7. SANCIONES POR INCUMPLIMIENTO</h4>
+                    <p>La violación de estos términos facultará a la institución para aplicar medidas disciplinarias según el Reglamento Interno.</p>
+
+                    <h4>8. ACEPTACIÓN</h4>
+                    <p>Al hacer clic en "Aceptar", el usuario declara haber leído, comprendido y aceptado íntegramente estos términos.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <label class="checkbox-row" id="check-container">
+                    <input type="checkbox" id="check-accept">
+                    <span style="font-weight: 600;">He leído y acepto los términos de seguridad y confidencialidad.</span>
+                </label>
+                <button id="btn-close-terms" class="btn-action" disabled style="padding:15px;">ACEPTAR Y CONTINUAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts compartidos -->
+    <script src="../shared/auth.js"></script>
+    <script src="../shared/pwa.js"></script>
+    <script>
+        const webhookLogin = 'https://lpn8nwebhook.luispintasolutions.com/webhook/fe0874fe-7554-4f7e-8744-9865bd673a1e';
+        const webhookVerify = 'https://lpn8nwebhook.luispintasolutions.com/webhook/c672670b-5db3-4af5-bd91-bf594a1b915c';
+        const webhookUser = 'https://lpn8nwebhook.luispintasolutions.com/webhook/user7441558qwqqwqqssa';
+
+        // Elementos DOM
+        const openTerms = document.getElementById('open-terms');
+        const modalTerms = document.getElementById('modal-terms');
+        const checkContainer = document.getElementById('check-container');
+        const checkAccept = document.getElementById('check-accept');
+        const btnCloseTerms = document.getElementById('btn-close-terms');
+        const sessionLoader = document.getElementById('session-loader');
+        let userPendingTransition = false;
+
+        // Verificar sesión existente al cargar
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof TupakAuth !== 'undefined' && TupakAuth.checkAuth()) {
+                sessionLoader.style.display = 'flex';
+                document.querySelector('.loader-text').innerHTML = 'Restaurando sesión...';
+                
+                const isValid = await TupakAuth.checkTokenValidity();
+                if (isValid) {
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                    return;
+                }
+                sessionLoader.style.display = 'none';
+            }
+        });
+
+        openTerms.onclick = (e) => { e.preventDefault(); modalTerms.style.display = 'flex'; };
+        
+        checkAccept.onchange = () => { 
+            btnCloseTerms.disabled = !checkAccept.checked;
+        };
+
+        btnCloseTerms.onclick = () => { 
+            modalTerms.classList.add('modal-closing');
+            
+            setTimeout(() => {
+                modalTerms.style.display = 'none'; 
+                modalTerms.classList.remove('modal-closing');
+                
+                if (userPendingTransition) {
+                    transitionSteps();
+                    userPendingTransition = false;
+                }
+            }, 400);
+        };
+
+        // Flujo de Login
+        const formCedula = document.getElementById('form-cedula');
+        const loginStep = document.getElementById('login-step');
+        const otpStep = document.getElementById('otp-step');
+        const errorBox = document.getElementById('error-box');
+
+        formCedula.onsubmit = async (e) => {
+            e.preventDefault();
+            const cedula = document.getElementById('cedula').value.trim();
+            if (cedula.length < 10) { showErr('Cédula debe tener 10 dígitos'); return; }
+
+            setLoading('cedula', true);
+            try {
+                const res = await fetch(webhookLogin, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cedula })
+                });
+                const data = await res.json();
+
+                const loginRole = typeof TupakAuth !== 'undefined'
+                    ? TupakAuth.normalizeAllowedRole(data.rol || data.roles || '')
+                    : '';
+
+                if (data.nombre && (!(data.rol || data.roles) || loginRole)) {
+                    document.getElementById('greeting-title').innerHTML = `¡Hola <span class="greeting-name">${data.nombre}</span>!`;
+                    
+                    if (data.numero) {
+                        document.getElementById('last-digits').innerText = data.numero;
+                    }
+
+                    userPendingTransition = true;
+                    // Reset modal state
+                    checkAccept.checked = false;
+                    btnCloseTerms.disabled = true;
+                    
+                    modalTerms.style.display = 'flex';
+                } else {
+                    showErr((data.rol || data.roles) ? 'Usuario sin rol autorizado para el acceso' : 'Cédula no autorizada para el acceso');
+                }
+            } catch (err) {
+                showErr('Error de conexión. Intente más tarde.');
+            } finally {
+                setLoading('cedula', false);
+            }
+        };
+
+        const otpInput = document.getElementById('otp-input');
+        otpInput.addEventListener('input', () => {
+            otpInput.value = otpInput.value.toUpperCase();
+        });
+
+        const formOtp = document.getElementById('form-otp');
+        formOtp.onsubmit = async (e) => {
+            e.preventDefault();
+            const cedula = document.getElementById('cedula').value.trim();
+            const otp = document.getElementById('otp-input').value.toUpperCase();
+
+            setLoading('otp', true);
+            try {
+                const res = await fetch(webhookVerify, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cedula, otp })
+                });
+                
+                const dataVerify = await res.json();
+
+                if (dataVerify.token || dataVerify.success || res.ok) {
+                    sessionLoader.style.display = 'flex';
+                    const startTime = Date.now();
+
+                    try {
+                        const resUser = await fetch(webhookUser, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': dataVerify.token || '' 
+                            },
+                            body: JSON.stringify({ 
+                                cedula: cedula,
+                                token: dataVerify.token || ""
+                            })
+                        });
+                        
+                        const text = await resUser.text();
+                        console.log('DEBUG: Respuesta raw del webhookUser:', text);
+                        
+                        let userData = {};
+                        try {
+                            const parsed = JSON.parse(text);
+                            if (Array.isArray(parsed)) {
+                                userData = parsed.length > 0 ? parsed[0] : {};
+                            } else {
+                                userData = parsed || {};
+                            }
+                        } catch(e) {}
+
+                        const sessionName = userData.nombre || dataVerify.nombre || 'Usuario';
+                        const sessionEmail = userData.correo || '';
+                        const sessionCedula = userData.cedula || cedula;
+                        const sessionRole = typeof TupakAuth !== 'undefined'
+                            ? TupakAuth.normalizeAllowedRole(userData.rol || userData.roles || '')
+                            : '';
+
+                        if (!sessionRole) {
+                            showErr('Acceso denegado: consulta con el administrador');
+                            sessionLoader.style.display = 'none';
+                            return;
+                        }
+
+                        const session = { 
+                            cedula: sessionCedula, 
+                            name: sessionName,
+                            email: sessionEmail,
+                            rol: sessionRole,
+                            token: dataVerify.token || '',
+                            ts: Date.now() 
+                        };
+                    
+                        localStorage.setItem('appSession', JSON.stringify(session));
+
+                        const elapsed = Date.now() - startTime;
+                        const remaining = Math.max(0, 2000 - elapsed);
+                        
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, remaining);
+
+                    } catch (errUser) {
+                        const fallbackRole = typeof TupakAuth !== 'undefined'
+                            ? TupakAuth.normalizeAllowedRole(dataVerify.rol || dataVerify.roles || '')
+                            : '';
+                        if (!fallbackRole) {
+                            showErr('Acceso denegado: consulta con el administrador');
+                            sessionLoader.style.display = 'none';
+                            return;
+                        }
+
+                        const session = { cedula, name: (dataVerify.nombre || 'Usuario'), rol: fallbackRole, token: dataVerify.token || '', ts: Date.now() };
+                        localStorage.setItem('appSession', JSON.stringify(session));
+                        
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 2000);
+                    }
+                } else {
+                    showErr('Código incorrecto o expirado');
+                }
+            } catch (err) {
+                showErr('Error de conexión. Intente más tarde.');
+            } finally {
+                setLoading('otp', false);
+            }
+        };
+
+        function transitionSteps() {
+            loginStep.classList.remove('fade-in');
+            loginStep.classList.add('slide-out-left');
+            
+            setTimeout(() => {
+                loginStep.classList.add('hidden');
+                otpStep.classList.remove('hidden');
+                otpStep.classList.add('slide-in-right');
+                document.getElementById('otp-input').focus();
+            }, 500);
+        }
+
+        function showErr(msg) {
+            errorBox.innerText = msg;
+            errorBox.style.display = 'block';
+            setTimeout(() => { errorBox.style.display = 'none'; }, 4000);
+        }
+
+        function setLoading(step, active) {
+            const btn = document.getElementById(`btn-${step}`);
+            const arrow = document.getElementById(`arrow-${step}`);
+            const loader = document.getElementById(`loader-${step}`);
+            const span = btn.querySelector('span');
+
+            btn.disabled = active;
+            if (active) {
+                span.classList.add('hidden');
+                arrow.classList.add('hidden');
+                loader.classList.remove('hidden');
+            } else {
+                span.classList.remove('hidden');
+                arrow.classList.remove('hidden');
+                loader.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Cartera - Tupak Rantina</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" href="../../shared/img/logo.webp" type="image/png">
+
+    <!-- CSS externo -->
+    <link rel="stylesheet" href="../css/tickets.css">
+    <link rel="stylesheet" href="../css/cartera.css">
+</head>
+<body class="bg-slate-100 min-h-screen">
+    <script>const loaderStartTime = Date.now();</script>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Cargando Cartera...</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header Fijo -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Herramientas</span>
+                </a>
+                <div class="header-divider"></div>
+                <img src="../../shared/img/logo.webp" alt="Logo" class="header-logo">
+                <div class="header-info">
+                    <h1>Módulo de Cartera</h1>
+                    <p>Gestión de Cobros y Mora</p>
+                </div>
+            </div>
+
+            <!-- View Switcher en Header -->
+            <div class="view-switcher header-switcher">
+                <button id="btn-atrasados" class="view-btn" onclick="switchView('atrasados')">
+                    <i class="fas fa-clock mr-2"></i>Atrasados
+                </button>
+                <button id="btn-cobros" class="view-btn" onclick="switchView('cobros')">
+                    <i class="fas fa-calendar-alt mr-2"></i>Cobros 5 Días
+                </button>
+                <button id="btn-general" class="view-btn" onclick="switchView('general')">
+                    <i class="fas fa-list mr-2"></i>General
+                </button>
+            </div>
+
+            <div class="header-right">
+                <div class="user-badge">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info-text">
+                        <span class="user-name" id="user-name">Usuario</span>
+                        <div class="mt-1">
+                            <span class="user-role" id="user-role" style="display: inline-block; font-size: 9px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <div class="cartera-lock-overlay" id="cartera-lock-overlay" aria-hidden="true">
+            <div class="cartera-lock-card">
+                <div class="cartera-lock-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="cartera-lock-title">MODULO INCOMPLETO POR FALTA DE DATOS</div>
+                <div class="cartera-lock-text">Este modulo requiere una actualizacion de base de datos para su funcionamiento correcto. Puedes continuar navegando en las demas secciones.</div>
+            </div>
+        </div>
+        
+        <!-- Stats Row -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon bg-red-100 text-red-600">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Mora / Atrasados</h3>
+                    <div class="stat-value" id="stat-atrasados">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-orange-100 text-orange-600">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Cobros 5 Días</h3>
+                    <div class="stat-value" id="stat-cobros">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-emerald-100 text-emerald-600">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Cartera Vigente</h3>
+                    <div class="stat-value" id="stat-monto">$0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard Section -->
+        <div id="admin-dashboard" class="mb-8 hidden animate-fade-in">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-slate-200">
+                <div class="bg-gradient-to-r from-purple-700 to-indigo-700 p-6">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white flex items-center">
+                                <i class="fas fa-chart-line mr-3"></i>
+                                Dashboard Administrativo
+                            </h2>
+                            <p class="text-indigo-100 mt-1">Estadísticas generales de cartera</p>
+                        </div>
+                        <button onclick="generarReporteCarteraCompleto()"
+                            class="bg-white text-indigo-700 hover:bg-slate-50 px-6 py-3 rounded-xl font-bold shadow-lg transition-all transform hover:scale-105 flex items-center space-x-2">
+                            <i class="fas fa-file-chart-line"></i>
+                            <span>Generar Reporte</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <!-- Métricas principales -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-5 rounded-2xl shadow-lg text-white">
+                            <div class="flex items-center justify-between mb-2">
+                                <i class="fas fa-file-invoice-dollar text-3xl opacity-80"></i>
+                                <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">Total</span>
+                            </div>
+                            <p class="text-sm opacity-90">Total Créditos</p>
+                            <p class="text-3xl font-black" id="dashboard-total-creditos">0</p>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-green-500 to-green-600 p-5 rounded-2xl shadow-lg text-white">
+                            <div class="flex items-center justify-between mb-2">
+                                <i class="fas fa-dollar-sign text-3xl opacity-80"></i>
+                                <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">Global</span>
+                            </div>
+                            <p class="text-sm opacity-90">Monto Total</p>
+                            <p class="text-2xl font-black" id="dashboard-monto-total">$0</p>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-teal-500 to-teal-600 p-5 rounded-2xl shadow-lg text-white">
+                            <div class="flex items-center justify-between mb-2">
+                                <i class="fas fa-coins text-3xl opacity-80"></i>
+                                <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">Vigente</span>
+                            </div>
+                            <p class="text-sm opacity-90">Capital Vigente</p>
+                            <p class="text-2xl font-black" id="dashboard-capital-vigente">$0</p>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-purple-500 to-purple-600 p-5 rounded-2xl shadow-lg text-white" style="background-image: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);">
+                            <div class="flex items-center justify-between mb-2">
+                                <i class="fas fa-chart-bar text-3xl opacity-80"></i>
+                                <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">Promedio</span>
+                            </div>
+                            <p class="text-sm opacity-90">Promedio Monto</p>
+                            <p class="text-2xl font-black" id="dashboard-promedio-monto">$0</p>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-orange-500 to-orange-600 p-5 rounded-2xl shadow-lg text-white">
+                            <div class="flex items-center justify-between mb-2">
+                                <i class="fas fa-users text-3xl opacity-80"></i>
+                                <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">Activos</span>
+                            </div>
+                            <p class="text-sm opacity-90">Asesores</p>
+                            <p class="text-3xl font-black" id="dashboard-total-asesores">0</p>
+                        </div>
+                    </div>
+
+                    <!-- Últimos 3 Meses -->
+                    <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center">
+                            <i class="fas fa-calendar-days mr-2 text-indigo-600"></i>
+                            Últimos 3 Meses
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Mes Actual -->
+                            <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 p-5 rounded-2xl shadow-lg text-white">
+                                <div class="flex items-center justify-between mb-3">
+                                    <i class="fas fa-calendar-check text-2xl opacity-80"></i>
+                                    <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">Actual</span>
+                                </div>
+                                <p class="text-sm font-bold mb-3 border-b border-white/20 pb-2" id="dashboard-month-0-name">-</p>
+                                <div class="space-y-2 mb-4">
+                                    <div class="flex justify-between items-center text-xs opacity-90">
+                                        <span>Total Créditos:</span>
+                                        <b class="text-lg" id="dashboard-month-0-count">0</b>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs opacity-90">
+                                        <span>Monto Total:</span>
+                                        <b class="text-base" id="dashboard-month-0-amount">$0</b>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs opacity-90 pt-1 border-t border-white/10">
+                                        <span>Capital Vigente:</span>
+                                        <b class="text-base" id="dashboard-month-0-capital">$0</b>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-wider font-bold opacity-80 mb-2 flex items-center">
+                                        <i class="fas fa-users mr-1"></i> Por Asesor:
+                                    </p>
+                                    <div id="dashboard-month-0-asesores" class="space-y-1 max-h-40 overflow-y-auto pr-1">
+                                        <!-- JS -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mes -1 -->
+                            <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 p-5 rounded-2xl shadow-lg text-white">
+                                <div class="flex items-center justify-between mb-3">
+                                    <i class="fas fa-calendar-minus text-2xl opacity-80"></i>
+                                    <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">-1</span>
+                                </div>
+                                <p class="text-sm font-bold mb-3 border-b border-white/20 pb-2" id="dashboard-month-1-name">-</p>
+                                <div class="space-y-2 mb-4">
+                                    <div class="flex justify-between items-center text-xs opacity-90">
+                                        <span>Total Créditos:</span>
+                                        <b class="text-lg" id="dashboard-month-1-count">0</b>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs opacity-90">
+                                        <span>Monto Total:</span>
+                                        <b class="text-base" id="dashboard-month-1-amount">$0</b>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs opacity-90 pt-1 border-t border-white/10">
+                                        <span>Capital Vigente:</span>
+                                        <b class="text-base" id="dashboard-month-1-capital">$0</b>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-wider font-bold opacity-80 mb-2 flex items-center">
+                                        <i class="fas fa-users mr-1"></i> Por Asesor:
+                                    </p>
+                                    <div id="dashboard-month-1-asesores" class="space-y-1 max-h-40 overflow-y-auto pr-1">
+                                        <!-- JS -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mes -2 -->
+                            <div class="bg-gradient-to-br from-purple-500 to-purple-600 p-5 rounded-2xl shadow-lg text-white">
+                                <div class="flex items-center justify-between mb-3">
+                                    <i class="fas fa-calendar-minus text-2xl opacity-80"></i>
+                                    <span class="text-xs font-semibold bg-white/20 px-2 py-1 rounded">-2</span>
+                                </div>
+                                <p class="text-sm font-bold mb-3 border-b border-white/20 pb-2" id="dashboard-month-2-name">-</p>
+                                <div class="space-y-2 mb-4">
+                                    <div class="flex justify-between items-center text-xs opacity-90">
+                                        <span>Total Créditos:</span>
+                                        <b class="text-lg" id="dashboard-month-2-count">0</b>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs opacity-90">
+                                        <span>Monto Total:</span>
+                                        <b class="text-base" id="dashboard-month-2-amount">$0</b>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs opacity-90 pt-1 border-t border-white/10">
+                                        <span>Capital Vigente:</span>
+                                        <b class="text-base" id="dashboard-month-2-capital">$0</b>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-wider font-bold opacity-80 mb-2 flex items-center">
+                                        <i class="fas fa-users mr-1"></i> Por Asesor:
+                                    </p>
+                                    <div id="dashboard-month-2-asesores" class="space-y-1 max-h-40 overflow-y-auto pr-1">
+                                        <!-- JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ranking Horizontal (New) -->
+                   <div class="mt-8 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                       <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                           <i class="fas fa-users-cog text-indigo-500"></i> Ranking General de Asesores
+                       </h3>
+                       <div id="asesores-ranking-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                           <!-- JS -->
+                       </div>
+                   </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Switcher -->
+        <!-- Movido al header -->
+
+        <!-- Main Data Card -->
+        <div class="data-card">
+            <div class="card-header">
+                <div class="flex items-center gap-4">
+                    <h2 class="card-title" id="card-main-title">Base de Datos de Cartera</h2>
+                    <button id="btn-generar-reporte-tabla" onclick="generarReporteCarteraCompleto()" class="hidden px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-lg shadow-indigo-100">
+                        <i class="fas fa-file-pdf"></i>
+                        Generar Reporte Completo
+                    </button>
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" placeholder="Buscar socio, cédula o asesor..." class="search-input" id="search-input">
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table id="cartera-table">
+                    <thead id="table-head">
+                        <!-- Se llena vía JS -->
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Se llena vía JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Libs para PDF y Gráficos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Scripts -->
+    <script src="../../shared/config.js"></script>
+    <script src="../../shared/auth.js"></script>
+    <script src="../js/cartera-reports.js"></script>
+    <script src="../js/cartera.js"></script>
+
+    <!-- Modal Detalles Crédito (Se inyecta/controla desde cartera.js) -->
+    <div id="modal-container" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[100] p-4 backdrop-blur-sm transition-all duration-300">
+        <div id="modal-content-wrapper" class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300">
+            <!-- El contenido se genera dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación General (Replicado de App Madre) -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[1000] hidden backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+            <div id="confirm-modal-header" class="bg-gradient-to-r from-indigo-600 to-indigo-700 p-6 rounded-t-2xl">
+                <div class="flex justify-between items-center text-white">
+                    <h3 id="confirm-modal-title" class="text-xl font-bold flex items-center">
+                        <i class="fas fa-question-circle mr-3"></i> Confirmar
+                    </h3>
+                    <button onclick="closeConfirmModal()" class="hover:text-indigo-200 transition-colors">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-8">
+                <div id="confirm-modal-message" class="text-slate-600 text-lg mb-8 leading-relaxed"></div>
+                <div class="flex gap-4">
+                    <button onclick="closeConfirmModal()" class="flex-1 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all">
+                        Cancelar
+                    </button>
+                    <button id="confirm-modal-accept" class="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black transition-all shadow-lg active:scale-95">
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container Replicado -->
+    <div id="custom-toast-container" class="fixed top-6 right-6 z-[2000] space-y-3"></div>
+
+</body>
+</html>
+

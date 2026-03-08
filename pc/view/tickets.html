@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets de Soporte - Tupak Rantina</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS externo -->
+    <link rel="stylesheet" href="../css/tickets.css">
+</head>
+<body class="bg-slate-100 min-h-screen">
+    <script>const loaderStartTime = Date.now();</script>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: flex;">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Abriendo Tickets de Soporte...</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header Fijo -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Herramientas</span>
+                </a>
+                <div class="header-divider"></div>
+                <img src="../../shared/img/logo.webp" alt="Logo" class="header-logo">
+                <div class="header-info">
+                    <h1>Tickets de Soporte</h1>
+                    <p>Gestión de Incidentes</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-badge">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info-text">
+                        <span class="user-name" id="user-name">Usuario</span>
+                        <div class="mt-1">
+                            <span class="user-role" id="user-role" style="display: inline-block; font-size: 9px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <div class="max-w-4xl mx-auto">
+            
+            <!-- Step Indicators -->
+            <div class="step-indicators">
+                <div class="step-item active" id="step1-item">
+                    <div class="step-number">1</div>
+                    <span class="step-text">Describir Problema</span>
+                </div>
+                <div class="step-line" id="step-line"></div>
+                <div class="step-item" id="step2-item">
+                    <div class="step-number">2</div>
+                    <span class="step-text">Responder Preguntas</span>
+                </div>
+            </div>
+
+            <!-- Paso 1: Formulario Inicial -->
+            <div id="step1-card" class="ticket-card">
+                <div class="card-header-accent">
+                    <div class="card-header-content">
+                        <i class="fas fa-headset"></i>
+                        <div>
+                            <h2 class="card-title">Sistema de Soporte IA</h2>
+                            <p class="card-subtitle">Describa detalladamente el problema que experimenta</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-content">
+                    <div class="form-group">
+                        <label for="ticket-problem" class="form-label">
+                            <i class="fas fa-edit mr-2"></i>Descripción del problema
+                        </label>
+                        <textarea 
+                            id="ticket-problem" 
+                            rows="10" 
+                            class="form-textarea" 
+                            placeholder="Ejemplo: No puedo ingresar al módulo de créditos. Aparece un error 504 al intentar guardar la solicitud..."
+                        ></textarea>
+                        <p class="text-xs text-slate-500 mt-3 italic">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            El sistema generará preguntas inteligentes basadas en su descripción inicial.
+                        </p>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <button id="send-ticket-btn" class="btn btn-primary flex-1">
+                            <i class="fas fa-paper-plane mr-2"></i>Enviar a Soporte
+                        </button>
+                        <button id="clear-ticket-btn" class="btn btn-outline">
+                            <i class="fas fa-eraser mr-2"></i>Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso 2: Preguntas Dinámicas -->
+            <div id="step2-card" class="ticket-card hidden">
+                <div class="card-header-accent">
+                    <div class="card-header-content">
+                        <i class="fas fa-question-circle"></i>
+                        <div>
+                            <h2 class="card-title">Aclaraciones Necesarias</h2>
+                            <p class="card-subtitle">Por favor responda estas breves preguntas para completar el ticket</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-content">
+                    <div id="questions-container" class="markdown-content mb-8">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <button id="send-answers-btn" class="btn btn-primary flex-1">
+                            <i class="fas fa-check-circle mr-2"></i>Generar Ticket
+                        </button>
+                        <button id="back-btn" class="btn btn-outline">
+                            <i class="fas fa-arrow-left mr-2"></i>Volver
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Resultado Final -->
+            <div id="ticket-response-section" class="ticket-card result-section hidden">
+                <div class="bg-emerald-600 text-white p-6">
+                    <div class="card-header-content">
+                        <i class="fas fa-check-double"></i>
+                        <div>
+                            <h3 class="text-xl font-bold">¡Ticket Generado!</h3>
+                            <p class="text-emerald-100 text-sm">Su reporte está listo para ser procesado</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-content">
+                    <div class="mb-6">
+                        <h4 class="form-label">Contenido del Ticket</h4>
+                        <div id="ticket-message" class="ticket-output"></div>
+                    </div>
+                    
+                    <div id="suggestions-section" class="suggestion-box hidden">
+                        <h4 class="form-label text-amber-800">
+                            <i class="fas fa-lightbulb mr-2 text-amber-500"></i>Sugerencia de la IA
+                        </h4>
+                        <p id="suggestions-text" class="text-sm text-amber-700 leading-relaxed"></p>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 mt-8">
+                        <button onclick="handleUploadTicket()" id="upload-ticket-btn" class="btn btn-primary flex-1">
+                            <i class="fas fa-upload mr-2"></i>Subir a WEBCOOPEC
+                        </button>
+                        <button onclick="handleCopyTicket()" id="copy-ticket-btn" class="btn btn-secondary">
+                            <i class="fas fa-copy mr-2"></i>Copiar Contenido
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast" class="hidden">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-info-circle"></i>
+            <span id="toastMessage"></span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../shared/auth.js"></script>
+    <script src="../js/tickets.js"></script>
+</body>
+</html>
+

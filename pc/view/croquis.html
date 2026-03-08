@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Croquis de Ubicación - Centro de Herramientas</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="../../shared/img/logo.webp" type="image/png">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="../css/croquis.css">
+</head>
+
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: flex;">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Abriendo Generador de Croquis...</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header (igual a documentación pero sin flecha de regresar) -->
+    <header class="main-header no-print">
+        <div class="header-content">
+            <div class="header-left">
+                <img src="../../shared/img/logo.webp" alt="Logo" class="header-logo">
+                <div class="header-info">
+                    <h1>Croquis de Ubicación</h1>
+                    <p>Generador de mapas para carpeta de crédito</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-badge">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info-text">
+                        <span class="user-name" id="user-name">Usuario</span>
+                        <div class="mt-1">
+                            <span class="user-role" id="user-role" style="display: inline-block; font-size: 9px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd;"></span>
+                        </div>
+                    </div>
+                </div>
+                <button id="printBtn" class="btn-primary" onclick="if(validateBeforePrint()) window.print()" disabled style="opacity: 0.5; cursor: not-allowed;">
+                    <i class="fas fa-print"></i>
+                    Imprimir
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Print Header (solo visible al imprimir) -->
+    <div class="print-header print-only" style="padding: 15px 20px; background: white; border-bottom: 4px solid #e48410; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; gap: 20px;">
+            <div style="flex-shrink: 0;">
+                <img src="../../shared/img/logo.webp" alt="Logo Tupak Rantina" style="height: 60px; width: auto;">
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <h1 style="margin: 0 0 6px 0; font-size: 18px; font-weight: bold; color: #001749; letter-spacing: 0.3px; line-height: 1.2;">
+                    CAJA DE AHORRO Y CRÉDITO TUPAK RANTINA
+                </h1>
+                <div style="padding: 5px 16px; background: #001749; display: inline-block; border-radius: 3px;">
+                    <h2 id="printHeaderTitle" style="margin: 0; font-size: 13px; font-weight: 600; color: white; letter-spacing: 0.5px;">
+                        UBICACIÓN DE LA VIVIENDA
+                    </h2>
+                </div>
+            </div>
+            <div style="flex-shrink: 0; text-align: center;">
+                <div style="width: 78px; height: 78px; border: 2px solid #001749; border-radius: 4px; padding: 3px; background: white; display: inline-block; box-sizing: border-box; overflow: hidden;">
+                    <img id="qrCodeImage" src="" alt="QR Code" style="width: 100%; height: 100%; display: block; object-fit: contain;">
+                </div>
+                <p style="margin: 4px 0 0 0; font-size: 8px; color: #666; font-weight: 500;">Escanea el QR</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Form Card -->
+        <div class="form-card no-print">
+            <!-- Fila 1: Nombre y Tipo -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user-circle"></i>
+                        Nombre del Socio <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="socioName" 
+                        class="form-input"
+                        placeholder="Ingrese el nombre completo del socio (mínimo 3 palabras)"
+                        oninput="this.value = this.value.toUpperCase(); updateSocioName(); checkFormComplete();"
+                        onblur="validateSocioName();"
+                        autocomplete="off"
+                    >
+                    <p id="socioNameError" class="form-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        El nombre debe tener al menos 3 palabras (nombre completo)
+                    </p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-building"></i>
+                        Tipo de Ubicación <span class="required">*</span>
+                    </label>
+                    <div class="toggle-container">
+                        <span id="labelCasa" class="toggle-option active">
+                            <i class="fas fa-home"></i> Casa
+                        </span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="tipoUbicacion" onchange="toggleTipoUbicacion()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span id="labelNegocio" class="toggle-option">
+                            <i class="fas fa-store"></i> Negocio
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila 2: Descripción y Referencia -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" id="descripcionTitle">
+                        <i id="descripcionIcon" class="fas fa-info-circle"></i>
+                        <span id="descripcionLabel">Descripción</span> <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="descripcionInput" 
+                        class="form-input"
+                        placeholder="Ej: Color, número de pisos, acabado, techo, etc."
+                        oninput="this.value = this.value.toUpperCase(); checkFormComplete();"
+                        autocomplete="off"
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-map-signs"></i>
+                        Referencia <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="referenciaInput" 
+                        class="form-input"
+                        placeholder="Ej: Al lado de, a 50 metros de, entre..."
+                        oninput="this.value = this.value.toUpperCase(); checkFormComplete();"
+                        autocomplete="off"
+                    >
+                </div>
+            </div>
+
+            <!-- Fila 3: Enlace Google Maps -->
+            <div id="mapUrlSection" class="form-row single map-url-section">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Enlace de Google Maps <span class="required">*</span>
+                    </label>
+                    <div class="map-url-row">
+                        <input 
+                            type="text" 
+                            id="mapUrl" 
+                            class="form-input map-url-input"
+                            placeholder="https://www.google.com/maps?q=-0.5145441,-78.5706978"
+                            autocomplete="off"
+                        >
+                        <button class="btn-primary" onclick="loadMap()">
+                            <i class="fas fa-map-marked-alt"></i>
+                            Generar Mapa
+                        </button>
+                        <div class="map-controls">
+                            <button class="btn-zoom" onclick="zoomIn()" title="Acercar">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn-zoom" onclick="zoomOut()" title="Alejar">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button class="btn-zoom reset" onclick="resetZoom()" title="Restablecer">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="hint-text">
+                        <i class="fas fa-info-circle"></i>
+                        Ejemplo: https://www.google.com/maps?q=-0.5145441,-78.5706978 o simplemente las coordenadas: -0.5145441,-78.5706978
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Card -->
+        <div id="mapContainer" class="map-card">
+            <div class="map-header no-print">
+                <div class="map-info">
+                    <i class="fas fa-info-circle"></i>
+                    Vista satelital de la ubicación. Usa los botones +/- para controlar el zoom.
+                </div>
+                <div id="coordsDisplay" class="coords-badge">
+                    <i class="fas fa-crosshairs"></i>
+                    Coordenadas: -- | Zoom: --
+                </div>
+            </div>
+            <iframe 
+                id="map"
+                class="map-iframe"
+                src=""
+                allowfullscreen="" 
+                loading="lazy" 
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+    </main>
+
+    <!-- Print Signatures Section (solo impresión) -->
+    <div class="print-signatures print-only" style="padding: 0 20px; max-width: 1200px; margin: 10px auto 0;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; height: 180px;">
+            <!-- Columna 1: Información y Observaciones -->
+            <div class="signature-box" style="border: 2px solid #001749; padding: 15px; background: white; display: flex; flex-direction: column; height: 100%;">
+                <h4 style="margin: 0 0 12px 0; font-size: 11px; font-weight: bold; color: #001749; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #001749; padding-bottom: 8px;">
+                    INFORMACIÓN Y OBSERVACIONES
+                </h4>
+                <div style="font-size: 9px; line-height: 1.6; margin-bottom: 10px;">
+                    <p style="margin: 0 0 4px 0; color: #001749;">
+                        <strong style="font-weight: 600;">Tipo:</strong> 
+                        <span id="printTipoUbicacion" style="color: #015cd0; font-weight: 500;">Casa</span>
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #001749;">
+                        <strong id="printDescripcionLabel" style="font-weight: 600;">Descripción:</strong> 
+                        <span id="printDescripcionValue" style="color: #015cd0; font-weight: 500;"></span>
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #001749;">
+                        <strong style="font-weight: 600;">Referencia:</strong> 
+                        <span id="printReferencia" style="color: #015cd0; font-weight: 500;"></span>
+                    </p>
+                    <p style="margin: 0 0 4px 0; color: #001749;">
+                        <strong style="font-weight: 600;">Coordenadas:</strong> 
+                        <span id="printCoords" style="color: #015cd0; font-weight: 500; font-family: monospace; font-size: 8px;">--, --</span>
+                    </p>
+                    <p style="margin: 0 0 8px 0; color: #001749;">
+                        <strong style="font-weight: 600;">Fecha:</strong> 
+                        <span id="printDate" style="color: #015cd0; font-weight: 500;"></span>
+                    </p>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                    <p style="margin: 0 0 6px 0; font-size: 9px; color: #001749; font-weight: 600;">
+                        Observaciones Adicionales:
+                    </p>
+                    <div style="min-height: 45px; border: 1px solid #ccc; border-radius: 3px; padding: 5px;"></div>
+                </div>
+            </div>
+
+            <!-- Columna 2: Firma del Asesor -->
+            <div class="signature-box" style="border: 2px solid #001749; padding: 15px; background: white; display: flex; flex-direction: column; height: 100%;">
+                <h4 style="margin: 0 0 12px 0; font-size: 11px; font-weight: bold; color: #001749; text-align: center; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 2px solid #001749; padding-bottom: 8px;">
+                    ELABORADO POR
+                </h4>
+                <div style="padding: 10px; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 3px;">
+                    <p id="printAsesorName" style="margin: 0; font-size: 10px; font-weight: 600; color: #001749; text-align: center;">
+                        Cargando...
+                    </p>
+                </div>
+                <div style="flex: 1;"></div>
+                <div style="border-top: 2px solid #001749; padding-top: 6px; margin-top: 10px;">
+                    <p style="margin: 0; font-size: 8px; text-align: center; color: #666; font-weight: 500;">Firma del Asesor</p>
+                </div>
+            </div>
+
+            <!-- Columna 3: Firma del Socio -->
+            <div class="signature-box" style="border: 2px solid #001749; padding: 15px; background: white; display: flex; flex-direction: column; height: 100%;">
+                <h4 style="margin: 0 0 12px 0; font-size: 11px; font-weight: bold; color: #001749; text-align: center; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 2px solid #001749; padding-bottom: 8px;">
+                    SOCIO SOLICITANTE
+                </h4>
+                <div style="padding: 10px; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 3px; min-height: 35px;">
+                    <p id="printSocioName" style="margin: 0; font-size: 10px; font-weight: 600; color: #001749; text-align: center;"></p>
+                </div>
+                <div style="flex: 1;"></div>
+                <div style="border-top: 2px solid #001749; padding-top: 6px; margin-top: 10px;">
+                    <p style="margin: 0; font-size: 8px; text-align: center; color: #666; font-weight: 500;">Firma del Socio</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Script -->
+    <script src="../js/croquis.js"></script>
+    <script src="../../shared/auth.js"></script>
+</body>
+</html>
+

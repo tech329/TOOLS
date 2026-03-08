@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#001749">
+    <title>Centro de Herramientas - Tupak Rantina</title>
+    <link rel="icon" href="data:,">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #001749 0%, #015cd0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loader-container {
+            text-align: center;
+            color: white;
+        }
+        
+        .logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #e48410;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .loading-subtext {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-container">
+        <img src="shared/img/logo.webp" alt="Tupak Rantina" class="logo">
+        <div class="spinner"></div>
+        <p class="loading-text">Verificando dispositivo seguro...</p>
+        <p class="loading-subtext">Centro de Herramientas</p>
+    </div>
+
+    <script src="shared/pwa.js"></script>
+    <script>
+        (function() {
+            function getDeviceProfile() {
+                const userAgent = navigator.userAgent || navigator.vendor || window.opera || '';
+                const widthCandidates = [window.innerWidth, window.screen && window.screen.width].filter(value => Number.isFinite(value) && value > 0);
+                const heightCandidates = [window.innerHeight, window.screen && window.screen.height].filter(value => Number.isFinite(value) && value > 0);
+                const shortSide = Math.min(...widthCandidates, ...heightCandidates);
+                const longSide = Math.max(...widthCandidates, ...heightCandidates);
+                const hasTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
+                const coarsePointer = window.matchMedia ? window.matchMedia('(pointer: coarse)').matches : false;
+                const androidPhone = /Android.+Mobile/i.test(userAgent);
+                const phoneUserAgent = /iPhone|iPod|Windows Phone|BlackBerry|Opera Mini|IEMobile|Mobile/i.test(userAgent) || androidPhone;
+                const tabletUserAgent = /iPad|Tablet|PlayBook|Silk/i.test(userAgent) || (/Android/i.test(userAgent) && !/Mobile/i.test(userAgent));
+                const touchDevice = hasTouch || coarsePointer;
+                const looksLikePhone = touchDevice && shortSide <= 915 && longSide <= 1600;
+                const looksLikeTablet = touchDevice && shortSide > 915 && shortSide <= 1280 && longSide <= 1800;
+                const isPhone = phoneUserAgent || (!tabletUserAgent && looksLikePhone);
+                const isTablet = tabletUserAgent || (!isPhone && looksLikeTablet);
+
+                return {
+                    isPhone,
+                    isTablet,
+                    isMobile: isPhone || isTablet || (touchDevice && shortSide <= 1280)
+                };
+            }
+
+            function getTargetExperience() {
+                const profile = getDeviceProfile();
+                return profile.isMobile ? 'mobile' : 'pc';
+            }
+            
+            // Pequeño delay para mostrar el loader
+            setTimeout(function() {
+                if (getTargetExperience() === 'mobile') {
+                    window.location.href = 'mobile/login.html';
+                } else {
+                    window.location.href = 'pc/login.html';
+                }
+            }, 800);
+        })();
+    </script>
+</body>
+</html>

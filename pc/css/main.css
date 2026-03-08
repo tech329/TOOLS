@@ -1,0 +1,9 @@
+/* =====================================================
+   MAIN.CSS - Estilos compartidos para PC Dashboard
+   ===================================================== */
+
+/* Este archivo puede contener estilos globales compartidos */
+
+.overflow-hidden {
+    overflow: hidden !important;
+}

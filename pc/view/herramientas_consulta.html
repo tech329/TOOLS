@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herramientas de Consulta - Centro de Herramientas</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="../../shared/img/logo.webp" type="image/png">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="../css/herramientas_consulta.css">
+</head>
+
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: flex;">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Abriendo Herramientas de Consulta...</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Herramientas</span>
+                </a>
+                <div class="header-divider"></div>
+                <img src="../../shared/img/logo.webp" alt="Logo" class="header-logo">
+                <div class="header-info">
+                    <h1>Herramientas de Consulta</h1>
+                    <p>Sistemas de consulta externa</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-badge">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info-text">
+                        <span class="user-name" id="user-name">Usuario</span>
+                        <div class="mt-1">
+                            <span class="user-role" id="user-role" style="display: inline-block; font-size: 9px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-title">
+            <h2><i class="fas fa-search"></i> Herramientas de Consulta</h2>
+            <p>Accede a sistemas externos de consulta gubernamental y financiera</p>
+        </div>
+
+        <!-- Tools Grid -->
+        <div class="cards-grid" id="tools-grid">
+            <!-- Las tarjetas se generan dinámicamente -->
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <!-- JavaScript -->
+    <script src="../js/herramientas_consulta.js"></script>
+    <script src="../../shared/auth.js"></script>
+</body>
+
+</html>
+

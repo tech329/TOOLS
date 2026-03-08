@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autorización para Consulta de Buró de Crédito</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="../../shared/img/logo.webp" type="image/png">
+    <style>
+        :root {
+            --primary-corporate: #001749;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-500: #64748b;
+            --emerald-500: #10b981;
+            --emerald-600: #059669;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .bg-corporate { background: linear-gradient(135deg, #001749 0%, #3787c6 100%); }
+        .text-corporate-dark { color: #001749; }
+        .text-corporate-accent { color: #e48410; }
+        .bg-corporate-blue { background-color: #015cd0; }
+        .hover\:bg-corporate-dark:hover { background-color: #001749; }
+        .focus\:ring-corporate { --tw-ring-color: #3787c6; }
+        
+        /* Header Unificado */
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: white;
+            border-bottom: 1px solid var(--slate-200);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 0.75rem 2rem;
+        }
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--slate-500);
+            font-weight: 500;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .back-button:hover {
+            background: var(--slate-100);
+            color: var(--emerald-500);
+        }
+        .header-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--slate-200);
+        }
+        .header-logo {
+            height: 40px;
+            width: auto;
+        }
+        .header-info h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-corporate);
+            margin: 0;
+        }
+        .header-info p {
+            font-size: 0.8rem;
+            color: var(--slate-500);
+            margin: 0;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--slate-50);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            border: 1px solid var(--slate-200);
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .user-info-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary-corporate);
+        }
+        .user-email {
+            font-size: 0.7rem;
+            color: var(--slate-500);
+        }
+        
+        .main-content {
+            padding-top: 100px;
+        }
+        
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #001749 0%, #015cd0 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #loading-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+        #loading-screen > div:first-child {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .loading-spinner {
+            width: 64px;
+            height: 64px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #e48410;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: white;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        .loading-footer {
+            position: absolute;
+            bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0.7;
+        }
+        .loading-footer span {
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .loading-footer img {
+            height: 20px;
+            filter: brightness(0) invert(1);
+        }
+    </style>
+</head>
+<body class="bg-corporate min-h-screen">
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: flex;">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Abriendo Autorización Buró...</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+    
+    <!-- Header Unificado -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Volver</span>
+                </a>
+                <div class="header-divider"></div>
+                <img src="../../shared/img/logo.webp" alt="Logo" class="header-logo">
+                <div class="header-info">
+                    <h1>Autorización Buró de Crédito</h1>
+                    <p>Genera documentos de autorización</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-badge">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info-text">
+                        <span class="user-name" id="user-name">Usuario</span>
+                        <div class="mt-1">
+                            <span class="user-role" id="user-role" style="display: inline-block; font-size: 9px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content pt-32 pb-12 px-4">
+        <div class="max-w-2xl mx-auto">
+        
+        <!-- Form -->
+        <form id="authForm" class="bg-white rounded-xl shadow-xl p-8 space-y-6">
+            <div>
+                <label for="cedula" class="block text-sm font-semibold text-corporate-dark mb-2">Cédula de Identidad</label>
+                <input type="text" id="cedula" name="cedula" placeholder="10 dígitos sin guiones ni espacios ej: 1707123456" required class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-corporate focus:border-corporate text-gray-900">
+            </div>
+            <div>
+                <label for="nombre" class="block text-sm font-semibold text-corporate-dark mb-2">Nombre Completo</label>
+                <input type="text" id="nombre" name="nombre" placeholder="APELLIDOS Y NOMBRES ej: QUEZADA MANOBANDA LUIS ANDRES" required disabled class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-corporate focus:border-corporate text-gray-900 bg-gray-100">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-corporate-dark mb-2">Fecha Actual</label>
+                <p id="fechaDisplay" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"></p>
+            </div>
+            <div class="flex space-x-4">
+                <button type="button" onclick="generarDocumento()" class="flex-1 bg-corporate-blue text-white py-3 px-6 rounded-lg hover:bg-corporate-dark focus:outline-none focus:ring-2 focus:ring-corporate focus:ring-offset-2 font-semibold transition duration-200">
+                    <i class="fas fa-print mr-2"></i>Imprimir Autorización
+                </button>
+                <button type="button" onclick="descargarDocumento()" class="flex-1 bg-gray-600 text-white py-3 px-6 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 font-semibold transition duration-200">
+                    <i class="fas fa-download mr-2"></i>Descargar PDF para Llenar
+                </button>
+            </div>
+        </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div id="confirmModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg font-semibold text-corporate-dark mb-4" id="modalTitle">Confirmar Generación</h3>
+                <div class="mb-4">
+                    <p class="text-sm text-gray-600" id="modalMessage"></p>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="confirmYes" class="flex-1 bg-corporate-blue text-white py-2 px-4 rounded-lg hover:bg-corporate-dark focus:outline-none focus:ring-2 focus:ring-corporate font-semibold transition duration-200">Sí</button>
+                    <button id="confirmNo" class="flex-1 bg-gray-300 text-gray-900 py-2 px-4 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 font-semibold transition duration-200">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast" class="fixed top-5 right-5 bg-gray-800 text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-[200%] z-50">
+        <p id="toastMessage"></p>
+    </div>
+
+    <script>
+        // Loading screen functions
+        const loaderStartTime = Date.now();
+        const MIN_LOADER_TIME = 1200;
+        
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                const elapsed = Date.now() - loaderStartTime;
+                const remainingTime = Math.max(0, MIN_LOADER_TIME - elapsed);
+                
+                setTimeout(() => {
+                    loadingScreen.classList.add('fade-out');
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 300);
+                }, remainingTime);
+            }
+        }
+
+        // Verificar sesión y ocultar loader
+        (function() {
+            const sessionData = localStorage.getItem('appSession');
+            if (!sessionData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const session = JSON.parse(sessionData);
+                const nameEl = document.getElementById('user-name');
+                const avatarEl = document.getElementById('user-avatar');
+                const emailEl = document.getElementById('user-email');
+                const userName = session.name || session.nombre || 'Usuario';
+                const userEmail = session.email || session.correo || '';
+                if (nameEl) nameEl.textContent = userName;
+                if (avatarEl) avatarEl.textContent = userName.charAt(0).toUpperCase();
+                if (emailEl) emailEl.textContent = userEmail || 'Sin correo';
+            } catch (e) {
+                console.error('Error parsing session:', e);
+            }
+            hideLoadingScreen();
+        })();
+
+        // Set current date in Guayaquil time
+        function getGuayaquilDate() {
+            const now = new Date();
+            const guayaquilTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Guayaquil"}));
+            const day = guayaquilTime.getDate();
+            const monthNames = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+            const month = monthNames[guayaquilTime.getMonth()];
+            const year = guayaquilTime.getFullYear();
+            const hours = guayaquilTime.getHours();
+            const minutes = guayaquilTime.getMinutes();
+            let displayHours = hours;
+            let period = 'de la mañana';
+            if (hours >= 12) {
+                period = hours >= 18 ? 'de la noche' : 'de la tarde';
+                if (hours > 12) displayHours = hours - 12;
+            }
+            if (hours === 0) displayHours = 12;
+            const timeStr = `a las ${displayHours} ${period} ${minutes} minutos`;
+            return { day, month, year, full: `Machachi a los ${day} días del mes de ${month} del año ${year}, ${timeStr}.` };
+        }
+
+        // Initialize date
+        const fecha = getGuayaquilDate();
+        document.getElementById('fechaDisplay').textContent = fecha.full;
+
+        // Check for URL Parameters
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramCedula = urlParams.get('cedula');
+            const paramNombre = urlParams.get('nombre');
+
+            if (paramCedula) {
+                const cedulaInput = document.getElementById('cedula');
+                cedulaInput.value = paramCedula;
+                if (paramNombre) {
+                    const nombreInput = document.getElementById('nombre');
+                    nombreInput.value = decodeURIComponent(paramNombre).toUpperCase();
+                    nombreInput.disabled = false;
+                    nombreInput.classList.remove('bg-gray-100');
+                } else {
+                    fetchCedulaData(paramCedula);
+                }
+            }
+        });
+
+        // Webhook URL para buscar nombres
+        const WEBHOOK_CEDULA = 'https://lpn8nwebhook.luispintasolutions.com/webhook/c460611e-8d0c-4a7b-bfcc-50b1e5858048';
+
+        // Input validations
+        document.getElementById('cedula').addEventListener('input', function(e) {
+            this.value = this.value.replace(/\D/g, '');
+        });
+
+        // Trigger lookup on blur
+        document.getElementById('cedula').addEventListener('blur', function(e) {
+            const cedula = this.value.trim();
+            if (cedula.length === 10 && /^\d{10}$/.test(cedula)) {
+                fetchCedulaData(cedula);
+            }
+        });
+
+        // Trigger lookup on Enter key
+        document.getElementById('cedula').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const cedula = this.value.trim();
+                if (cedula.length === 10 && /^\d{10}$/.test(cedula)) {
+                    fetchCedulaData(cedula);
+                }
+            }
+        });
+
+        document.getElementById('nombre').addEventListener('input', function() {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.toUpperCase();
+            this.setSelectionRange(start, end);
+        });
+
+        async function fetchCedulaData(cedula) {
+            const nombreInput = document.getElementById('nombre');
+            
+            nombreInput.value = 'BUSCANDO...';
+            nombreInput.disabled = true;
+            nombreInput.classList.add('bg-gray-100');
+            
+            try {
+                const data = window.APP_CONFIG?.fetchCedulaLookup
+                    ? await window.APP_CONFIG.fetchCedulaLookup(cedula)
+                    : await fetchCedulaLookupFallback(cedula);
+                
+                const result = Array.isArray(data) ? data[0] : null;
+
+                if (result && result.encontrado && result.nombre) {
+                    nombreInput.value = result.nombre.toUpperCase();
+                    nombreInput.disabled = false; 
+                    nombreInput.classList.remove('bg-gray-100');
+                    showToast('Nombre encontrado exitosamente', 'success');
+                } else {
+                    nombreInput.value = '';
+                    nombreInput.disabled = false;
+                    nombreInput.classList.remove('bg-gray-100');
+                    nombreInput.placeholder = 'Ingrese el nombre manualmente';
+                    nombreInput.focus();
+                    showToast(result?.mensaje || 'Revise la cédula. Si no existe, ingrese manualmente.', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                nombreInput.value = '';
+                nombreInput.disabled = false;
+                nombreInput.classList.remove('bg-gray-100');
+                nombreInput.placeholder = "Ingrese el nombre manualmente";
+                nombreInput.focus();
+                showToast('El servidor no responde. Ingrese manualmente.', 'error');
+            }
+        }
+
+        async function fetchCedulaLookupFallback(cedula) {
+            const requests = [
+                {
+                    url: WEBHOOK_CEDULA,
+                    init: {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ cedula })
+                    }
+                }
+            ];
+            let lastError = null;
+
+            for (const request of requests) {
+                try {
+                    const response = await fetch(request.url, request.init);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return await response.json();
+                } catch (error) {
+                    lastError = error;
+                }
+            }
+
+            throw lastError || new Error('No se pudo consultar la cédula');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.className = 'fixed top-5 right-5 px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 z-50';
+            
+            if (type === 'success') {
+                toast.classList.add('bg-green-600', 'text-white');
+            } else if (type === 'error') {
+                toast.classList.add('bg-red-600', 'text-white');
+            } else {
+                toast.classList.add('bg-gray-800', 'text-white');
+            }
+            
+            toast.classList.remove('translate-x-[200%]');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-x-[200%]');
+            }, 3000);
+        }
+
+        function showModal(message, onConfirm) {
+            document.getElementById('modalMessage').innerHTML = message;
+            document.getElementById('confirmModal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            document.getElementById('confirmYes').onclick = function() {
+                document.getElementById('confirmModal').classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+                onConfirm();
+            };
+            document.getElementById('confirmNo').onclick = function() {
+                document.getElementById('confirmModal').classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            };
+        }
+
+        function showAlert(message) {
+            document.getElementById('modalMessage').innerHTML = message;
+            document.getElementById('confirmModal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            document.getElementById('confirmYes').style.display = 'none';
+            document.getElementById('confirmNo').textContent = 'OK';
+            document.getElementById('confirmNo').onclick = function() {
+                document.getElementById('confirmModal').classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+                document.getElementById('confirmYes').style.display = 'block';
+                document.getElementById('confirmNo').textContent = 'No';
+            };
+        }
+
+        // Generate template
+        function generateTemplate(nombre, cedula, firmaNombre, fecha) {
+            return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Autorización Personal para Consulta de la Central de Riesgos</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  html, body { background: #fff; margin: 0; padding: 0; }
+  body { font-family: "Times New Roman", Georgia, serif; color: #111; }
+  .sheet { width: 100%; max-width: 210mm; margin: 0 auto; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.12); }
+  .header-banner { background: #001749; padding: 12mm 20mm; display: flex; align-items: center; gap: 20px; }
+  .logo { width: 70px; height: auto; flex-shrink: 0; }
+  .header-text { color: #e48410; font-size: 18pt; font-weight: 700; margin: 0; font-family: Georgia, serif; }
+  .content { padding: 10mm 20mm 15mm; }
+  .accent { height: 4px; width: 100%; background: linear-gradient(90deg, #e48410, #f5a623); margin-bottom: 8mm; }
+  p { font-size: 10.5pt; line-height: 1.55; text-align: justify; margin: 0 0 4mm; }
+  .blank { white-space: nowrap; }
+  .bold { font-weight: 700; color: #000; }
+  .box { border: 1px solid #ccc; border-radius: 6px; padding: 6mm; margin: 5mm 0 8mm; background: #f9fafc; }
+  .note { font-size: 9.5pt; color: #333; margin-top: 2mm; }
+  .sign { text-align: center; padding-top: 8mm; margin-top: 10mm; }
+  .line { border-top: 1px solid #222; margin: 0 auto 3mm; width: 70%; }
+  .caption { font-size: 9pt; color: #333; }
+  @media print { body { background: #fff; } .sheet { box-shadow: none; } }
+</style>
+</head>
+<body onload="setTimeout(function(){window.print();}, 300)">
+  <div class="sheet">
+    <div class="header-banner">
+      <img class="logo" src="../../shared/img/logo.webp" alt="Logo Tupak Rantina">
+      <h1 class="header-text">Autorización para Consulta de la Central de Riesgos</h1>
+    </div>
+    <div class="content">
+      <div class="accent"></div>
+      <p>
+        En los <span class="bold">procesos judiciales y financieros</span>, las entidades suelen requerir la verificación del
+        historial crediticio de los ciudadanos. Esta autorización permite al Titular otorgar su consentimiento explícito
+        para dicha consulta, garantizando transparencia y legalidad en la evaluación de solicitudes de crédito u otros trámites.
+      </p>
+      <p>
+        Yo, ${nombre}, con cédula de identidad No.
+        ${cedula},
+        por medio de la presente, <span class="bold">solicito y autorizo de manera expresa e irrevocable</span> a
+        <span class="bold">CAJA DE AHORRO TUPAK RANTINA</span>,
+        con RUC No. 1793222612001, y domicilio en
+        Av. Amazonas O3-248 y Manuel German, para que, por conducto de su representante legal o personal debidamente autorizado,
+        <span class="bold">solicite y obtenga</span> mi historial de crédito, historial financiero y cualquier otra
+        información relacionada que se encuentre registrada en la Central de Riesgos o en cualquier otra base
+        de datos de información crediticia, pública o privada, que opere en la República del Ecuador.
+      </p>
+      <div class="box">
+        <p>
+          La presente autorización se otorga con el fin de <span class="bold">evaluar mi solicitud de crédito</span> y/o cualquier otra relación contractual o comercial futura.
+          Declaro que conozco el alcance y el tipo de información que será consultada y entiendo
+          que el resultado de dicha consulta servirá para la toma de decisiones por parte de
+          <span class="bold">CAJA DE AHORRO TUPAK RANTINA</span>.
+        </p>
+        <p class="note">
+          Vigencia: Esta autorización tendrá vigencia indeterminada y se mantendrá válida mientras subsista la relación con la entidad, y solo podrá ser revocada mediante comunicación escrita dirigida a la institución.
+        </p>
+      </div>
+      <p>${fecha}</p>
+      <div class="sign">
+        <div class="line"></div>
+        <div class="caption">Firma del Titular</div>
+        <div class="caption">Nombre: ${firmaNombre}</div>
+        <div class="caption">Cédula: ${cedula}</div>
+      </div>
+    </div>
+  </div>
+<\/body>
+<\/html>`;
+        }
+
+        function generarDocumento() {
+            const nombre = document.getElementById('nombre').value.trim();
+            const cedula = document.getElementById('cedula').value.trim();
+
+            if (!nombre || !cedula) {
+                showAlert('Por favor, complete todos los campos.');
+                return;
+            }
+
+            const nombreWords = nombre.split(/\s+/).filter(word => word.length > 0);
+            if (nombreWords.length < 3) {
+                showAlert('El nombre debe contener al menos 3 palabras (nombres y apellidos).');
+                return;
+            }
+
+            if (!/^\d{10}$/.test(cedula)) {
+                showAlert('La cédula debe contener exactamente 10 dígitos numéricos sin espacios ni guiones.');
+                return;
+            }
+
+            const confirmMessage = `¿Estás seguro de que deseas generar la autorización con <strong>${nombre}</strong> y cédula <strong>${cedula}</strong>? Fecha: ${fecha.full}`;
+            showModal(confirmMessage, function() {
+                const template = generateTemplate(nombre, cedula, nombre, fecha.full);
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write(template);
+                newWindow.document.close();
+            });
+        }
+
+        function descargarDocumento() {
+            showToast('Generando PDF...', 'info');
+            
+            const fechaManual = `Lugar y fecha: Machachi, _______ de ${fecha.month} del año ${fecha.year}`;
+            const htmlContent = generateTemplate('________________________________________', '____________________________', '____________________________', fechaManual);
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            document.body.appendChild(tempDiv);
+            
+            const element = tempDiv.querySelector('.sheet');
+            
+            const opt = {
+                margin: 0,
+                filename: 'autorizacion_buro_credito.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: 'avoid-all' }
+            };
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.removeChild(tempDiv);
+                showToast('PDF descargado exitosamente', 'success');
+            }).catch((error) => {
+                console.error('Error generating PDF:', error);
+                document.body.removeChild(tempDiv);
+                showToast('Error al generar el PDF', 'error');
+            });
+        }
+        
+        // ===== VERIFICACIÓN DE SESIÓN =====
+        let sessionCheckInterval = null;
+        const SESSION_CHECK_INTERVAL = 60000;
+        
+        function setupUserInfo(userData) {
+            const nameEl = document.getElementById('user-name');
+            const emailEl = document.getElementById('user-email');
+            const avatarEl = document.getElementById('user-avatar');
+            const roleEl = document.getElementById('user-role');
+            
+            if (nameEl && userData.name) {
+                nameEl.textContent = userData.name;
+            }
+            if (emailEl && userData.email) {
+                emailEl.textContent = userData.email;
+            }
+            if (avatarEl && userData.name) {
+                avatarEl.textContent = userData.name.charAt(0).toUpperCase();
+            }
+            if (roleEl && userData.rol) {
+                const roles = userData.rol.split(',').map(r => r.trim().toUpperCase());
+                const filtered = roles.filter(r => r === 'ASESOR' || r === 'ADMIN').join(', ');
+                roleEl.textContent = filtered;
+            }
+        }
+        
+        let protectedPage = null;
+        
+        function handleSessionExpired() {
+            alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+            if (typeof TupakAuth !== 'undefined') {
+                TupakAuth.logout();
+                return;
+            }
+            window.location.href = '../login.html';
+        }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof TupakAuth === 'undefined' || typeof TupakAuth.initializeProtectedPage !== 'function') {
+                window.location.href = '../login.html';
+                return;
+            }
+
+            protectedPage = TupakAuth.initializeProtectedPage({
+                redirectOnFailure: false,
+                onSession: setupUserInfo,
+                onInvalid: handleSessionExpired
+            });
+
+            await protectedPage.start();
+        });
+    </script>
+    <script src="../../shared/auth.js"></script>
+</body>
+</html>
+

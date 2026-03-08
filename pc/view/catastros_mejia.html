@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Predios - GAD Mejía</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="../../shared/img/logo.webp" type="image/png">
+    <style>
+        :root {
+            --primary-corporate: #001749;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-500: #64748b;
+            --emerald-500: #10b981;
+            --emerald-600: #059669;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        button:disabled { opacity: 0.7; cursor: not-allowed; }
+        
+        /* Header Unificado */
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: white;
+            border-bottom: 1px solid var(--slate-200);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 0.75rem 2rem;
+        }
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--slate-500);
+            font-weight: 500;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .back-button:hover {
+            background: var(--slate-100);
+            color: var(--emerald-500);
+        }
+        .header-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--slate-200);
+        }
+        .header-logo {
+            height: 40px;
+            width: auto;
+        }
+        .header-info h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-corporate);
+            margin: 0;
+        }
+        .header-info p {
+            font-size: 0.8rem;
+            color: var(--slate-500);
+            margin: 0;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--slate-50);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            border: 1px solid var(--slate-200);
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .user-info-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary-corporate);
+        }
+        .user-email {
+            font-size: 0.7rem;
+            color: var(--slate-500);
+        }
+        
+        .main-content {
+            padding-top: 100px;
+        }
+        
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #001749 0%, #015cd0 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #loading-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+        #loading-screen > div:first-child {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .loading-spinner {
+            width: 64px;
+            height: 64px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #e48410;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: white;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        .loading-footer {
+            position: absolute;
+            bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0.7;
+        }
+        .loading-footer span {
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .loading-footer img {
+            height: 20px;
+            filter: brightness(0) invert(1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: flex;">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Abriendo Catastros Mejía...</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+    
+    <!-- Header Unificado -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Volver</span>
+                </a>
+                <div class="header-divider"></div>
+                <img src="../../shared/img/logo.webp" alt="Logo" class="header-logo">
+                <div class="header-info">
+                    <h1>Consulta de Predios</h1>
+                    <p>GAD Municipal del Cantón Mejía</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-badge">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info-text">
+                        <span class="user-name" id="user-name">Usuario</span>
+                        <div class="mt-1">
+                            <span class="user-role" id="user-role" style="display: inline-block; font-size: 9px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content flex items-center justify-center pt-28 pb-4 px-4">
+        <div class="w-full max-w-3xl">
+            <!-- Disclaimer -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            <strong>Aviso Legal:</strong> Este servicio web es propiedad del GAD Municipal del Cantón Mejía. 
+                            Esta interfaz se utiliza únicamente con fines de consulta no comerciales. Los datos mostrados 
+                            provienen directamente de los servicios oficiales del municipio.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">
+                        <i class="fas fa-building text-blue-600 mr-2"></i>
+                        Buscar Predios
+                    </h2>
+                    <p class="text-gray-500 mt-2">Ingrese la cédula o RUC del propietario</p>
+                </div>
+
+                <!-- Input and Search Button -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input
+                        id="cedulaInput"
+                        type="text"
+                        placeholder="Ingrese el número de cédula o RUC"
+                        class="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                        onkeypress="if(event.key === 'Enter') document.getElementById('searchButton').click()"
+                    >
+                    <button
+                        id="searchButton"
+                        class="w-full sm:w-auto px-6 py-3 text-lg font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-transform transform active:scale-95"
+                    >
+                        <i class="fas fa-search mr-2"></i>
+                        Buscar
+                    </button>
+                </div>
+
+                <!-- Status and Results Area -->
+                <div id="status" class="mt-6 text-center"></div>
+                <div id="results" class="mt-6 space-y-4"></div>
+            </div>
+
+            <footer class="text-center mt-4 text-sm text-gray-500">
+                <p>Esta es una interfaz no oficial para consumir el servicio web público del GAD Mejía.</p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // Loading screen functions
+        const loaderStartTime = Date.now();
+        const MIN_LOADER_TIME = 1200;
+        
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                const elapsed = Date.now() - loaderStartTime;
+                const remainingTime = Math.max(0, MIN_LOADER_TIME - elapsed);
+                
+                setTimeout(() => {
+                    loadingScreen.classList.add('fade-out');
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 300);
+                }, remainingTime);
+            }
+        }
+
+        // Verificar sesión y ocultar loader
+        (function() {
+            const sessionData = localStorage.getItem('appSession');
+            if (!sessionData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const session = JSON.parse(sessionData);
+                const nameEl = document.getElementById('user-name');
+                const avatarEl = document.getElementById('user-avatar');
+                const emailEl = document.getElementById('user-email');
+                const userName = session.name || session.nombre || 'Usuario';
+                const userEmail = session.email || session.correo || '';
+                if (nameEl) nameEl.textContent = userName;
+                if (avatarEl) avatarEl.textContent = userName.charAt(0).toUpperCase();
+                if (emailEl) emailEl.textContent = userEmail || 'Sin correo';
+            } catch (e) {
+                console.error('Error parsing session:', e);
+            }
+            hideLoadingScreen();
+        })();
+
+        const cedulaInput = document.getElementById('cedulaInput');
+        const searchButton = document.getElementById('searchButton');
+        const resultsDiv = document.getElementById('results');
+        const statusDiv = document.getElementById('status');
+
+        const performSearch = async () => {
+            const cedula = cedulaInput.value.trim();
+            if (!cedula) {
+                showStatus('<p class="text-yellow-600"><i class="fas fa-exclamation-circle mr-2"></i>Por favor, ingrese un número de cédula.</p>', 'warning');
+                return;
+            }
+
+            showStatus('<div class="flex items-center justify-center text-blue-600"><i class="fas fa-spinner fa-spin mr-3"></i><span>Buscando...</span></div>', 'info');
+            resultsDiv.innerHTML = '';
+
+            const apiUrl = `https://servicios.municipiodemejia.gob.ec/planificacionTerritorial/rest/irm/buscarPredioPorCedula/${cedula}`;
+
+            try {
+                const response = await fetch(apiUrl, { method: 'POST' });
+                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+                const data = await response.json();
+                statusDiv.innerHTML = ''; 
+                displayResults(data);
+            } catch (error) {
+                showCORSorNetworkError();
+            }
+        };
+
+        searchButton.addEventListener('click', performSearch);
+
+        const displayResults = (data) => {
+            const predios = data && data.lista ? data.lista : [];
+
+            if (predios.length === 0) {
+                showStatus('<p class="text-gray-600"><i class="fas fa-info-circle mr-2"></i>No se encontraron predios asociados a la cédula o RUC ingresado.</p>', 'info');
+                return;
+            }
+
+            let htmlContent = '';
+            predios.forEach((predio, index) => {
+                htmlContent += `
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm transition-all hover:shadow-md">
+                        <div class="flex justify-between items-center mb-4 border-b pb-2">
+                            <h3 class="text-xl font-semibold text-blue-800">
+                                <i class="fas fa-home mr-2"></i>Resultado ${index + 1}
+                            </h3>
+                            <button onclick="downloadPdf('${predio.preId}', this)" class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <i class="fas fa-download mr-2"></i>
+                                <span>Descargar PDF</span>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-1 gap-y-3">
+                            ${formatProperty('Predio ID', predio.preId)}
+                            ${formatProperty('Código Catastral', predio.codigoCatastral)}
+                            ${formatProperty('Propietario', predio.nombrePropietario)}
+                            ${formatProperty('Cédula Propietario', predio.identificacionPropietario)}
+                        </div>
+                    </div>
+                `;
+            });
+            resultsDiv.innerHTML = htmlContent;
+        };
+
+        const downloadPdf = async (preId, buttonElement) => {
+            const originalButtonContent = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>Descargando...</span>`;
+
+            const pdfApiUrl = `https://servicios.municipiodemejia.gob.ec/planificacionTerritorial/rest/irm/consultarInformePreliminarPdf/${preId}`;
+
+            try {
+                const response = await fetch(pdfApiUrl, { method: 'POST' });
+                if (!response.ok) throw new Error(`El servidor respondió con un error: ${response.status}`);
+                
+                const data = await response.json();
+                const base64Pdf = data && data.irm ? data.irm.pdf : null;
+
+                if (!base64Pdf) throw new Error("La respuesta del servidor no contiene los datos del PDF en el formato esperado.");
+
+                const byteCharacters = atob(base64Pdf);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `informe-predio-${preId}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+
+            } catch (error) {
+                showStatus(`<p class="font-bold"><i class="fas fa-times-circle mr-2"></i>Error al descargar el PDF.</p><p class="mt-2">${error.message}</p>`, 'error');
+            } finally {
+                buttonElement.innerHTML = originalButtonContent;
+                buttonElement.disabled = false;
+            }
+        };
+        
+        const formatProperty = (label, value) => {
+            const displayValue = (value === null || value === undefined || value === '') ? '<span class="italic text-gray-400">No disponible</span>' : value;
+            return `<div class="flex flex-col"><strong class="text-sm font-medium text-gray-500">${label}</strong><span class="text-gray-800 break-words">${displayValue}</span></div>`;
+        };
+
+        const showStatus = (message, type) => {
+            const colors = {
+                error: 'bg-red-100 border-red-500 text-red-700',
+                warning: 'bg-yellow-100 border-yellow-500 text-yellow-700',
+                info: 'bg-blue-100 border-blue-500 text-blue-700'
+            };
+            statusDiv.innerHTML = `<div class="${colors[type] || colors.info} border-l-4 p-4" role="alert">${message}</div>`;
+        };
+
+        const showCORSorNetworkError = () => {
+             showStatus(`
+                <p class="font-bold"><i class="fas fa-exclamation-triangle mr-2"></i>No se pudo conectar con el servicio.</p>
+                <p class="mt-2">Esto puede ocurrir por un problema de conexión o porque el servidor del Municipio no está respondiendo.</p>`, 'error');
+        }
+        
+        // ===== VERIFICACIÓN DE SESIÓN =====
+        let sessionCheckInterval = null;
+        const SESSION_CHECK_INTERVAL = 60000;
+        
+        function setupUserInfo(userData) {
+            const nameEl = document.getElementById('user-name');
+            const emailEl = document.getElementById('user-email');
+            const avatarEl = document.getElementById('user-avatar');
+            const roleEl = document.getElementById('user-role');
+            
+            if (nameEl && userData.name) {
+                nameEl.textContent = userData.name;
+            }
+            if (emailEl && userData.email) {
+                emailEl.textContent = userData.email;
+            }
+            if (avatarEl && userData.name) {
+                avatarEl.textContent = userData.name.charAt(0).toUpperCase();
+            }
+            if (roleEl && userData.rol) {
+                const roles = userData.rol.split(',').map(r => r.trim().toUpperCase());
+                const filtered = roles.filter(r => r === 'ASESOR' || r === 'ADMIN').join(', ');
+                roleEl.textContent = filtered;
+            }
+        }
+        
+        let protectedPage = null;
+        
+        function handleSessionExpired() {
+            alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+            if (typeof TupakAuth !== 'undefined') {
+                TupakAuth.logout();
+                return;
+            }
+            window.location.href = '../login.html';
+        }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof TupakAuth === 'undefined' || typeof TupakAuth.initializeProtectedPage !== 'function') {
+                window.location.href = '../login.html';
+                return;
+            }
+
+            protectedPage = TupakAuth.initializeProtectedPage({
+                redirectOnFailure: false,
+                onSession: setupUserInfo,
+                onInvalid: handleSessionExpired
+            });
+
+            await protectedPage.start();
+        });
+    </script>
+    <script src="../../shared/auth.js"></script>
+</body>
+</html>
+

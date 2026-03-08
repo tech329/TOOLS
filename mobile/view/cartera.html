@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Móvil Cartera - Tupak Rantina</title>
+
+    <!-- Tailwind CSS (Solo para utilidades de grid y layout) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" href="../../shared/img/logo.webp" type="image/png">
+
+    <!-- CSS Móvil -->
+    <link rel="stylesheet" href="../css/mobile-styles.css">
+    <link rel="stylesheet" href="../css/mobile-cartera.css">
+</head>
+<body class="bg-slate-100 pb-16">
+    <script>window.loaderStartTime = Date.now();</script>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: flex;">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Abriendo Cartera...</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header Mobile -->
+    <header class="mobile-header">
+        <div class="header-content header-grid">
+            <button class="back-button" onclick="window.location.href='../index.html'">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="header-center">
+                <h1 class="header-title" style="padding-bottom: 0.35rem; border-bottom: 1px solid rgba(0,23,73,0.15); margin-bottom: 0.2rem;">Gestión de Cartera</h1>
+                <div class="flex flex-col items-center">
+                    <span id="user-role-badge" class="px-3 py-1 bg-blue-100 text-[#015cd0] text-[9px] font-black rounded-full uppercase tracking-widest border border-blue-200 mb-1">ASESOR</span>
+                    <span id="user-name" class="font-bold text-slate-400 text-[10px] uppercase">Usuario</span>
+                </div>
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+    </header>
+
+    <div class="cartera-lock-overlay-m" id="cartera-lock-overlay-m" aria-hidden="true">
+        <div class="cartera-lock-card-m">
+            <div class="cartera-lock-icon-m">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div class="cartera-lock-title-m">MODULO INCOMPLETO POR FALTA DE DATOS</div>
+            <div class="cartera-lock-text-m">Este modulo requiere una actualizacion de base de datos para su funcionamiento correcto. Puedes continuar navegando en las demas secciones.</div>
+        </div>
+    </div>
+
+    <!-- Stats Dashboard (Mejorado - Grid 3 columnas) -->
+    <div class="stats-container pt-4">
+        <div class="stat-card-m" onclick="switchView('atrasados')">
+            <div class="stat-icon-wrapper bg-red-50 text-red-600">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <span class="stat-label">En Mora</span>
+            <span class="stat-val" id="count-atrasados">0</span>
+        </div>
+        <div class="stat-card-m" onclick="switchView('cobros')">
+            <div class="stat-icon-wrapper bg-orange-50 text-orange-600">
+                <i class="fas fa-clock"></i>
+            </div>
+            <span class="stat-label">Prox. Cobro</span>
+            <span class="stat-val" id="count-prox-cobro">0</span>
+        </div>
+        <div class="stat-card-m" onclick="switchView('general')">
+            <div class="stat-icon-wrapper bg-blue-50 text-blue-600">
+                <i class="fas fa-file-invoice-dollar"></i>
+            </div>
+            <span class="stat-label">Vigentes</span>
+            <span class="stat-val" id="count-vigentes">0</span>
+        </div>
+    </div>
+
+    <!-- Tabs and Search -->
+    <div class="sticky top-0 bg-slate-100 z-10 pt-2 pb-1">
+        <!-- View Tabs -->
+        <div class="tabs-m shadow-sm mb-3">
+            <button id="btn-atrasados" class="tab-btn" onclick="switchView('atrasados')">MORA</button>
+            <button id="btn-cobros" class="tab-btn active" onclick="switchView('cobros')">A COBRAR</button>
+            <button id="btn-general" class="tab-btn" onclick="switchView('general')">TODO</button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container-m">
+            <div class="search-box-m">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Buscar socio o cédula...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Data List Container -->
+    <div class="data-container mt-1">
+        <div class="flex justify-between items-center mb-4 px-1">
+            <h2 id="card-title" class="text-xs font-bold text-slate-500 uppercase tracking-wider">Cargando datos...</h2>
+            <i class="fas fa-sort-amount-down text-slate-400"></i>
+        </div>
+
+        <div id="data-list">
+            <!-- Items renderizados por JS -->
+            <div class="animate-pulse space-y-4">
+                <div class="h-24 bg-gray-200 rounded-xl"></div>
+                <div class="h-24 bg-gray-200 rounded-xl"></div>
+                <div class="h-24 bg-gray-200 rounded-xl"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../shared/config.js"></script>
+    <script src="../../shared/auth.js"></script>
+    <!-- Contenedor para Notificaciones Custom (Tipo Toast) -->
+    <div id="custom-toast-container" 
+        style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;">
+    </div>
+
+    <!-- Modal de Confirmación Universal -->
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all scale-95 opacity-0 modal-content">
+            <div class="p-6 text-center">
+                <div id="confirm-modal-icon" class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                    <i class="fas fa-question"></i>
+                </div>
+                <h3 id="confirm-modal-title" class="text-xl font-bold text-slate-800 mb-2 uppercase italic tracking-tighter"></h3>
+                <p id="confirm-modal-message" class="text-slate-600 mb-6"></p>
+                
+                <!-- Área para Inyección de Contenido Dinámico -->
+                <div id="confirm-modal-extra" class="mb-4"></div>
+
+                <!-- Input Field (Opcional) -->
+                <div id="confirm-modal-input-container" class="hidden mb-6 text-left">
+                    <label id="confirm-modal-input-label" class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1"></label>
+                    <input type="text" id="confirm-modal-input" 
+                        class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-lg font-black text-slate-800 focus:bg-white focus:border-[#5c56e0] focus:ring-4 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-300"
+                        placeholder="">
+                    <p id="confirm-modal-input-subtitle" class="mt-2 text-[10px] text-slate-400 font-medium italic"></p>
+                </div>
+
+                <div class="flex gap-3">
+                    <button id="confirm-modal-cancel" class="flex-1 px-4 py-4 rounded-2xl border-2 border-slate-100 text-slate-500 font-bold hover:bg-slate-50 active:scale-95 transition-all uppercase text-xs tracking-widest">
+                        Cancelar
+                    </button>
+                    <button id="confirm-modal-confirm" class="flex-1 px-4 py-4 rounded-2xl bg-[#5c56e0] text-white font-bold hover:bg-[#4a44cc] shadow-xl shadow-indigo-100 active:scale-95 transition-all uppercase text-xs tracking-widest">
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/mobile-cartera.js"></script>
+</body>
+</html>
+

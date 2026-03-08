@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Autorización Buró</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- html2pdf.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="../css/mobile-styles.css">
+    <style>
+        :root {
+            --primary: #001749;
+            --secondary: #e48410;
+            --accent: #3787c6;
+            --blue: #015cd0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #1f2937;
+            padding-bottom: 80px;
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        #loading-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 45px;
+            height: 45px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .loading-brand {
+            color: white;
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+
+        .loading-footer {
+            position: absolute;
+            bottom: max(30px, env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.7;
+        }
+
+        .loading-footer span {
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .loading-footer img {
+            height: 18px;
+            filter: brightness(0) invert(1);
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            padding: 15px 20px;
+            padding-top: max(15px, env(safe-area-inset-top));
+            display: grid;
+            grid-template-columns: 40px 1fr 40px;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .btn-back {
+            background: rgba(20, 184, 166, 0.1);
+            border: none;
+            color: var(--primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:active {
+            transform: scale(0.95);
+            background: rgba(20, 184, 166, 0.2);
+        }
+
+        .header-center {
+            text-align: center;
+        }
+
+        .header-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+
+        .header-subtitle {
+            font-size: 0.75rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin: 0;
+        }
+
+        /* Capsulas de usuario */
+        .user-capsule {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .user-capsule.name {
+            background: rgba(34, 197, 94, 0.2);
+            color: #16a34a;
+        }
+
+        .user-capsule.email {
+            background: rgba(59, 130, 246, 0.2);
+            color: #2563eb;
+        }
+
+        .header-placeholder {
+            width: 40px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+        }
+
+        /* Card */
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            font-size: 18px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            color: #1f2937;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: #fff;
+        }
+
+        .form-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #f1f5f9;
+        }
+
+        .input-hint {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 6px;
+        }
+
+        /* Info Display */
+        .info-display {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: #64748b;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Status */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status.searching {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status.found {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status.not-found {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(1, 23, 73, 0.3);
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: var(--primary);
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px 25px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .modal-icon i {
+            font-size: 32px;
+            color: #fff;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .modal-message {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .modal-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
+            color: #fff;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: calc(100% - 40px);
+            max-width: 350px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toast.success {
+            background: rgba(34, 197, 94, 0.95);
+            color: #fff;
+        }
+
+        .toast.error {
+            background: rgba(239, 68, 68, 0.95);
+            color: #fff;
+        }
+
+        .toast.info {
+            background: rgba(59, 130, 246, 0.95);
+            color: #fff;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 10px;
+            padding: 5px 15px;
+            transition: color 0.3s;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+        }
+
+        .nav-item.active {
+            color: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Verificando sesión...</div>
+            <div class="loading-brand">Autorización Buró</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <button class="btn-back" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="header-center">
+            <h1 class="header-title" style="padding-bottom: 0.35rem; border-bottom: 1px solid rgba(0,23,73,0.15); margin-bottom: 0.4rem;">Autorización Buró</h1>
+            <p class="header-subtitle" style="display: flex; flex-direction: column; align-items: center;">
+                <span id="user-name" class="user-capsule name">Usuario</span>
+                <span id="user-role" style="display: inline-block; font-size: 8px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd; margin-top: 4px;"></span>
+            </p>
+        </div>
+        <div class="header-placeholder"></div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Form Card -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-user-check"></i>
+                Datos del Cliente
+            </h2>
+
+            <div class="form-group">
+                <label class="form-label">Cédula de Identidad</label>
+                <input type="text" 
+                       id="cedula" 
+                       class="form-input" 
+                       placeholder="Ingrese la cédula (10 dígitos)"
+                       maxlength="10"
+                       inputmode="numeric"
+                       pattern="[0-9]*">
+                <p class="input-hint">Se buscará automáticamente el nombre asociado</p>
+            </div>
+
+            <div id="status-container" style="display: none;">
+                <!-- Status badge se muestra aquí -->
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+                <label class="form-label">Nombre Completo</label>
+                <input type="text" 
+                       id="nombre" 
+                       class="form-input" 
+                       placeholder="Nombre del cliente">
+            </div>
+
+            <div class="form-group">
+                <span class="info-label">Fecha Actual</span>
+                <div class="info-display">
+                    <i class="fas fa-calendar-alt" style="margin-right: 8px;"></i>
+                    <span id="fecha-actual">Cargando...</span>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" id="btn-descargar" onclick="generarAutorizacion()">
+                    <i class="fas fa-download"></i>
+                    Descargar Llenado
+                </button>
+                <button class="btn btn-secondary" onclick="descargarPDFBlanco()">
+                    <i class="fas fa-file-pdf"></i>
+                    Descargar PDF para Llenar
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3 class="modal-title">¡Autorización Generada!</h3>
+            <p class="modal-message">El documento PDF se ha descargado exitosamente.</p>
+            <button class="modal-btn" onclick="closeModal()">Aceptar</button>
+        </div>
+    </div>
+
+    
+
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <script>
+        // Configuración
+        const WEBHOOK_CEDULA = 'https://lpn8nwebhook.luispintasolutions.com/webhook/c460611e-8d0c-4a7b-bfcc-50b1e5858048';
+        let protectedPage = null;
+
+        // Variables
+        let debounceTimer = null;
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof TupakAuth === 'undefined' || typeof TupakAuth.initializeProtectedPage !== 'function') {
+                window.location.href = '../login.html';
+                return;
+            }
+
+            protectedPage = TupakAuth.initializeProtectedPage({
+                redirectOnFailure: false,
+                onSession: updateUserDisplay,
+                onInvalid: handleSessionExpired
+            });
+
+            const isReady = await protectedPage.start();
+            if (!isReady) {
+                return;
+            }
+
+            // Configurar fecha
+            setFechaActual();
+
+            // Event listeners
+            const cedulaInput = document.getElementById('cedula');
+            cedulaInput.addEventListener('input', handleCedulaInput);
+
+            // Mostrar contenido y ocultar loading
+            document.body.classList.add('loaded');
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('fade-out');
+            }, 400);
+
+        });
+
+        function updateUserDisplay(session) {
+            const nameEl = document.getElementById('user-name');
+            const emailEl = document.getElementById('user-email');
+            
+            if (nameEl && session.name) {
+                // Mostrar solo el primer nombre en el header
+                const firstName = session.name.split(' ')[0];
+                nameEl.textContent = firstName;
+            }
+            if (emailEl) {
+                emailEl.textContent = "COOPERATIVA";
+            }
+        }
+
+        function handleSessionExpired() {
+            showSessionExpiredScreen();
+        }
+
+        function showSessionExpiredScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-user-lock" style="font-size: 3rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                        <div class="loading-text" style="font-size: 1.2rem; font-weight: 600;">Sesión Expirada</div>
+                        <div class="loading-brand" style="margin-bottom: 1.5rem;">Su token de seguridad ha sido invalidado.</div>
+                        <button onclick="if (window.TupakAuth) { window.TupakAuth.logout(); } else { window.location.href='../login.html'; }" style="background: var(--secondary); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.95rem;">
+                            <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>VOLVER AL INICIO
+                        </button>
+                    </div>
+                    <div class="loading-footer">
+                        <span>POWERED BY</span>
+                        <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+                    </div>
+                `;
+                loadingScreen.style.display = 'flex';
+                loadingScreen.classList.remove('fade-out');
+            } else {
+                window.location.href = '../login.html';
+            }
+        }
+
+        function setFechaActual() {
+            // Usar el mismo formato que PC
+            const now = new Date();
+            const guayaquilTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Guayaquil"}));
+            const day = guayaquilTime.getDate();
+            const monthNames = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+            const month = monthNames[guayaquilTime.getMonth()];
+            const year = guayaquilTime.getFullYear();
+            const hours = guayaquilTime.getHours();
+            const minutes = guayaquilTime.getMinutes();
+            let displayHours = hours;
+            let period = 'de la mañana';
+            if (hours >= 12) {
+                period = hours >= 18 ? 'de la noche' : 'de la tarde';
+                if (hours > 12) displayHours = hours - 12;
+            }
+            if (hours === 0) displayHours = 12;
+            const timeStr = `a las ${displayHours} ${period} ${minutes} minutos`;
+            
+            // Guardar datos de fecha para uso posterior
+            window.fechaData = { 
+                day, 
+                month, 
+                year, 
+                full: `Machachi a los ${day} días del mes de ${month} del año ${year}, ${timeStr}.` 
+            };
+            
+            document.getElementById('fecha-actual').textContent = window.fechaData.full;
+        }
+
+        function handleCedulaInput(e) {
+            // Solo números
+            e.target.value = e.target.value.replace(/\D/g, '');
+            
+            const cedula = e.target.value;
+
+            if (cedula.length === 10) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => buscarNombre(cedula), 300);
+            } else {
+                document.getElementById('status-container').style.display = 'none';
+            }
+        }
+
+        async function buscarNombre(cedula) {
+            const statusContainer = document.getElementById('status-container');
+            const nombreInput = document.getElementById('nombre');
+
+            // Mostrar buscando
+            statusContainer.style.display = 'block';
+            statusContainer.innerHTML = `
+                <div class="status searching">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    Buscando información...
+                </div>
+            `;
+
+            try {
+                const data = window.APP_CONFIG?.fetchCedulaLookup
+                    ? await window.APP_CONFIG.fetchCedulaLookup(cedula)
+                    : await fetchCedulaLookupFallback(cedula);
+
+                const result = Array.isArray(data) ? data[0] : null;
+
+                if (result && result.encontrado && result.nombre) {
+                    nombreInput.value = result.nombre.toUpperCase();
+                    statusContainer.innerHTML = `
+                        <div class="status found">
+                            <i class="fas fa-check-circle"></i>
+                            Nombre encontrado
+                        </div>
+                    `;
+                    showToast('success', 'Nombre encontrado automáticamente');
+                } else {
+                    statusContainer.innerHTML = `
+                        <div class="status not-found">
+                            <i class="fas fa-exclamation-circle"></i>
+                            ${result?.mensaje || 'Revise la cédula. Si no existe, ingrese manualmente'}
+                        </div>
+                    `;
+                    nombreInput.focus();
+                }
+            } catch (error) {
+                statusContainer.innerHTML = `
+                    <div class="status not-found">
+                        <i class="fas fa-exclamation-circle"></i>
+                        El servidor no responde. Ingrese manualmente
+                    </div>
+                `;
+                nombreInput.focus();
+            }
+        }
+
+        async function fetchCedulaLookupFallback(cedula) {
+            const requests = [
+                {
+                    url: WEBHOOK_CEDULA,
+                    init: {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ cedula })
+                    }
+                }
+            ];
+            let lastError = null;
+
+            for (const request of requests) {
+                try {
+                    const response = await fetch(request.url, request.init);
+                    if (!response.ok) throw new Error('Error en la respuesta');
+                    return await response.json();
+                } catch (error) {
+                    lastError = error;
+                }
+            }
+
+            throw lastError || new Error('No se pudo consultar la cédula');
+        }
+
+        // Template idéntico al de PC
+        function generateTemplate(nombre, cedula, firmaNombre, fecha) {
+            return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Autorización Personal para Consulta de la Central de Riesgos</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  html, body { background: #fff; margin: 0; padding: 0; }
+  body { font-family: "Times New Roman", Georgia, serif; color: #111; }
+  .sheet { width: 100%; max-width: 210mm; margin: 0 auto; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.12); }
+  .header-banner { background: #001749; padding: 12mm 20mm; display: flex; align-items: center; gap: 20px; }
+  .logo { width: 70px; height: auto; flex-shrink: 0; }
+  .header-text { color: #e48410; font-size: 18pt; font-weight: 700; margin: 0; font-family: Georgia, serif; }
+  .content { padding: 10mm 20mm 15mm; }
+  .accent { height: 4px; width: 100%; background: linear-gradient(90deg, #e48410, #f5a623); margin-bottom: 8mm; }
+  p { font-size: 10.5pt; line-height: 1.55; text-align: justify; margin: 0 0 4mm; }
+  .blank { white-space: nowrap; }
+  .bold { font-weight: 700; color: #000; }
+  .box { border: 1px solid #ccc; border-radius: 6px; padding: 6mm; margin: 5mm 0 8mm; background: #f9fafc; }
+  .note { font-size: 9.5pt; color: #333; margin-top: 2mm; }
+  .sign { text-align: center; padding-top: 8mm; margin-top: 10mm; }
+  .line { border-top: 1px solid #222; margin: 0 auto 3mm; width: 70%; }
+  .caption { font-size: 9pt; color: #333; }
+  @media print { body { background: #fff; } .sheet { box-shadow: none; } }
+</style>
+</head>
+<body onload="setTimeout(function(){window.print();}, 300)">
+  <div class="sheet">
+    <div class="header-banner">
+      <img class="logo" src="../../shared/img/logo.webp" alt="Logo Tupak Rantina">
+      <h1 class="header-text">Autorización para Consulta de la Central de Riesgos</h1>
+    </div>
+    <div class="content">
+      <div class="accent"></div>
+      <p>
+        En los <span class="bold">procesos judiciales y financieros</span>, las entidades suelen requerir la verificación del
+        historial crediticio de los ciudadanos. Esta autorización permite al Titular otorgar su consentimiento explícito
+        para dicha consulta, garantizando transparencia y legalidad en la evaluación de solicitudes de crédito u otros trámites.
+      </p>
+      <p>
+        Yo, ${nombre}, con cédula de identidad No.
+        ${cedula},
+        por medio de la presente, <span class="bold">solicito y autorizo de manera expresa e irrevocable</span> a
+        <span class="bold">CAJA DE AHORRO TUPAK RANTINA</span>,
+        con RUC No. 1793222612001, y domicilio en
+        Av. Amazonas O3-248 y Manuel German, para que, por conducto de su representante legal o personal debidamente autorizado,
+        <span class="bold">solicite y obtenga</span> mi historial de crédito, historial financiero y cualquier otra
+        información relacionada que se encuentre registrada en la Central de Riesgos o en cualquier otra base
+        de datos de información crediticia, pública o privada, que opere en la República del Ecuador.
+      </p>
+      <div class="box">
+        <p>
+          La presente autorización se otorga con el fin de <span class="bold">evaluar mi solicitud de crédito</span> y/o cualquier otra relación contractual o comercial futura.
+          Declaro que conozco el alcance y el tipo de información que será consultada y entiendo
+          que el resultado de dicha consulta servirá para la toma de decisiones por parte de
+          <span class="bold">CAJA DE AHORRO TUPAK RANTINA</span>.
+        </p>
+        <p class="note">
+          Vigencia: Esta autorización tendrá vigencia indeterminada y se mantendrá válida mientras subsista la relación con la entidad, y solo podrá ser revocada mediante comunicación escrita dirigida a la institución.
+        </p>
+      </div>
+      <p>${fecha}</p>
+      <div class="sign">
+        <div class="line"></div>
+        <div class="caption">Firma del Titular</div>
+        <div class="caption">Nombre: ${firmaNombre}</div>
+        <div class="caption">Cédula: ${cedula}</div>
+      </div>
+    </div>
+  </div>
+<\/body>
+<\/html>`;
+        }
+
+        function generarAutorizacion() {
+            const cedula = document.getElementById('cedula').value.trim();
+            const nombre = document.getElementById('nombre').value.trim();
+
+            if (!cedula || cedula.length !== 10) {
+                showToast('error', 'Ingrese una cédula válida de 10 dígitos');
+                return;
+            }
+
+            if (!nombre) {
+                showToast('error', 'Ingrese el nombre del cliente');
+                return;
+            }
+
+            const nombreWords = nombre.split(/\s+/).filter(word => word.length > 0);
+            if (nombreWords.length < 3) {
+                showToast('error', 'El nombre debe contener al menos 3 palabras');
+                return;
+            }
+
+            showToast('info', 'Generando PDF...');
+
+            // Generar documento con el mismo template
+            const template = generateTemplate(nombre, cedula, nombre, window.fechaData.full);
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = template;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            document.body.appendChild(tempDiv);
+            
+            const element = tempDiv.querySelector('.sheet');
+            
+            // Generar nombre de archivo con la cédula
+            const filename = `autorizacion_buro_${cedula}.pdf`;
+            
+            const opt = {
+                margin: 0,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: 'avoid-all' }
+            };
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.removeChild(tempDiv);
+                // Mostrar modal de éxito
+                document.getElementById('success-modal').classList.add('active');
+            }).catch((error) => {
+                console.error('Error generating PDF:', error);
+                document.body.removeChild(tempDiv);
+                showToast('error', 'Error al generar el PDF');
+            });
+        }
+
+        function descargarPDFBlanco() {
+            showToast('info', 'Generando PDF...');
+            
+            const fechaManual = `Lugar y fecha: Machachi, _______ de ${window.fechaData.month} del año ${window.fechaData.year}`;
+            const htmlContent = generateTemplate('________________________________________', '____________________________', '____________________________', fechaManual);
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            document.body.appendChild(tempDiv);
+            
+            const element = tempDiv.querySelector('.sheet');
+            
+            const opt = {
+                margin: 0,
+                filename: 'autorizacion_buro_credito.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: 'avoid-all' }
+            };
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.removeChild(tempDiv);
+                showToast('success', 'PDF descargado exitosamente');
+            }).catch((error) => {
+                console.error('Error generating PDF:', error);
+                document.body.removeChild(tempDiv);
+                showToast('error', 'Error al generar el PDF');
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('success-modal').classList.remove('active');
+        }
+
+        function goBack() {
+            window.location.href = 'herramientas_consulta.html';
+        }
+
+        // Toast
+        function showToast(type, message) {
+            const container = document.querySelector('.toast-container');
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-times-circle',
+                info: 'fa-info-circle'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+    </script>
+    <script src="../../shared/auth.js"></script>
+</body>
+</html>
+

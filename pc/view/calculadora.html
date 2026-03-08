@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Financiera - Tupak Rantina</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- MathJax para fórmulas -->
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <!-- Favicon -->
+    <link rel="icon" href="../../shared/img/logo.webp" type="image/png">
+
+    <style>
+        :root {
+            --primary: #001749;
+            --secondary: #e48410;
+            --accent: #3787c6;
+            --blue: #015cd0;
+        }
+
+        * { font-family: 'Inter', sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%);
+            min-height: 100vh;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .input-label {
+            display: block;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 6px;
+            font-size: 0.85em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.95em;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(55, 135, 198, 0.1);
+        }
+
+        .form-input:read-only {
+            background: #f1f5f9;
+            cursor: not-allowed;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, var(--secondary), #f59e0b);
+            color: white;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(228, 132, 16, 0.35);
+        }
+
+        .btn-clear {
+            background: #64748b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-clear:hover {
+            background: #475569;
+        }
+
+        /* Info panel azul */
+        .info-panel {
+            background: linear-gradient(135deg, var(--accent), var(--blue));
+            color: white;
+            border-radius: 16px 0 0 16px;
+            padding: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .info-panel {
+                border-radius: 16px 16px 0 0;
+            }
+        }
+
+        .formula-box {
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 12px;
+            margin: 16px 0;
+        }
+
+        /* Resultados */
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        /* Tabla */
+        .table-container {
+            max-height: 450px;
+            overflow: auto;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .amortization-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8em;
+            min-width: 900px;
+        }
+
+        .amortization-table th {
+            background: var(--primary);
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            font-size: 0.75em;
+            text-transform: uppercase;
+        }
+
+        .amortization-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .amortization-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        /* Header */
+        .main-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 0.75rem 2rem;
+        }
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            font-weight: 500;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .back-button:hover {
+            background: #f1f5f9;
+            color: #10b981;
+        }
+        .header-divider {
+            width: 1px;
+            height: 24px;
+            background: #e2e8f0;
+        }
+        .header-logo {
+            height: 40px;
+            width: auto;
+        }
+        .header-info h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .header-info p {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #f8fafc;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            border: 1px solid #e2e8f0;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .user-info-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .user-email {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Radio buttons estilizados */
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .radio-option:has(input:checked) {
+            border-color: var(--accent);
+            background: rgba(55, 135, 198, 0.05);
+        }
+
+        .radio-option input {
+            margin-right: 10px;
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #loading-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+        #loading-screen > div:first-child {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .loading-spinner {
+            width: 64px;
+            height: 64px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: white;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        .loading-footer {
+            position: absolute;
+            bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0.7;
+        }
+        .loading-footer span {
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .loading-footer img {
+            height: 20px;
+            filter: brightness(0) invert(1);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: flex;">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Abriendo Calculadora...</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Herramientas</span>
+                </a>
+                <div class="header-divider"></div>
+                <img src="../../shared/img/logo.webp" alt="Logo" class="header-logo">
+                <div class="header-info">
+                    <h1>Calculadora Financiera</h1>
+                    <p>Simula tu crédito</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-badge">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info-text">
+                        <span class="user-name" id="user-name">Usuario</span>
+                        <div class="mt-1">
+                            <span class="user-role" id="user-role" style="display: inline-block; font-size: 9px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-7xl mx-auto p-6">
+        <!-- Calculadora -->
+        <div class="card overflow-hidden mb-8">
+            <div class="lg:flex">
+                <!-- Panel Informativo -->
+                <div class="lg:w-1/3 info-panel">
+                    <h2 class="text-2xl font-bold mb-3">Calculadora Financiera</h2>
+                    <p class="text-blue-100 text-sm mb-4">
+                        Configure el tipo de financiamiento y calcule el monto total, tabla de amortización y costos.
+                    </p>
+
+                    <div class="formula-box">
+                        <p class="font-semibold text-xs mb-3">Fórmulas Aplicadas:</p>
+                        <div class="text-sm mb-3">
+                            $$\text{Cuota} = \frac{P \times r \times (1+r)^n}{(1+r)^n - 1}$$
+                        </div>
+                        <div class="text-sm">
+                            $$\text{Financ.} = \frac{\text{Neto}}{1 - \frac{\%Desc.}{100}}$$
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-blue-100">
+                        <p><strong>P:</strong> Capital | <strong>r:</strong> Tasa mensual | <strong>n:</strong> Períodos</p>
+                    </div>
+                </div>
+
+                <!-- Formulario -->
+                <div class="lg:w-2/3 p-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Columna 1: Datos Básicos -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-slate-800 border-b border-slate-200 pb-2">
+                                Datos Básicos
+                            </h3>
+
+                            <div>
+                                <label class="input-label">Monto Neto Requerido ($)</label>
+                                <input type="number" id="netAmount" class="form-input" placeholder="Ej: 30000">
+                            </div>
+
+                            <div>
+                                <label class="input-label">Producto de Crédito</label>
+                                <select id="creditProduct" class="form-input">
+                                    <option value="26">Microcrédito Minorista - 26%</option>
+                                    <option value="23">Microcrédito Simple - 23%</option>
+                                    <option value="19" data-product="ampliado">Microcrédito Ampliado - 19%</option>
+                                    <option value="24">Nuestras Raíces - 24%</option>
+                                    <option value="19" data-product="consumo">Consumo - 19%</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="input-label">Plazo (meses)</label>
+                                <input type="number" id="termMonths" class="form-input" placeholder="Ej: 18">
+                            </div>
+
+                            <div>
+                                <label class="input-label">SOLCA (%) - Fijo</label>
+                                <input type="number" id="solcaPercentage" class="form-input" value="0.05" readonly step="0.001">
+                            </div>
+
+                            <div>
+                                <label class="input-label">Autoseguro (%) - Fijo</label>
+                                <input type="number" id="autoseguroPercentage" class="form-input" value="0.72" readonly step="0.001">
+                            </div>
+                        </div>
+
+                        <!-- Columna 2: Aporte Patrimonial -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-slate-800 border-b border-slate-200 pb-2">
+                                Aporte Patrimonial
+                            </h3>
+
+                            <div>
+                                <label class="input-label">Porcentaje Aporte (%)</label>
+                                <select id="patrimonialPercentage" class="form-input">
+                                    <option value="2.75">2.75%</option>
+                                    <option value="2.25">2.25%</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="input-label mb-3">Tipo de Financiamiento</label>
+                                <div class="space-y-2">
+                                    <label class="radio-option">
+                                        <input type="radio" name="financingType" value="discount" checked>
+                                        <span class="text-sm">Descontar del crédito</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="financingType" value="finance">
+                                        <span class="text-sm">Financiar aporte</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3 pt-4">
+                                <button id="generateBtn" class="btn-generate">
+                                    <i class="fas fa-calculator"></i>
+                                    Generar Cálculos
+                                </button>
+                                <button id="clearBtn" class="btn-clear">
+                                    <i class="fas fa-trash-alt mr-2"></i>
+                                    Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Resultados -->
+        <div id="resultsSection" class="hidden grid lg:grid-cols-2 gap-6 mb-8">
+            <!-- Resumen del Crédito -->
+            <div class="card p-6">
+                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-file-invoice-dollar text-blue-500"></i>
+                    Resumen del Crédito
+                </h3>
+
+                <div class="space-y-1">
+                    <div class="result-row">
+                        <span class="text-slate-600">Producto de Crédito:</span>
+                        <span id="summaryProductName" class="font-semibold text-slate-800">-</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="text-slate-600">Monto Neto Solicitado:</span>
+                        <span id="summaryNetAmount" class="font-semibold">$0.00</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="text-slate-600">Aporte Patrimonial:</span>
+                        <span id="summaryPatrimonialAmount" class="font-semibold">$0.00</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="text-slate-600">Monto Total del Crédito:</span>
+                        <span id="summaryTotalCredit" class="font-bold text-orange-600 text-lg">$0.00</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="text-slate-600">Desembolso Neto:</span>
+                        <span id="summaryNetDisbursement" class="font-bold text-green-600 text-lg">$0.00</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="text-slate-600">Cuota Mensual:</span>
+                        <span id="summaryBasePayment" class="font-bold text-blue-600 text-lg">$0.00</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="text-slate-600">SOLCA (al desembolso):</span>
+                        <span id="summarySolcaAmount" class="font-semibold text-slate-600">$0.00</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="text-slate-600">Autoseguro (al desembolso):</span>
+                        <span id="summaryAutoseguroAmount" class="font-semibold text-slate-600">$0.00</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="text-slate-600">Total a Pagar (en cuotas):</span>
+                        <span id="summaryTotalToPay" class="font-semibold">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="card p-6">
+                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-info-circle text-blue-500"></i>
+                    Información Adicional
+                </h3>
+
+                <div class="bg-blue-50 p-4 rounded-xl mb-4">
+                    <p class="text-sm text-blue-800">
+                        <strong>Tipo de Financiamiento:</strong>
+                        <span id="financingTypeDisplay">Descuento del crédito</span>
+                    </p>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-600">Tasa Mensual:</span>
+                        <span id="monthlyRateDisplay" class="font-medium">0.00%</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-600">Total SOLCA:</span>
+                        <span id="totalSolcaDisplay" class="font-medium">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-600">Total Autoseguro:</span>
+                        <span id="totalAutoseguroDisplay" class="font-medium">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-600">Total Intereses:</span>
+                        <span id="totalInterestDisplay" class="font-medium">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-600">Plazo:</span>
+                        <span id="termDisplay" class="font-medium">0 meses</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Amortización -->
+        <div id="amortizationSection" class="hidden card p-6">
+            <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-table text-blue-500"></i>
+                Tabla de Amortización
+            </h3>
+
+            <div class="table-container">
+                <table class="amortization-table">
+                    <thead>
+                        <tr id="amortizationTableHeader">
+                            <th>Cuota</th>
+                            <th>Fecha Pago</th>
+                            <th>Saldo Inicial</th>
+                            <th>Cuota Base</th>
+                            <th>Interés</th>
+                            <th>Capital</th>
+                            <th>SOLCA</th>
+                            <th>Autoseguro</th>
+                            <th>Cuota Total</th>
+                            <th>Saldo Final</th>
+                        </tr>
+                    </thead>
+                    <tbody id="amortizationTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="../../shared/config.js"></script>
+    <script src="../../shared/auth.js"></script>
+    <script>
+        let protectedPage = null;
+
+        // Funciones para gestionar el loading screen
+        const loaderStartTime = Date.now();
+        const MIN_LOADER_TIME = 1200;
+        
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                const elapsed = Date.now() - loaderStartTime;
+                const remainingTime = Math.max(0, MIN_LOADER_TIME - elapsed);
+                
+                setTimeout(() => {
+                    loadingScreen.classList.add('fade-out');
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 300);
+                }, remainingTime);
+            }
+        }
+
+        // Verificar sesión
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof TupakAuth === 'undefined' || typeof TupakAuth.initializeProtectedPage !== 'function') {
+                window.location.href = '../login.html';
+                return;
+            }
+
+            protectedPage = TupakAuth.initializeProtectedPage({
+                redirectOnFailure: false,
+                onSession: setupUserInfo,
+                onInvalid: handleSessionExpired
+            });
+
+            const isReady = await protectedPage.start();
+            if (!isReady) {
+                return;
+            }
+
+            // Cargar valores cacheados
+            loadCachedValues();
+
+            // Ocultar loader
+            hideLoadingScreen();
+        });
+
+        function setupUserInfo(userData) {
+            const nameEl = document.getElementById('user-name');
+            const avatarEl = document.getElementById('user-avatar');
+            const roleEl = document.getElementById('user-role');
+            
+            const userName = userData.name || userData.nombre || 'Usuario';
+            
+            if (nameEl) nameEl.textContent = userName;
+            if (avatarEl) avatarEl.textContent = userName.charAt(0).toUpperCase();
+
+            // Renderizar Rol Filtrado (Solo ADMIN o ASESOR)
+            if (roleEl && userData.rol) {
+                const roles = userData.rol.split(',').map(r => r.trim().toUpperCase());
+                const filtered = roles.filter(r => r === 'ASESOR' || r === 'ADMIN').join(', ');
+                roleEl.textContent = filtered;
+            }
+        }
+
+        function handleSessionExpired() {
+            alert('Sesión expirada. Será redirigido al login.');
+            if (typeof TupakAuth !== 'undefined') {
+                TupakAuth.logout();
+                return;
+            }
+            window.location.href = '../login.html';
+        }
+
+        // --- Referencias DOM ---
+        const netAmountInput = document.getElementById('netAmount');
+        const creditProductInput = document.getElementById('creditProduct');
+        const termMonthsInput = document.getElementById('termMonths');
+        const patrimonialPercentageInput = document.getElementById('patrimonialPercentage');
+        const solcaPercentageInput = document.getElementById('solcaPercentage');
+        const autoseguroPercentageInput = document.getElementById('autoseguroPercentage');
+        const generateBtn = document.getElementById('generateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const amortizationSection = document.getElementById('amortizationSection');
+
+        // Elementos de resumen
+        const summaryProductName = document.getElementById('summaryProductName');
+        const summaryNetAmount = document.getElementById('summaryNetAmount');
+        const summaryPatrimonialAmount = document.getElementById('summaryPatrimonialAmount');
+        const summaryTotalCredit = document.getElementById('summaryTotalCredit');
+        const summaryNetDisbursement = document.getElementById('summaryNetDisbursement');
+        const summaryBasePayment = document.getElementById('summaryBasePayment');
+        const summarySolcaAmount = document.getElementById('summarySolcaAmount');
+        const summaryAutoseguroAmount = document.getElementById('summaryAutoseguroAmount');
+        const summaryTotalToPay = document.getElementById('summaryTotalToPay');
+        const financingTypeDisplay = document.getElementById('financingTypeDisplay');
+        const monthlyRateDisplay = document.getElementById('monthlyRateDisplay');
+        const totalSolcaDisplay = document.getElementById('totalSolcaDisplay');
+        const totalAutoseguroDisplay = document.getElementById('totalAutoseguroDisplay');
+        const totalInterestDisplay = document.getElementById('totalInterestDisplay');
+        const termDisplay = document.getElementById('termDisplay');
+        const amortizationTableBody = document.getElementById('amortizationTableBody');
+        const amortizationTableHeader = document.getElementById('amortizationTableHeader');
+
+        // --- Utilidades ---
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        function formatPercentage(rate) {
+            return (rate * 100).toFixed(2) + '%';
+        }
+
+        // --- Calcular fecha primer pago ---
+        function calculateFirstPaymentDate(paymentDay) {
+            const today = new Date();
+            const currentDay = today.getDate();
+            const selectedDay = parseInt(paymentDay);
+
+            let targetMonth = today.getMonth();
+            let targetYear = today.getFullYear();
+
+            if (selectedDay < currentDay) {
+                const daysBack = currentDay - selectedDay;
+                if (daysBack > 7) {
+                    targetMonth += 2;
+                } else {
+                    targetMonth += 1;
+                }
+            } else {
+                targetMonth += 1;
+            }
+
+            while (targetMonth > 11) {
+                targetMonth -= 12;
+                targetYear++;
+            }
+
+            let firstPaymentDate = new Date(targetYear, targetMonth, selectedDay);
+
+            if (firstPaymentDate.getMonth() !== targetMonth) {
+                firstPaymentDate = new Date(targetYear, targetMonth + 1, 0);
+            }
+
+            return firstPaymentDate;
+        }
+
+        // --- Función principal de cálculo ---
+        function calculateLoan() {
+            const netAmount = parseFloat(netAmountInput.value) || 0;
+            const annualRate = parseFloat(creditProductInput.value) || 0;
+            const termMonths = parseInt(termMonthsInput.value) || 0;
+            const patrimonialPercentage = parseFloat(patrimonialPercentageInput.value) || 0;
+            const solcaPercentage = parseFloat(solcaPercentageInput.value) || 0;
+            const autoseguroPercentage = parseFloat(autoseguroPercentageInput.value) || 0;
+            const paymentDay = new Date().getDate();
+
+            const financingType = document.querySelector('input[name="financingType"]:checked').value;
+
+            // Validar
+            if (netAmount <= 0 || annualRate <= 0 || termMonths <= 0) {
+                alert('Por favor, ingrese valores válidos para todos los campos.');
+                return;
+            }
+
+            if (patrimonialPercentage < 0 || patrimonialPercentage >= 100) {
+                alert('El porcentaje del aporte patrimonial debe estar entre 0 y 99.99%');
+                return;
+            }
+
+            const firstPaymentDate = calculateFirstPaymentDate(paymentDay);
+            const today = new Date();
+
+            const lastPaymentDate = new Date(firstPaymentDate);
+            lastPaymentDate.setMonth(lastPaymentDate.getMonth() + termMonths - 1);
+            const totalDays = Math.ceil((lastPaymentDate - today) / (1000 * 60 * 60 * 24));
+
+            const standardDays = termMonths * 30;
+            const durationFactor = totalDays / standardDays;
+
+            const baseMonthlyRate = annualRate / 100 / 12;
+            const adjustedMonthlyRate = baseMonthlyRate * durationFactor;
+
+            let totalCredit, netDisbursement, patrimonialAmount;
+
+            if (financingType === 'finance') {
+                totalCredit = netAmount / (1 - patrimonialPercentage / 100);
+                patrimonialAmount = totalCredit * (patrimonialPercentage / 100);
+                netDisbursement = netAmount;
+            } else {
+                totalCredit = netAmount;
+                patrimonialAmount = totalCredit * (patrimonialPercentage / 100);
+                netDisbursement = totalCredit - patrimonialAmount;
+            }
+
+            const totalSolca = totalCredit * (solcaPercentage / 100);
+            const totalAutoseguro = totalCredit * (autoseguroPercentage / 100);
+
+            netDisbursement = netDisbursement - totalSolca - totalAutoseguro;
+
+            const baseMonthlyPayment = totalCredit * (adjustedMonthlyRate * Math.pow(1 + adjustedMonthlyRate, termMonths)) /
+                (Math.pow(1 + adjustedMonthlyRate, termMonths) - 1);
+
+            const totalMonthlyPayment = baseMonthlyPayment;
+
+            const baseTotalToPay = baseMonthlyPayment * termMonths;
+            const grandTotalToPay = totalMonthlyPayment * termMonths;
+            const totalInterest = baseTotalToPay - totalCredit;
+
+            const selectedOption = creditProductInput.options[creditProductInput.selectedIndex];
+            const productName = selectedOption.textContent;
+
+            // Actualizar resumen
+            summaryProductName.textContent = productName;
+            summaryNetAmount.textContent = formatCurrency(netAmount);
+            summaryPatrimonialAmount.textContent = formatCurrency(patrimonialAmount);
+            summaryTotalCredit.textContent = formatCurrency(totalCredit);
+            summaryNetDisbursement.textContent = formatCurrency(netDisbursement);
+            summaryBasePayment.textContent = formatCurrency(baseMonthlyPayment);
+            summarySolcaAmount.textContent = formatCurrency(totalSolca);
+            summaryAutoseguroAmount.textContent = formatCurrency(totalAutoseguro);
+            summaryTotalToPay.textContent = formatCurrency(grandTotalToPay);
+
+            financingTypeDisplay.textContent = financingType === 'finance' ?
+                'Financiamiento del aporte' : 'Descuento del crédito';
+            monthlyRateDisplay.textContent = formatPercentage(adjustedMonthlyRate);
+            totalSolcaDisplay.textContent = formatCurrency(totalSolca);
+            totalAutoseguroDisplay.textContent = formatCurrency(totalAutoseguro);
+            totalInterestDisplay.textContent = formatCurrency(totalInterest);
+            termDisplay.textContent = `${termMonths} meses`;
+
+            // Generar tabla de amortización
+            generateAmortizationTable(totalCredit, adjustedMonthlyRate, termMonths, baseMonthlyPayment, totalSolca, totalAutoseguro, firstPaymentDate);
+
+            // Mostrar resultados
+            resultsSection.classList.remove('hidden');
+            amortizationSection.classList.remove('hidden');
+
+            // Scroll a resultados
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+            // Auto guardar valores
+            autoCacheCurrentValues();
+        }
+
+        // --- Generar tabla de amortización ---
+        function generateAmortizationTable(principal, monthlyRate, termMonths, baseMonthlyPayment, totalSolca, totalAutoseguro, firstPaymentDate = null) {
+            let balance = principal;
+            let tableHTML = '';
+
+            const hasPaymentDate = firstPaymentDate !== null;
+            let headerHTML = `
+                <th>Cuota</th>
+                ${hasPaymentDate ? '<th>Fecha Pago</th>' : ''}
+                <th>Saldo Inicial</th>
+                <th>Cuota Base</th>
+                <th>Interés</th>
+                <th>Capital</th>
+                <th>SOLCA</th>
+                <th>Autoseguro</th>
+                <th>Cuota Total</th>
+                <th>Saldo Final</th>
+            `;
+            amortizationTableHeader.innerHTML = headerHTML;
+
+            let currentPaymentDate = firstPaymentDate ? new Date(firstPaymentDate) : null;
+
+            for (let month = 1; month <= termMonths; month++) {
+                const interestPayment = balance * monthlyRate;
+                const principalPayment = baseMonthlyPayment - interestPayment;
+                const newBalance = balance - principalPayment;
+
+                const finalPrincipalPayment = month === termMonths ? balance : principalPayment;
+                const finalBalance = month === termMonths ? 0 : newBalance;
+                const finalInterestPayment = month === termMonths ? balance * monthlyRate : interestPayment;
+                const finalTotalPayment = finalInterestPayment + finalPrincipalPayment;
+
+                let paymentDateStr = '';
+                if (currentPaymentDate) {
+                    const day = String(currentPaymentDate.getDate()).padStart(2, '0');
+                    const monthNum = String(currentPaymentDate.getMonth() + 1).padStart(2, '0');
+                    const year = currentPaymentDate.getFullYear();
+                    paymentDateStr = `${day}-${monthNum}-${year}`;
+
+                    currentPaymentDate.setMonth(currentPaymentDate.getMonth() + 1);
+                }
+
+                tableHTML += `
+                    <tr>
+                        <td class="font-semibold text-slate-700">${month}</td>
+                        ${paymentDateStr ? `<td class="text-slate-600">${paymentDateStr}</td>` : ''}
+                        <td>${formatCurrency(balance)}</td>
+                        <td class="font-medium">${formatCurrency(finalTotalPayment)}</td>
+                        <td class="text-red-600">${formatCurrency(finalInterestPayment)}</td>
+                        <td class="text-green-600">${formatCurrency(finalPrincipalPayment)}</td>
+                        <td class="text-purple-600">$0.00</td>
+                        <td class="text-indigo-600">$0.00</td>
+                        <td class="font-bold text-orange-600">${formatCurrency(finalTotalPayment)}</td>
+                        <td>${formatCurrency(finalBalance)}</td>
+                    </tr>
+                `;
+
+                balance = finalBalance;
+            }
+
+            amortizationTableBody.innerHTML = tableHTML;
+        }
+
+        // --- Cache automático ---
+        function autoCacheCurrentValues() {
+            const formData = {
+                netAmount: netAmountInput.value,
+                creditProduct: creditProductInput.value,
+                termMonths: termMonthsInput.value,
+                patrimonialPercentage: patrimonialPercentageInput.value,
+                financingType: document.querySelector('input[name="financingType"]:checked').value
+            };
+
+            localStorage.setItem('calculatorCache', JSON.stringify(formData));
+        }
+
+        function loadCachedValues() {
+            const cached = localStorage.getItem('calculatorCache');
+            if (cached) {
+                const formData = JSON.parse(cached);
+
+                netAmountInput.value = formData.netAmount || '';
+                creditProductInput.value = formData.creditProduct || '26';
+                termMonthsInput.value = formData.termMonths || '';
+                patrimonialPercentageInput.value = formData.patrimonialPercentage || '2.75';
+
+                const financingRadio = document.querySelector(`input[name="financingType"][value="${formData.financingType || 'discount'}"]`);
+                if (financingRadio) {
+                    financingRadio.checked = true;
+                }
+            }
+        }
+
+        function clearForm() {
+            netAmountInput.value = '';
+            creditProductInput.value = '26';
+            termMonthsInput.value = '';
+            patrimonialPercentageInput.value = '2.75';
+            solcaPercentageInput.value = '0.05';
+            autoseguroPercentageInput.value = '0.72';
+
+            document.querySelector('input[name="financingType"][value="discount"]').checked = true;
+
+            resultsSection.classList.add('hidden');
+            amortizationSection.classList.add('hidden');
+
+            localStorage.removeItem('calculatorCache');
+        }
+
+        // --- Event Listeners ---
+        generateBtn.addEventListener('click', calculateLoan);
+        clearBtn.addEventListener('click', clearForm);
+
+        // Guardar automáticamente al cambiar valores
+        [netAmountInput, creditProductInput, termMonthsInput, patrimonialPercentageInput].forEach(input => {
+            input.addEventListener('change', autoCacheCurrentValues);
+        });
+
+        document.querySelectorAll('input[name="financingType"]').forEach(radio => {
+            radio.addEventListener('change', autoCacheCurrentValues);
+        });
+    </script>
+</body>
+
+</html>
+

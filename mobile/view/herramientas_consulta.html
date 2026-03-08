@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Herramientas de Consulta</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="../css/mobile-styles.css">
+    <link rel="stylesheet" href="../css/mobile-herramientas-consulta.css">
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Verificando sesión...</div>
+            <div class="loading-brand">Herramientas de Consulta</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="mobile-header">
+        <div class="header-content header-grid">
+            <button class="back-button" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="header-center">
+                <h1 class="header-title" style="padding-bottom: 0.35rem; border-bottom: 1px solid rgba(0,23,73,0.15); margin-bottom: 0.4rem;">Herramientas de Consulta</h1>
+                <p class="header-subtitle" style="display: flex; flex-direction: column; align-items: center;">
+                    <span id="user-name" class="user-capsule name">Usuario</span>
+                    <span id="user-role" style="display: inline-block; font-size: 8px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd; margin-top: 4px;"></span>
+                </p>
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div id="tools-list" class="tools-list">
+            <!-- Las tarjetas se generan dinámicamente -->
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <!-- Script -->
+    <script src="../../shared/auth.js"></script>
+    <script src="../js/mobile-herramientas-consulta.js"></script>
+</body>
+</html>
+

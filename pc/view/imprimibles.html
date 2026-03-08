@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imprimibles - Centro de Herramientas</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="../../shared/img/logo.webp" type="image/png">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="../css/imprimibles.css">
+</head>
+
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: flex;">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Abriendo Imprimibles...</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="main-header no-print">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Herramientas</span>
+                </a>
+                <div class="header-divider"></div>
+                <img src="../../shared/img/logo.webp" alt="Logo" class="header-logo">
+                <div class="header-info">
+                    <h1>Imprimibles</h1>
+                    <p>Generador de documentos para imprimir</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-badge">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info-text">
+                        <span class="user-name" id="user-name">Usuario</span>
+                        <div class="mt-1">
+                            <span class="user-role" id="user-role" style="display: inline-block; font-size: 9px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Tabs Container -->
+            <div class="tabs-container no-print">
+                <div class="tabs-header">
+                    <button class="tab-button active" data-tab="acta">
+                        <i class="fas fa-file-signature"></i>
+                        <span>Generador de Acta</span>
+                    </button>
+                    <button class="tab-button" data-tab="comprobante">
+                        <i class="fas fa-print"></i>
+                        <span>Impresión de Comprobante</span>
+                    </button>
+                    <button class="tab-button" data-tab="caratulas">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Carátulas</span>
+                    </button>
+                    <button class="tab-button" data-tab="solicitud">
+                        <i class="fas fa-file-contract"></i>
+                        <span>Solicitud de Crédito</span>
+                    </button>
+                </div>
+
+                <!-- Tab: Generador de Acta -->
+                <div id="tab-acta" class="tab-content active">
+                    <div class="acta-lock-overlay no-print" id="acta-lock-overlay" aria-hidden="true">
+                        <div class="acta-lock-card">
+                            <div class="acta-lock-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <div class="acta-lock-title">DATOS INVALIDOS PARA CREAR NUEVAS ACTAS</div>
+                            <div class="acta-lock-text">El formulario de actas esta bloqueado temporalmente. El resto de Imprimibles sigue funcionando con normalidad.</div>
+                        </div>
+                    </div>
+                    <div class="form-card">
+                        <form id="acta-form" class="form-grid">
+                            <!-- Datos del Cliente -->
+                            <div class="form-section">
+                                <h3><i class="fas fa-user"></i> Datos del Cliente</h3>
+                                
+                                <div class="form-group">
+                                    <label for="identificacion">Cédula de Identidad</label>
+                                    <div class="input-with-icon">
+                                        <input type="text" id="identificacion" placeholder="1727652107" maxlength="10" required>
+                                        <span id="cedula-search-icon" class="input-icon hidden">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                        </span>
+                                    </div>
+                                    <small class="input-hint">Ingresa la cédula y presiona Enter o Tab para buscar</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="nombreCompleto">Nombre Completo</label>
+                                    <div class="input-with-status">
+                                        <input type="text" id="nombreCompleto" placeholder="Se autocompletará al buscar cédula..." required>
+                                        <span id="nombre-status" class="status-badge hidden"></span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="telefono">Teléfono</label>
+                                    <input type="tel" id="telefono" placeholder="0962543428" required>
+                                </div>
+                            </div>
+
+                            <!-- Detalles del Crédito -->
+                            <div class="form-section">
+                                <h3><i class="fas fa-credit-card"></i> Detalles del Crédito</h3>
+                                
+                                <div class="form-group">
+                                    <label for="montoAprobado">Monto Aprobado (USD)</label>
+                                    <input type="number" id="montoAprobado" step="0.01" placeholder="2000" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="tasaInteres">Tasa de Interés (anual %)</label>
+                                    <input type="number" id="tasaInteres" step="0.01" value="26" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="plazoPago">Plazo de Pago (meses)</label>
+                                    <input type="number" id="plazoPago" placeholder="12" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="formaPago">Forma de Pago</label>
+                                    <select id="formaPago" required>
+                                        <option value="Mensual" selected>Mensual</option>
+                                        <option value="Quincenal">Quincenal</option>
+                                        <option value="Semanal">Semanal</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="destinoCredito">Destino del Crédito</label>
+                                    <select id="destinoCredito" required>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="Capital de trabajo">Capital de trabajo</option>
+                                        <option value="Consumo">Consumo</option>
+                                        <option value="Vivienda">Vivienda</option>
+                                        <option value="Educación">Educación</option>
+                                        <option value="Emergencia médica">Emergencia médica</option>
+                                        <option value="Otros">Otros</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="observaciones">Observaciones</label>
+                                    <textarea id="observaciones" rows="2" placeholder="El crédito es viable post verificación"></textarea>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="fechaActaForm">Fecha del Acta</label>
+                                        <input type="date" id="fechaActaForm" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="horaActaForm">Hora del Acta</label>
+                                        <input type="time" id="horaActaForm" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="form-actions">
+                                <button type="button" onclick="generarActa()" class="btn btn-primary">
+                                    <i class="fas fa-file-alt"></i>
+                                    Generar Acta
+                                </button>
+                                <button type="button" onclick="imprimirActa()" class="btn btn-success" id="btn-imprimir">
+                                    <i class="fas fa-print"></i>
+                                    Imprimir
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i>
+                                    Limpiar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tab: Impresión de Comprobante -->
+                <div id="tab-comprobante" class="tab-content">
+                    <div class="upload-section">
+                        <i class="fas fa-print upload-icon"></i>
+                        <h2>Impresión Rápida de Comprobante</h2>
+                        <p>Arrastra tu comprobante o haz clic para seleccionarlo</p>
+                        
+                        <div id="upload-area" class="upload-area">
+                            <input type="file" id="file-input" class="hidden" accept="image/*" style="display: none;">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Haz clic aquí o arrastra tu comprobante</p>
+                            <p>Formatos soportados: JPG, PNG, GIF, WebP</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Carátulas -->
+                <div id="tab-caratulas" class="tab-content">
+                    <div class="caratulas-header">
+                        <div class="caratulas-title">
+                            <h2>Carátulas para expedientes</h2>
+                            <p>Diseños en formato A4 listos para imprimir y clasificar los expedientes crediticios.</p>
+                        </div>
+                        <div class="caratulas-info">
+                            <p><strong>Descarga automática:</strong> Al presionar Descargar obtendrás el archivo directo de Google Drive sin abrir pestañas adicionales.</p>
+                        </div>
+                    </div>
+
+                    <div class="caratulas-grid">
+                        <!-- Carátula 1 -->
+                        <article class="caratula-card">
+                            <div class="caratula-preview">
+                                <img src="https://lh3.googleusercontent.com/d/1Jnsfjz8QplHzUoAW3TRsQCl7wG5kp5FJ=w2048" alt="Carátula Información Personal">
+                                <div class="caratula-overlay">Información Personal</div>
+                            </div>
+                            <div class="caratula-body">
+                                <h3>Información Personal</h3>
+                                <p>Portada para la sección de datos generales y documentos de identidad.</p>
+                                <div class="caratula-actions">
+                                    <button class="caratula-download" onclick="downloadCaratula('1hK7jpJfuO8oKpvAie7KnBxRY8AM6EUS1', 'Caratula - Informacion Personal.pdf', this)">
+                                        <i class="fas fa-download"></i> Descargar
+                                    </button>
+                                    <a href="https://lh3.googleusercontent.com/d/1Jnsfjz8QplHzUoAW3TRsQCl7wG5kp5FJ=w2048" target="_blank" rel="noopener" class="caratula-view">
+                                        <i class="fas fa-eye"></i> Ver vista previa
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- Carátula 2 -->
+                        <article class="caratula-card">
+                            <div class="caratula-preview">
+                                <img src="https://lh3.googleusercontent.com/d/1-HgN4hDsbSoDVt0rLWjhZ8JDSCWx1H9I=w2048" alt="Carátula Información de Consulta">
+                                <div class="caratula-overlay">Información de Consulta</div>
+                            </div>
+                            <div class="caratula-body">
+                                <h3>Información de Consulta</h3>
+                                <p>Ideal para anexar reportes del buró, consultas judiciales y demás verificaciones.</p>
+                                <div class="caratula-actions">
+                                    <button class="caratula-download" onclick="downloadCaratula('1Dd5GGjUkITOOKv1nT1qDwjni7bc-3qTS', 'Caratula - Informacion de Consulta.pdf', this)">
+                                        <i class="fas fa-download"></i> Descargar
+                                    </button>
+                                    <a href="https://lh3.googleusercontent.com/d/1-HgN4hDsbSoDVt0rLWjhZ8JDSCWx1H9I=w2048" target="_blank" rel="noopener" class="caratula-view">
+                                        <i class="fas fa-eye"></i> Ver vista previa
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- Carátula 3 -->
+                        <article class="caratula-card">
+                            <div class="caratula-preview">
+                                <img src="https://lh3.googleusercontent.com/d/11AMlscze4653YF-4i01gQelbV1PhtF04=w2048" alt="Carátula Información Económica">
+                                <div class="caratula-overlay">Información Económica</div>
+                            </div>
+                            <div class="caratula-body">
+                                <h3>Información Económica</h3>
+                                <p>Perfecta para resguardar balances, flujos de caja y respaldos contables.</p>
+                                <div class="caratula-actions">
+                                    <button class="caratula-download" onclick="downloadCaratula('1pvgoootzAKuO1A7Z-G1KcSAbH1XfHpBN', 'Caratula - Informacion Economica.pdf', this)">
+                                        <i class="fas fa-download"></i> Descargar
+                                    </button>
+                                    <a href="https://lh3.googleusercontent.com/d/11AMlscze4653YF-4i01gQelbV1PhtF04=w2048" target="_blank" rel="noopener" class="caratula-view">
+                                        <i class="fas fa-eye"></i> Ver vista previa
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- Carátula 4 -->
+                        <article class="caratula-card">
+                            <div class="caratula-preview">
+                                <img src="https://lh3.googleusercontent.com/d/1XK1GZsNeitG5kH1W24VNabgeGHQQH3TD=w2048" alt="Carátula Anexos">
+                                <div class="caratula-overlay">Anexos</div>
+                            </div>
+                            <div class="caratula-body">
+                                <h3>Anexos y respaldos</h3>
+                                <p>Organiza documentación adicional, contratos y soportes complementarios.</p>
+                                <div class="caratula-actions">
+                                    <button class="caratula-download" onclick="downloadCaratula('1ZkXRLyUAW1cRmh1AOnu2Ax8hPGxw7PCQ', 'Caratula - Anexos.pdf', this)">
+                                        <i class="fas fa-download"></i> Descargar
+                                    </button>
+                                    <a href="https://lh3.googleusercontent.com/d/1XK1GZsNeitG5kH1W24VNabgeGHQQH3TD=w2048" target="_blank" rel="noopener" class="caratula-view">
+                                        <i class="fas fa-eye"></i> Ver vista previa
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <!-- Tab: Solicitud de Crédito -->
+                <div id="tab-solicitud" class="tab-content">
+                    <div class="solicitud-section">
+                        <i class="fas fa-file-contract solicitud-icon"></i>
+                        <h2>Solicitud de Crédito</h2>
+                        <p>Haz clic en el botón para abrir e imprimir el formulario de solicitud de crédito</p>
+                        
+                        <button onclick="abrirSolicitudCredito()" class="btn-solicitud">
+                            <i class="fas fa-print"></i>
+                            <span>Imprimir Solicitud de Crédito</span>
+                        </button>
+
+                        <p class="solicitud-note">
+                            <i class="fas fa-info-circle"></i>
+                            Se abrirá una nueva ventana con el formulario listo para imprimir
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview del Acta -->
+            <div id="acta-preview" class="acta-preview-container">
+                <div class="print-area">
+                    <div class="acta-styles">
+                        <div class="sheet">
+                            <div class="frame">
+                                <header class="acta-header">
+                                    <img class="acta-logo" alt="Logo Tupak Rantina" src="../../shared/img/logo.webp" />
+                                    <div class="brand-block">
+                                        <div class="brand-title">CAJA DE AHORRO Y CRÉDITO TUPAK RANTINA</div>
+                                        <div class="brand-sub">Acta oficial de aprobación de crédito</div>
+                                    </div>
+                                </header>
+
+                                <div class="doc-title">ACTA DE APROBACIÓN DE CRÉDITO</div>
+                                <div class="doc-meta">
+                                    <div><strong>N.º de Acta:</strong> <span id="numeroActa">000001</span></div>
+                                    <div><strong>N.º de Sesión:</strong> <span id="numeroSesion">001</span></div>
+                                    <div><strong>Fecha:</strong> <span id="fechaActa">____ / ____ / ______</span></div>
+                                    <div><strong>Lugar:</strong> Machachi – Ecuador</div>
+                                </div>
+
+                                <h3 class="acta-section-title">1. Datos del Cliente</h3>
+                                <section class="acta-card">
+                                    <div class="acta-grid">
+                                        <div class="acta-field">
+                                            <div class="acta-label">Nombre completo</div>
+                                            <div class="acta-value" id="preview-nombre">---</div>
+                                        </div>
+                                        <div class="acta-field">
+                                            <div class="acta-label">Identificación (C.I./RUC)</div>
+                                            <div class="acta-value" id="preview-identificacion">---</div>
+                                        </div>
+                                        <div class="acta-field">
+                                            <div class="acta-label">Teléfono</div>
+                                            <div class="acta-value" id="preview-telefono">---</div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <h3 class="acta-section-title">2. Detalles del Crédito</h3>
+                                <section class="acta-card">
+                                    <div class="acta-grid-3">
+                                        <div class="acta-field">
+                                            <div class="acta-label">Monto aprobado (USD)</div>
+                                            <div class="acta-value" id="preview-monto">---</div>
+                                        </div>
+                                        <div class="acta-field">
+                                            <div class="acta-label">Tasa de interés (anual)</div>
+                                            <div class="acta-value" id="preview-tasa">---</div>
+                                        </div>
+                                        <div class="acta-field">
+                                            <div class="acta-label">Plazo de pago (meses)</div>
+                                            <div class="acta-value" id="preview-plazo">---</div>
+                                        </div>
+                                    </div>
+                                    <div class="acta-grid" style="margin-top:10px;">
+                                        <div class="acta-field">
+                                            <div class="acta-label">Forma de pago</div>
+                                            <div class="acta-value" id="preview-forma">---</div>
+                                        </div>
+                                        <div class="acta-field">
+                                            <div class="acta-label">Destino del crédito</div>
+                                            <div class="acta-value" id="preview-destino">---</div>
+                                        </div>
+                                        <div class="acta-field" style="grid-column: 1 / -1;">
+                                            <div class="acta-label">Observaciones o condiciones específicas</div>
+                                            <div class="acta-value" id="preview-observaciones">---</div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <h3 class="acta-section-title">3. Condiciones y Requisitos Previos al Desembolso</h3>
+                                <section class="acta-card">
+                                    <ol class="conditions-list">
+                                        <li>Presentar documentación completa: cédula y papeleta de votación, planilla de servicios básicos, y demás soportes requeridos.</li>
+                                        <li>Cumplir con garantías, avales o co-deudores según el análisis crediticio.</li>
+                                        <li>Suscribir el contrato de crédito y pagar los gastos administrativos (si aplican).</li>
+                                        <li>No mantener moras u obligaciones pendientes con la Caja de Ahorro y Crédito Tupak Rantina al momento del desembolso.</li>
+                                        <li>Aceptar las políticas internas de evaluación, seguimiento y cobranza.</li>
+                                    </ol>
+                                </section>
+
+                                <h3 class="acta-section-title page-break">4. Reconocimiento</h3>
+                                <section class="acta-card">
+                                    <p style="font-size:12px; line-height:1.55; margin:0;">
+                                        En virtud del análisis realizado por el Comité de Crédito y conforme a las políticas y normativa interna vigente, se <strong>aprueba</strong> el crédito detallado en esta acta. El socio solicitante declara conocer y aceptar las condiciones establecidas, así como el cronograma de pagos correspondiente.
+                                    </p>
+                                </section>
+
+                                <h3 class="acta-section-title">5. Firmas de Aprobación</h3>
+                                <section class="signs-container">
+                                    <div class="sign-block">
+                                        <div class="sign-line"></div>
+                                        <div class="sign-name">Ing. Byron Ayala</div>
+                                        <div class="sign-role">Representante – Comité de Crédito</div>
+                                    </div>
+                                    <div class="sign-block">
+                                        <div class="sign-line"></div>
+                                        <div class="sign-name">Luis Pinta</div>
+                                        <div class="sign-role">Representante – Comité de Crédito</div>
+                                    </div>
+                                    <div class="sign-block">
+                                        <div class="sign-line"></div>
+                                        <div class="sign-name">Natalia Nishve</div>
+                                        <div class="sign-role">Representante – Comité de Crédito</div>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview del Comprobante -->
+            <div id="comprobante-preview" class="comprobante-preview">
+                <div class="a4-comprobante">
+                    <div class="comprobante-container">
+                        <img id="comprobante-image" src="" alt="Comprobante" class="comprobante-img">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Custom Alert Modal -->
+    <div id="customAlertOverlay" class="custom-modal-overlay">
+        <div class="custom-modal">
+            <div class="modal-header">
+                <div id="modalIcon" class="modal-icon info">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <h3 id="modalTitle" class="modal-title">Información</h3>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage"></p>
+            </div>
+            <div id="modalButtons" class="modal-actions">
+                <!-- Botones dinámicos -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- JavaScript -->
+    <script src="../../shared/auth.js"></script>
+    <script src="../js/imprimibles.js"></script>
+</body>
+
+</html>
+

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tickets - Tupak Rantina</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/mobile-styles.css">
+    <link rel="stylesheet" href="../css/mobile-tickets.css">
+</head>
+<body class="bg-slate-100">
+    <script>window.loaderStartTime = Date.now();</script>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Abriendo Tickets...</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header Mobile -->
+    <header class="mobile-header">
+        <div class="header-content header-grid">
+            <button class="back-button" onclick="window.location.href='../index.html'">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="header-center">
+                <h1 class="header-title" style="padding-bottom: 0.35rem; border-bottom: 1px solid rgba(0,23,73,0.15); margin-bottom: 0.4rem;">Soporte Técnico</h1>
+                <p class="header-subtitle" style="display: flex; flex-direction: column; align-items: center;">
+                    <span id="user-name" class="user-capsule name">Usuario</span>
+                    <span id="user-role" style="display: inline-block; font-size: 8px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd; margin-top: 4px;"></span>
+                </p>
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+    </header>
+
+    <main class="tickets-container">
+        
+        <!-- Step Indicator -->
+        <div class="step-indicator-wrapper">
+            <div class="m-step active" id="indicator-step1">
+                <div class="m-step-circle">1</div>
+                <span class="m-step-label">Problema</span>
+            </div>
+            <div class="m-step-line" id="indicator-line"></div>
+            <div class="m-step" id="indicator-step2">
+                <div class="m-step-circle">2</div>
+                <span class="m-step-label">Detalles</span>
+            </div>
+        </div>
+
+        <!-- Paso 1 -->
+        <div id="m-step1" class="mobile-card">
+            <div class="mobile-card-header">
+                <i class="fas fa-comment-medical"></i>
+                <div>
+                    <h2>Nuevo Requerimiento</h2>
+                    <p>Cuéntenos qué sucede con el sistema</p>
+                </div>
+            </div>
+            <div class="mobile-card-body">
+                <div class="m-form-group">
+                    <label class="m-label">¿Cuál es el problema?</label>
+                    <textarea id="m-input-problem" class="m-textarea" rows="8" placeholder="Escriba aquí los detalles..."></textarea>
+                </div>
+                <button id="m-btn-next" class="m-btn m-btn-primary">
+                    Continuar <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Paso 2 -->
+        <div id="m-step2" class="mobile-card hidden">
+            <div class="mobile-card-header">
+                <i class="fas fa-clipboard-list"></i>
+                <div>
+                    <h2>Información Extra</h2>
+                    <p>Complete estos datos para procesar el ticket</p>
+                </div>
+            </div>
+            <div class="mobile-card-body">
+                <div id="m-questions-container" class="mobile-markdown">
+                    <!-- Dinámico -->
+                </div>
+                <div class="flex gap-2 mt-6">
+                    <button onclick="mBackTo1()" class="m-btn m-btn-outline" style="flex: 1;">
+                        Atrás
+                    </button>
+                    <button id="m-btn-generate" class="m-btn m-btn-primary" style="flex: 2;">
+                        Generar Ticket
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultado -->
+        <div id="m-result-step" class="mobile-card hidden">
+            <div class="bg-green-600 p-4 flex items-center gap-3">
+                <i class="fas fa-check-circle text-white text-2xl"></i>
+                <div>
+                    <h2 class="text-white font-bold">¡Ticket Listo!</h2>
+                    <p class="text-green-100 text-xs">Copia el mensaje y súbelo a soporte</p>
+                </div>
+            </div>
+            <div class="mobile-card-body">
+                <div id="m-result-text" class="m-result-box mb-4"></div>
+                
+                <div id="m-sug-box" class="m-suggestion hidden mb-4">
+                    <p id="m-sug-text"></p>
+                </div>
+
+                <div class="space-y-3">
+                    <button onclick="mUpload()" class="m-btn m-btn-primary">
+                        <i class="fas fa-upload mr-2"></i>Súbir a Soporte
+                    </button>
+                    <button onclick="mCopy()" class="m-btn m-btn-outline">
+                        <i class="fas fa-copy mr-2"></i>Solo Copiar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="toast-mobile"></div>
+
+    <script src="../../shared/auth.js"></script>
+    <script src="../js/mobile-tickets.js"></script>
+</body>
+</html>
+

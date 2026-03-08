@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargar Comité - Tupak Rantina</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PDF-Lib para modificar metadatos -->
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+
+    <!-- PDF.js para compresión real -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- CSS externo -->
+    <link rel="stylesheet" href="../css/carga_comite.css">
+</head>
+
+<body class="bg-slate-100 min-h-screen">
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: flex;">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Abriendo Carga de Comité...</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header Fijo -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Herramientas</span>
+                </a>
+                <div class="header-divider"></div>
+                <img src="../../shared/img/logo.webp" alt="Logo" class="header-logo">
+                <div class="header-info">
+                    <h1>Cargar Comité</h1>
+                    <p>Sistema de Créditos</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-badge">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info-text">
+                        <span class="user-name" id="user-name">Usuario</span>
+                        <div class="mt-1">
+                            <span class="user-role" id="user-role" style="display: inline-block; font-size: 9px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="pt-20 pb-8 px-6">
+        <div class="max-w-[1600px] mx-auto">
+            <div class="grid grid-cols-12 gap-6">
+                
+                <!-- Panel Izquierdo: Formulario Principal -->
+                <div class="col-span-12 lg:col-span-8 xl:col-span-9">
+                    <form id="comiteForm" autocomplete="off" class="space-y-5">
+                        
+                        <!-- Sección: Información del Socio -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-icon bg-blue-500">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <h2 class="section-title">Información del Socio</h2>
+                                    <p class="section-subtitle">Datos personales del solicitante</p>
+                                </div>
+                            </div>
+                            <div class="section-content">
+                                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                                    <!-- Cédula -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-id-card"></i>
+                                            Cédula del Socio
+                                        </label>
+                                        <input type="text" id="cedula" required autocomplete="off"
+                                            class="form-input"
+                                            placeholder="1234567890">
+                                        <p class="form-hint">Ingrese para buscar automáticamente</p>
+                                    </div>
+
+                                    <!-- Nombre Completo -->
+                                    <div class="form-group xl:col-span-2">
+                                        <label class="form-label">
+                                            <i class="fas fa-user-circle"></i>
+                                            Nombre Completo
+                                        </label>
+                                        <input type="text" id="nombreCompleto" required autocomplete="off" disabled
+                                            class="form-input form-input-disabled uppercase"
+                                            placeholder="JUAN CARLOS PÉREZ GARCÍA">
+                                        <p class="form-hint">Mínimo 3 palabras (nombre y apellidos)</p>
+                                        <p id="nombreError" class="form-error hidden">Por favor ingrese al menos 3 palabras</p>
+                                    </div>
+
+                                    <!-- Fecha de Nacimiento -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-calendar-day"></i>
+                                            Día de Nacimiento
+                                        </label>
+                                        <select id="diaNacimiento" required autocomplete="off" class="form-select">
+                                            <option value="">Seleccionar día...</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-calendar-week"></i>
+                                            Mes de Nacimiento
+                                        </label>
+                                        <select id="mesNacimiento" required autocomplete="off" class="form-select">
+                                            <option value="">Seleccionar mes...</option>
+                                            <option value="01">ENERO</option>
+                                            <option value="02">FEBRERO</option>
+                                            <option value="03">MARZO</option>
+                                            <option value="04">ABRIL</option>
+                                            <option value="05">MAYO</option>
+                                            <option value="06">JUNIO</option>
+                                            <option value="07">JULIO</option>
+                                            <option value="08">AGOSTO</option>
+                                            <option value="09">SEPTIEMBRE</option>
+                                            <option value="10">OCTUBRE</option>
+                                            <option value="11">NOVIEMBRE</option>
+                                            <option value="12">DICIEMBRE</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            Año de Nacimiento
+                                        </label>
+                                        <select id="anioNacimiento" required autocomplete="off" class="form-select">
+                                            <option value="">Seleccionar año...</option>
+                                        </select>
+                                        <p class="form-hint">Debe ser mayor de 18 años</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección: Datos del Crédito -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-icon bg-emerald-500">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div>
+                                    <h2 class="section-title">Datos del Crédito</h2>
+                                    <p class="section-subtitle">Condiciones financieras del préstamo</p>
+                                </div>
+                            </div>
+                            <div class="section-content">
+                                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+                                    <!-- Monto -->
+                                    <div class="form-group xl:col-span-2">
+                                        <label class="form-label">
+                                            <i class="fas fa-money-bill-wave"></i>
+                                            Monto Solicitado
+                                        </label>
+                                        <div class="relative">
+                                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-teal-600 font-bold text-lg">$</span>
+                                            <input type="text" id="monto" required autocomplete="off"
+                                                class="form-input pl-9 text-xl font-bold text-emerald-600"
+                                                placeholder="0.00">
+                                        </div>
+                                        <p id="montoTexto" class="form-value-display"></p>
+                                    </div>
+
+                                    <!-- Plazo -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-clock"></i>
+                                            Plazo (meses)
+                                        </label>
+                                        <input type="number" id="plazo" required min="1" autocomplete="off"
+                                            class="form-input text-lg font-semibold"
+                                            placeholder="12">
+                                        <p id="plazoTexto" class="form-value-display"></p>
+                                    </div>
+
+                                    <!-- Tasa -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-percentage"></i>
+                                            Tasa de Interés
+                                        </label>
+                                        <select id="tasa" required autocomplete="off" class="form-select text-lg font-semibold">
+                                            <option value="">Seleccionar...</option>
+                                            <option value="26">26%</option>
+                                            <option value="24">24%</option>
+                                            <option value="23">23%</option>
+                                            <option value="19">19%</option>
+                                        </select>
+                                        <p id="tasaTexto" class="form-value-display"></p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+                                    <!-- Tipo de Crédito -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-tag"></i>
+                                            Tipo de Crédito
+                                        </label>
+                                        <input type="text" id="tipoCredito" required readonly autocomplete="off"
+                                            class="form-input form-input-readonly font-semibold"
+                                            value="" placeholder="Se asigna automáticamente con la tasa">
+                                    </div>
+
+                                    <!-- Destino -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-bullseye"></i>
+                                            Destino del Crédito
+                                        </label>
+                                        <select id="destino" required autocomplete="off" class="form-select">
+                                            <option value="">Seleccionar destino...</option>
+                                            <option value="CAPITAL DE TRABAJO" selected>CAPITAL DE TRABAJO</option>
+                                            <option value="CONSUMO">CONSUMO</option>
+                                            <option value="VIVIENDA">VIVIENDA</option>
+                                            <option value="EDUCACIÓN">EDUCACIÓN</option>
+                                            <option value="EMERGENCIA MÉDICA">EMERGENCIA MÉDICA</option>
+                                            <option value="OTROS">OTROS</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección: Documento -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <div class="section-icon bg-red-500">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div>
+                                    <h2 class="section-title">Documento del Comité</h2>
+                                    <p class="section-subtitle">Archivo PDF con la documentación</p>
+                                </div>
+                            </div>
+                            <div class="section-content">
+                                <div id="dropZone" class="drop-zone">
+                                    <input type="file" id="pdfFile" accept=".pdf,application/pdf" required autocomplete="off" class="hidden">
+                                    <div id="dropZoneContent" class="drop-zone-content">
+                                        <div class="drop-zone-icon">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </div>
+                                        <div class="drop-zone-text">
+                                            <p class="font-semibold text-slate-700">Arrastra y suelta tu archivo PDF aquí</p>
+                                            <p class="text-sm text-slate-500 mt-1">o <span class="text-teal-600 font-medium cursor-pointer hover:underline">haz clic para seleccionar</span></p>
+                                        </div>
+                                        <div class="drop-zone-hints">
+                                            <span><i class="fas fa-keyboard mr-1"></i>Ctrl+V para pegar</span>
+                                            <span><i class="fas fa-compress-alt mr-1"></i>Compresión automática +15MB</span>
+                                        </div>
+                                    </div>
+                                    <div id="fileInfo" class="file-info hidden">
+                                        <div class="file-icon">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </div>
+                                        <div class="file-details">
+                                            <p id="fileName" class="file-name"></p>
+                                            <p id="fileSize" class="file-size"></p>
+                                        </div>
+                                        <div id="compressionProgress" class="compression-progress hidden">
+                                            <div class="flex items-center gap-2 text-amber-600">
+                                                <i class="fas fa-cog fa-spin"></i>
+                                                <span class="font-medium">Procesando...</span>
+                                            </div>
+                                            <div class="progress-bar-bg">
+                                                <div id="progressBar" class="progress-bar"></div>
+                                            </div>
+                                        </div>
+                                        <button type="button" id="removeFile" class="remove-file-btn">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- Panel Derecho: Resumen y Acciones -->
+                <div class="col-span-12 lg:col-span-4 xl:col-span-3">
+                    <div class="lg:sticky lg:top-24 space-y-5">
+                        
+                        <!-- Card Resumen -->
+                        <div class="summary-card">
+                            <div class="summary-header">
+                                <i class="fas fa-clipboard-list"></i>
+                                <h3>Resumen del Comité</h3>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-row">
+                                    <span class="summary-label">Solicitante</span>
+                                    <span id="summaryNombre" class="summary-value">-</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Cédula</span>
+                                    <span id="summaryCedula" class="summary-value">-</span>
+                                </div>
+                                <div class="summary-divider"></div>
+                                <div class="summary-row summary-row-highlight">
+                                    <span class="summary-label">Monto</span>
+                                    <span id="summaryMonto" class="summary-value text-emerald-600 font-bold">$0.00</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Plazo</span>
+                                    <span id="summaryPlazo" class="summary-value">- meses</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Tasa</span>
+                                    <span id="summaryTasa" class="summary-value">- %</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Tipo</span>
+                                    <span id="summaryTipo" class="summary-value">-</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Destino</span>
+                                    <span id="summaryDestino" class="summary-value">-</span>
+                                </div>
+                                <div class="summary-divider"></div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Documento</span>
+                                    <span id="summaryDocumento" class="summary-value">
+                                        <i class="fas fa-times-circle text-red-400"></i> Sin archivo
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Checklist de Validación -->
+                        <div class="checklist-card">
+                            <div class="checklist-header">
+                                <i class="fas fa-tasks"></i>
+                                <h3>Validación</h3>
+                            </div>
+                            <div class="checklist-content">
+                                <div class="checklist-item" id="checkCedula">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Cédula ingresada</span>
+                                </div>
+                                <div class="checklist-item" id="checkNombre">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Nombre completo (3+ palabras)</span>
+                                </div>
+                                <div class="checklist-item" id="checkFecha">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Fecha de nacimiento</span>
+                                </div>
+                                <div class="checklist-item" id="checkMonto">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Monto válido</span>
+                                </div>
+                                <div class="checklist-item" id="checkPlazo">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Plazo definido</span>
+                                </div>
+                                <div class="checklist-item" id="checkTasa">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Tasa seleccionada</span>
+                                </div>
+                                <div class="checklist-item" id="checkDestino">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Destino seleccionado</span>
+                                </div>
+                                <div class="checklist-item" id="checkDocumento">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Documento PDF adjunto</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botón Enviar -->
+                        <button type="submit" form="comiteForm" id="submitBtn" disabled class="submit-btn">
+                            <div class="submit-btn-content">
+                                <i class="fas fa-paper-plane"></i>
+                                <span>Enviar al Comité</span>
+                            </div>
+                            <div class="submit-btn-loading hidden">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Enviando...</span>
+                            </div>
+                        </button>
+
+                        <!-- Mensaje de estado -->
+                        <div id="statusMessage" class="status-message hidden">
+                            <div class="status-content">
+                                <p></p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast" class="toast-container">
+        <p id="toastMessage"></p>
+    </div>
+
+    <!-- Modal de Advertencia de Plazo -->
+    <div id="plazoWarningModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-icon warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 class="modal-title">Advertencia de Plazo</h3>
+            <p class="modal-message">Por disposiciones actuales, un crédito con un plazo mayor a 12 meses podría ser rechazado a menos que se solicite una excepción o se tenga respaldo.</p>
+            <div class="modal-actions">
+                <button type="button" id="btnModificarPlazo" class="modal-btn modal-btn-secondary">
+                    <i class="fas fa-edit"></i>
+                    Modificar Plazo
+                </button>
+                <button type="button" id="btnContinuarPlazo" class="modal-btn modal-btn-primary">
+                    <i class="fas fa-check"></i>
+                    Entiendo, Continuar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript compartido y externo -->
+    <script src="../../shared/config.js"></script>
+    <script src="../../shared/auth.js"></script>
+    <script src="../js/carga_comite.js"></script>
+</body>
+
+</html>
+

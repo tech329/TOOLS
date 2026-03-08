@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Catastros Mejía</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="../css/mobile-styles.css">
+    <style>
+        :root {
+            --primary: #001749;
+            --secondary: #e48410;
+            --accent: #3787c6;
+            --blue: #015cd0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #1f2937;
+            padding-bottom: 80px;
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        #loading-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 45px;
+            height: 45px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .loading-brand {
+            color: white;
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+
+        .loading-footer {
+            position: absolute;
+            bottom: max(30px, env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.7;
+        }
+
+        .loading-footer span {
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .loading-footer img {
+            height: 18px;
+            filter: brightness(0) invert(1);
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            padding: 15px 20px;
+            padding-top: max(15px, env(safe-area-inset-top));
+            display: grid;
+            grid-template-columns: 40px 1fr 40px;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .btn-back {
+            background: rgba(20, 184, 166, 0.1);
+            border: none;
+            color: var(--primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:active {
+            transform: scale(0.95);
+            background: rgba(20, 184, 166, 0.2);
+        }
+
+        .header-center {
+            text-align: center;
+        }
+
+        .header-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+
+        .header-subtitle {
+            font-size: 0.75rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin: 0;
+        }
+
+        /* Capsulas de usuario */
+        .user-capsule {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .user-capsule.name {
+            background: rgba(34, 197, 94, 0.2);
+            color: #16a34a;
+        }
+
+        .user-capsule.email {
+            background: rgba(59, 130, 246, 0.2);
+            color: #2563eb;
+        }
+
+        .header-placeholder {
+            width: 40px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+        }
+
+        /* Card */
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            font-size: 18px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-input {
+            flex: 1;
+            padding: 14px 16px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            color: #1f2937;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: #fff;
+        }
+
+        .form-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .btn-search {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
+            border: none;
+            color: #fff;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-search:active {
+            transform: scale(0.95);
+        }
+
+        .btn-search:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Results */
+        .results-section {
+            margin-top: 20px;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .results-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .results-count {
+            font-size: 12px;
+            color: #64748b;
+            background: #e0f2fe;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .property-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .property-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .property-clave {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .property-body {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .property-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            font-size: 13px;
+        }
+
+        .property-label {
+            color: #64748b;
+            flex-shrink: 0;
+        }
+
+        .property-value {
+            color: #1f2937;
+            text-align: right;
+            word-break: break-word;
+            font-weight: 500;
+        }
+
+        .btn-download {
+            width: 100%;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 10px;
+            color: #22c55e;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-download:active {
+            transform: scale(0.98);
+            background: rgba(34, 197, 94, 0.3);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 50px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+            color: var(--accent);
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* Searching State */
+        .searching-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .searching-state i {
+            font-size: 40px;
+            color: var(--accent);
+            animation: spin 1s linear infinite;
+        }
+
+        .searching-state p {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: calc(100% - 40px);
+            max-width: 350px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toast.success {
+            background: rgba(34, 197, 94, 0.95);
+            color: #fff;
+        }
+
+        .toast.error {
+            background: rgba(239, 68, 68, 0.95);
+            color: #fff;
+        }
+
+        .toast.info {
+            background: rgba(59, 130, 246, 0.95);
+            color: #fff;
+        }
+
+        .toast.warning {
+            background: rgba(234, 179, 8, 0.95);
+            color: #000;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 10px;
+            padding: 5px 15px;
+            transition: color 0.3s;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+        }
+
+        .nav-item.active {
+            color: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Verificando sesión...</div>
+            <div class="loading-brand">Catastros Mejía</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <button class="btn-back" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="header-center">
+            <h1 class="header-title" style="padding-bottom: 0.35rem; border-bottom: 1px solid rgba(0,23,73,0.15); margin-bottom: 0.4rem;">Catastros Mejía</h1>
+            <p class="header-subtitle" style="display: flex; flex-direction: column; align-items: center;">
+                <span id="user-name" class="user-capsule name">Usuario</span>
+                <span id="user-role" style="display: inline-block; font-size: 8px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd; margin-top: 4px;"></span>
+            </p>
+        </div>
+        <div class="header-placeholder"></div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Search Card -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-search-location"></i>
+                Consulta de Predios
+            </h2>
+
+            <div class="form-group">
+                <label class="form-label">Cédula o RUC del Propietario</label>
+                <div class="input-group">
+                    <input type="text" 
+                           id="cedula" 
+                           class="form-input" 
+                           placeholder="Ingrese cédula o RUC"
+                           maxlength="13"
+                           inputmode="numeric"
+                           pattern="[0-9]*">
+                    <button class="btn-search" id="btn-search" onclick="buscarPredios()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="results-container">
+            <div class="empty-state">
+                <i class="fas fa-map-marked-alt"></i>
+                <p>Ingrese una cédula o RUC para consultar los predios registrados en el Cantón Mejía</p>
+            </div>
+        </div>
+    </main>
+
+    
+
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <script>
+        // API Catastros Mejía
+        const API_CATASTROS = 'https://servicios.municipiodemejia.gob.ec/planificacionTerritorial/rest/irm/buscarPredioPorCedula/';
+
+        let protectedPage = null;
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof TupakAuth === 'undefined' || typeof TupakAuth.initializeProtectedPage !== 'function') {
+                window.location.href = '../login.html';
+                return;
+            }
+
+            protectedPage = TupakAuth.initializeProtectedPage({
+                redirectOnFailure: false,
+                onSession: updateUserDisplay,
+                onInvalid: handleSessionExpired
+            });
+
+            const isReady = await protectedPage.start();
+            if (!isReady) {
+                return;
+            }
+
+            // Enter para buscar
+            document.getElementById('cedula').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') buscarPredios();
+            });
+
+            // Solo números
+            document.getElementById('cedula').addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/\D/g, '');
+            });
+
+            // Mostrar contenido y ocultar loading
+            document.body.classList.add('loaded');
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('fade-out');
+            }, 400);
+
+        });
+
+        function updateUserDisplay(session) {
+            const nameEl = document.getElementById('user-name');
+            const emailEl = document.getElementById('user-email');
+            
+            if (nameEl && session.name) {
+                // Mostrar solo el primer nombre en el header
+                const firstName = session.name.split(' ')[0];
+                nameEl.textContent = firstName;
+            }
+            if (emailEl) {
+                emailEl.textContent = "COOPERATIVA"; // O simplemente ocultarlo
+            }
+        }
+
+        function handleSessionExpired() {
+            showSessionExpiredScreen();
+        }
+
+        function showSessionExpiredScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-user-lock" style="font-size: 3rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                        <div class="loading-text" style="font-size: 1.2rem; font-weight: 600;">Sesión Expirada</div>
+                        <div class="loading-brand" style="margin-bottom: 1.5rem;">Su token de seguridad ha sido invalidado.</div>
+                        <button onclick="if (window.TupakAuth) { window.TupakAuth.logout(); } else { window.location.href='../login.html'; }" style="background: var(--secondary); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.95rem;">
+                            <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>VOLVER AL INICIO
+                        </button>
+                    </div>
+                    <div class="loading-footer">
+                        <span>POWERED BY</span>
+                        <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+                    </div>
+                `;
+                loadingScreen.style.display = 'flex';
+                loadingScreen.classList.remove('fade-out');
+            } else {
+                window.location.href = '../login.html';
+            }
+        }
+
+        async function buscarPredios() {
+            const cedula = document.getElementById('cedula').value.trim();
+            const container = document.getElementById('results-container');
+            const btnSearch = document.getElementById('btn-search');
+
+            if (!cedula || (cedula.length !== 10 && cedula.length !== 13)) {
+                showToast('error', 'Ingrese una cédula (10 dígitos) o RUC (13 dígitos) válido');
+                return;
+            }
+
+            // Mostrar buscando
+            btnSearch.disabled = true;
+            container.innerHTML = `
+                <div class="searching-state">
+                    <i class="fas fa-spinner"></i>
+                    <p>Buscando predios...</p>
+                </div>
+            `;
+
+            try {
+                // Usar método POST como en PC
+                const response = await fetch(`${API_CATASTROS}${cedula}`, { method: 'POST' });
+                
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+
+                const data = await response.json();
+                // Extraer lista de predios como en PC
+                const predios = data && data.lista ? data.lista : [];
+
+                if (predios.length > 0) {
+                    renderResults(predios);
+                    showToast('success', `Se encontraron ${predios.length} predio(s)`);
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <p>No se encontraron predios para esta cédula/RUC</p>
+                        </div>
+                    `;
+                    showToast('info', 'No se encontraron predios registrados');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error al consultar. Puede ser un problema de conexión o el servicio no está disponible.</p>
+                    </div>
+                `;
+                showToast('error', 'Error al consultar el servicio');
+            } finally {
+                btnSearch.disabled = false;
+            }
+        }
+
+        function renderResults(predios) {
+            const container = document.getElementById('results-container');
+            
+            let html = `
+                <div class="results-section">
+                    <div class="results-header">
+                        <span class="results-title">Predios Encontrados</span>
+                        <span class="results-count">${predios.length} resultado(s)</span>
+                    </div>
+            `;
+
+            predios.forEach((predio, index) => {
+                html += `
+                    <div class="property-card">
+                        <div class="property-header">
+                            <span class="property-clave">
+                                <i class="fas fa-key"></i> ${predio.codigoCatastral || 'N/A'}
+                            </span>
+                        </div>
+                        <div class="property-body">
+                            <div class="property-row">
+                                <span class="property-label">Predio ID:</span>
+                                <span class="property-value">${predio.preId || 'N/A'}</span>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-label">Propietario:</span>
+                                <span class="property-value">${predio.nombrePropietario || 'N/A'}</span>
+                            </div>
+                            <div class="property-row">
+                                <span class="property-label">Cédula Propietario:</span>
+                                <span class="property-value">${predio.identificacionPropietario || 'N/A'}</span>
+                            </div>
+                        </div>
+                        <button class="btn-download" onclick="downloadPdf('${predio.preId}', this)">
+                            <i class="fas fa-file-pdf"></i>
+                            Descargar PDF
+                        </button>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        async function downloadPdf(preId, buttonElement) {
+            const originalContent = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Descargando...`;
+
+            const pdfApiUrl = `https://servicios.municipiodemejia.gob.ec/planificacionTerritorial/rest/irm/consultarInformePreliminarPdf/${preId}`;
+
+            try {
+                const response = await fetch(pdfApiUrl, { method: 'POST' });
+                if (!response.ok) throw new Error(`El servidor respondió con un error: ${response.status}`);
+                
+                const data = await response.json();
+                const base64Pdf = data && data.irm ? data.irm.pdf : null;
+
+                if (!base64Pdf) throw new Error("La respuesta del servidor no contiene los datos del PDF.");
+
+                const byteCharacters = atob(base64Pdf);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `informe-predio-${preId}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+                
+                showToast('success', 'PDF descargado correctamente');
+            } catch (error) {
+                console.error('Error descargando PDF:', error);
+                showToast('error', 'Error al descargar el PDF');
+            } finally {
+                buttonElement.innerHTML = originalContent;
+                buttonElement.disabled = false;
+            }
+        }
+
+        function goBack() {
+            window.location.href = 'herramientas_consulta.html';
+        }
+
+        // Toast
+        function showToast(type, message) {
+            const container = document.querySelector('.toast-container');
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-times-circle',
+                info: 'fa-info-circle',
+                warning: 'fa-exclamation-triangle'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+    </script>
+    <script src="../../shared/auth.js"></script>
+</body>
+</html>
+

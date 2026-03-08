@@ -1,0 +1,19 @@
+{
+  "name": "Centro de Herramientas Tupak Rantina PC",
+  "short_name": "Tupak PC",
+  "description": "Panel de escritorio del centro de herramientas de Tupak Rantina.",
+  "start_url": "./pc/index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#001749",
+  "orientation": "landscape-primary",
+  "icons": [
+    {
+      "src": "./shared/img/logo.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}

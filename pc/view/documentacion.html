@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentación - Centro de Herramientas</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="../../shared/img/logo.webp" type="image/png">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="../css/documentacion.css">
+</head>
+
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: flex;">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Abriendo Documentación...</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Herramientas</span>
+                </a>
+                <div class="header-divider"></div>
+                <img src="../../shared/img/logo.webp" alt="Logo" class="header-logo">
+                <div class="header-info">
+                    <h1>Documentación</h1>
+                    <p>Guía para carpeta de créditos</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-badge">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-info-text">
+                        <span class="user-name" id="user-name">Usuario</span>
+                        <div class="mt-1">
+                            <span class="user-role" id="user-role" style="display: inline-block; font-size: 9px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Title -->
+            <div class="page-title">
+                <h2><i class="fas fa-file-alt"></i> Documentación para armar carpeta digital y física de créditos</h2>
+            </div>
+
+            <!-- Main Card -->
+            <div class="documentation-card">
+                <!-- Info Banner -->
+                <div class="info-banner">
+                    <div class="info-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="info-content">
+                        <h3>Guía para Asesores - Documentación de Créditos</h3>
+                        <p>
+                            <strong>IMPORTANTE:</strong> Envía todo en <strong>un solo PDF consolidado</strong>, 
+                            siguiendo este orden y cuidando <span class="highlight">orientación correcta</span>, 
+                            <span class="highlight">sin sombras</span>, 
+                            <span class="highlight">escaneo nítido</span> y 
+                            <span class="highlight">orden según la guía</span>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Checklist Control -->
+                <div class="checklist-control">
+                    <div class="checklist-status">
+                        <i class="fas fa-clock"></i>
+                        <span id="checklistStatus">Checklist se reinicia automáticamente cada 7 días</span>
+                    </div>
+                    <button id="resetChecklistBtn" class="reset-btn">
+                        <i class="fas fa-refresh"></i>
+                        Reiniciar Checklist
+                    </button>
+                </div>
+
+                <!-- Documents List Container -->
+                <div class="documents-container">
+                    <!-- Header -->
+                    <div class="documents-header">
+                        <h3><i class="fas fa-list-check"></i> Documentos Requeridos (en orden)</h3>
+                        <div class="counter">
+                            <span id="completedCount">0</span> de <span id="totalCount">15</span> completados
+                        </div>
+                    </div>
+
+                    <!-- Documents List -->
+                    <div class="documents-list">
+                        <!-- Sección: Información Personal -->
+                        <div class="section-divider">
+                            <div class="section-title">Información Personal</div>
+                            <div class="section-subtitle">Según corresponda: titular, cónyuge, garante, cónyuge del garante</div>
+                        </div>
+
+                        <!-- Doc 1 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc1" class="document-checkbox" data-doc="1">
+                            </div>
+                            <span class="doc-number">1</span>
+                            <div class="doc-info">
+                                <label for="doc1">
+                                    <h4>Copia de Cédula</h4>
+                                    <p>(Opcional: Papeleta de votación)</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Sección: Información de Consulta -->
+                        <div class="section-divider">
+                            <div class="section-title">Información de Consulta</div>
+                            <div class="section-subtitle">De cada persona involucrada en Información Personal</div>
+                        </div>
+
+                        <!-- Doc 2 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc2" class="document-checkbox" data-doc="2">
+                            </div>
+                            <span class="doc-number">2</span>
+                            <div class="doc-info">
+                                <label for="doc2">
+                                    <h4>Autorización de Revisión de Buró</h4>
+                                    <p>Documento firmado por el solicitante</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Doc 3 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc3" class="document-checkbox" data-doc="3">
+                            </div>
+                            <span class="doc-number">3</span>
+                            <div class="doc-info">
+                                <label for="doc3">
+                                    <h4>Buró</h4>
+                                    <p>Reporte de historial crediticio</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Doc 4 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc4" class="document-checkbox" data-doc="4">
+                            </div>
+                            <span class="doc-number">4</span>
+                            <div class="doc-info">
+                                <label for="doc4">
+                                    <h4>Revisión de Demandas Judiciales</h4>
+                                    <p>Consulta de procesos judiciales activos</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Doc 5 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc5" class="document-checkbox" data-doc="5">
+                            </div>
+                            <span class="doc-number">5</span>
+                            <div class="doc-info">
+                                <label for="doc5">
+                                    <h4>Revisión de SUPA</h4>
+                                    <p>Sistema Único de Pensiones Alimenticias</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Sección: Información Económica -->
+                        <div class="section-divider">
+                            <div class="section-title">Información Económica</div>
+                        </div>
+
+                        <!-- Doc 6 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc6" class="document-checkbox" data-doc="6">
+                            </div>
+                            <span class="doc-number">6</span>
+                            <div class="doc-info">
+                                <label for="doc6">
+                                    <h4>Informe de Ingresos y Egresos</h4>
+                                    <p>Detalle financiero del solicitante</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Doc 7 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc7" class="document-checkbox" data-doc="7">
+                            </div>
+                            <span class="doc-number">7</span>
+                            <div class="doc-info">
+                                <label for="doc7">
+                                    <h4>Hoja de Costos</h4>
+                                    <p>Cálculo de costos de producción (opcional)</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Doc 8 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc8" class="document-checkbox" data-doc="8">
+                            </div>
+                            <span class="doc-number">8</span>
+                            <div class="doc-info">
+                                <label for="doc8">
+                                    <h4>Facturas de Compra/Venta</h4>
+                                    <p class="optional">(Si aplica - para actividades comerciales)</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Doc 9 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc9" class="document-checkbox" data-doc="9">
+                            </div>
+                            <span class="doc-number">9</span>
+                            <div class="doc-info">
+                                <label for="doc9">
+                                    <h4>Carnet de Sustento de Actividad</h4>
+                                    <p>Ejemplos para Mejía y Cotopaxi:</p>
+                                    <ul class="examples-list">
+                                        <li>CONEFA (Consorcio de Empresas Florícolas)</li>
+                                        <li>Certificado de la Asociación de Ganaderos de Cotopaxi</li>
+                                        <li>Registro de la Cámara de Agricultura de Cotopaxi</li>
+                                        <li>Certificado de MAGAP (Ministerio de Agricultura)</li>
+                                        <li>Registro en la Asociación de Productores Agrícolas de Mejía</li>
+                                        <li>Carnet de la Federación de Ganaderos del Ecuador (FEDEGAN)</li>
+                                        <li>Certificado de la Unión de Organizaciones Campesinas de Cotopaxi</li>
+                                    </ul>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Doc 10 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc10" class="document-checkbox" data-doc="10">
+                            </div>
+                            <span class="doc-number">10</span>
+                            <div class="doc-info">
+                                <label for="doc10">
+                                    <h4>Certificado de Trabajo</h4>
+                                    <p class="optional">(Si aplica - para empleados en relación de dependencia)</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Doc 11 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc11" class="document-checkbox" data-doc="11">
+                            </div>
+                            <span class="doc-number">11</span>
+                            <div class="doc-info">
+                                <label for="doc11">
+                                    <h4>Referencias Comerciales</h4>
+                                    <p>(Opcional - cartas de proveedores o clientes)</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Sección: Anexos -->
+                        <div class="section-divider">
+                            <div class="section-title">Anexos</div>
+                            <div class="section-subtitle">Fotografías claras</div>
+                        </div>
+
+                        <!-- Doc 12 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc12" class="document-checkbox" data-doc="12">
+                            </div>
+                            <span class="doc-number">12</span>
+                            <div class="doc-info">
+                                <label for="doc12">
+                                    <h4>Matrícula de Vehículo</h4>
+                                    <p class="optional">(Si aplica - para créditos vehiculares o como garantía)</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Doc 13 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc13" class="document-checkbox" data-doc="13">
+                            </div>
+                            <span class="doc-number">13</span>
+                            <div class="doc-info">
+                                <label for="doc13">
+                                    <h4>Impuesto Predial</h4>
+                                    <p class="optional">(Si aplica - para propietarios de bienes inmuebles)</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Doc 14 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc14" class="document-checkbox" data-doc="14">
+                            </div>
+                            <span class="doc-number">14</span>
+                            <div class="doc-info">
+                                <label for="doc14">
+                                    <h4>Croquis</h4>
+                                    <p>Ubicación geográfica del domicilio</p>
+                                </label>
+                                <button class="generate-btn" onclick="window.open('croquis.html', '_blank')">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                    Generar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Doc 15 -->
+                        <div class="document-item">
+                            <div class="doc-checkbox-wrapper">
+                                <input type="checkbox" id="doc15" class="document-checkbox" data-doc="15">
+                            </div>
+                            <span class="doc-number">15</span>
+                            <div class="doc-info">
+                                <label for="doc15">
+                                    <h4>Cartilla de Servicios Básicos</h4>
+                                    <p>Planilla de luz o agua (últimos 3 meses)</p>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Important Notes -->
+                <div class="important-notes">
+                    <div class="notes-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="notes-content">
+                        <h3>Notas Importantes</h3>
+                        <ul>
+                            <li><strong>UN SOLO ARCHIVO PDF CONSOLIDADO</strong> con todos los documentos en orden</li>
+                            <li>La calidad de escaneo debe permitir la lectura clara del contenido</li>
+                            <li>Respetar el orden establecido para agilizar el proceso de revisión</li>
+                            <li>Los documentos marcados como "Si aplica" solo se incluyen cuando corresponda al caso específico</li>
+                            <li>Para actividades agropecuarias en Mejía y Cotopaxi, verificar el tipo de carnet o certificado más apropiado</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- JavaScript -->
+    <script src="../../shared/auth.js"></script>
+    <script src="../js/documentacion.js"></script>
+</body>
+
+</html>
+

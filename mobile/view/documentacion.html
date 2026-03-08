@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Documentación - Tupak Rantina</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="../css/mobile-styles.css">
+    <link rel="stylesheet" href="../css/mobile-documentacion.css">
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Abriendo Documentación...</div>
+            <div class="loading-brand">Guía para carpeta de créditos</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="mobile-header">
+        <div class="header-content header-grid">
+            <button class="back-button" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="header-center">
+                <h1 class="header-title" style="padding-bottom: 0.35rem; border-bottom: 1px solid rgba(0,23,73,0.15); margin-bottom: 0.4rem;">Documentación</h1>
+                <p class="header-subtitle" style="display: flex; flex-direction: column; align-items: center;">
+                    <span id="user-name" class="user-capsule name">Usuario</span>
+                    <span id="user-role" style="display: inline-block; font-size: 8px; font-weight: 800; color: #015cd0; background: #e0f2fe; padding: 1px 8px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #bae6fd; margin-top: 4px;"></span>
+                </p>
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Info Banner -->
+        <div class="info-banner">
+            <div class="info-icon">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="info-text">
+                <strong>IMPORTANTE:</strong> Envía todo en <strong>un solo PDF consolidado</strong>, 
+                con orientación correcta, sin sombras y escaneo nítido.
+            </div>
+        </div>
+
+        <!-- Checklist Control -->
+        <div class="checklist-control">
+            <div class="checklist-status">
+                <i class="fas fa-clock"></i>
+                <span id="checklistStatus">Reinicio automático cada 7 días</span>
+            </div>
+            <div class="checklist-progress">
+                <span class="progress-text"><span id="completedCount">0</span>/<span id="totalCount">15</span></span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+            <button id="resetChecklistBtn" class="reset-btn">
+                <i class="fas fa-refresh"></i>
+                Reiniciar
+            </button>
+        </div>
+
+        <!-- Documents List -->
+        <div class="documents-container">
+            <!-- Sección: Información Personal -->
+            <div class="section-divider">
+                <i class="fas fa-user"></i>
+                <span>Información Personal</span>
+            </div>
+
+            <!-- Doc 1 -->
+            <div class="document-item" data-doc="1">
+                <input type="checkbox" id="doc1" class="doc-checkbox" data-doc="1">
+                <label for="doc1" class="doc-label">
+                    <span class="doc-number">1</span>
+                    <div class="doc-info">
+                        <h4>Copia de Cédula</h4>
+                        <p>(Opcional: Papeleta de votación)</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Sección: Información de Consulta -->
+            <div class="section-divider">
+                <i class="fas fa-search"></i>
+                <span>Información de Consulta</span>
+            </div>
+
+            <!-- Doc 2 -->
+            <div class="document-item" data-doc="2">
+                <input type="checkbox" id="doc2" class="doc-checkbox" data-doc="2">
+                <label for="doc2" class="doc-label">
+                    <span class="doc-number">2</span>
+                    <div class="doc-info">
+                        <h4>Autorización Revisión Buró</h4>
+                        <p>Firmado por el solicitante</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Doc 3 -->
+            <div class="document-item" data-doc="3">
+                <input type="checkbox" id="doc3" class="doc-checkbox" data-doc="3">
+                <label for="doc3" class="doc-label">
+                    <span class="doc-number">3</span>
+                    <div class="doc-info">
+                        <h4>Buró</h4>
+                        <p>Reporte historial crediticio</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Doc 4 -->
+            <div class="document-item" data-doc="4">
+                <input type="checkbox" id="doc4" class="doc-checkbox" data-doc="4">
+                <label for="doc4" class="doc-label">
+                    <span class="doc-number">4</span>
+                    <div class="doc-info">
+                        <h4>Demandas Judiciales</h4>
+                        <p>Consulta procesos activos</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Doc 5 -->
+            <div class="document-item" data-doc="5">
+                <input type="checkbox" id="doc5" class="doc-checkbox" data-doc="5">
+                <label for="doc5" class="doc-label">
+                    <span class="doc-number">5</span>
+                    <div class="doc-info">
+                        <h4>Revisión de SUPA</h4>
+                        <p>Pensiones Alimenticias</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Sección: Información Económica -->
+            <div class="section-divider">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Información Económica</span>
+            </div>
+
+            <!-- Doc 6 -->
+            <div class="document-item" data-doc="6">
+                <input type="checkbox" id="doc6" class="doc-checkbox" data-doc="6">
+                <label for="doc6" class="doc-label">
+                    <span class="doc-number">6</span>
+                    <div class="doc-info">
+                        <h4>Informe Ingresos/Egresos</h4>
+                        <p>Detalle financiero</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Doc 7 -->
+            <div class="document-item" data-doc="7">
+                <input type="checkbox" id="doc7" class="doc-checkbox" data-doc="7">
+                <label for="doc7" class="doc-label">
+                    <span class="doc-number">7</span>
+                    <div class="doc-info">
+                        <h4>Hoja de Costos</h4>
+                        <p>Costos producción (opcional)</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Doc 8 -->
+            <div class="document-item" data-doc="8">
+                <input type="checkbox" id="doc8" class="doc-checkbox" data-doc="8">
+                <label for="doc8" class="doc-label">
+                    <span class="doc-number">8</span>
+                    <div class="doc-info">
+                        <h4>Facturas Compra/Venta</h4>
+                        <p class="optional">Si aplica - comerciales</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Doc 9 -->
+            <div class="document-item" data-doc="9">
+                <input type="checkbox" id="doc9" class="doc-checkbox" data-doc="9">
+                <label for="doc9" class="doc-label">
+                    <span class="doc-number">9</span>
+                    <div class="doc-info">
+                        <h4>Carnet Actividad</h4>
+                        <p>CONEFA, MAGAP, etc.</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Doc 10 -->
+            <div class="document-item" data-doc="10">
+                <input type="checkbox" id="doc10" class="doc-checkbox" data-doc="10">
+                <label for="doc10" class="doc-label">
+                    <span class="doc-number">10</span>
+                    <div class="doc-info">
+                        <h4>Certificado Trabajo</h4>
+                        <p class="optional">Si aplica - dependencia</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Doc 11 -->
+            <div class="document-item" data-doc="11">
+                <input type="checkbox" id="doc11" class="doc-checkbox" data-doc="11">
+                <label for="doc11" class="doc-label">
+                    <span class="doc-number">11</span>
+                    <div class="doc-info">
+                        <h4>Referencias Comerciales</h4>
+                        <p>Cartas proveedores (opcional)</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Sección: Anexos -->
+            <div class="section-divider">
+                <i class="fas fa-paperclip"></i>
+                <span>Anexos (Fotografías claras)</span>
+            </div>
+
+            <!-- Doc 12 -->
+            <div class="document-item" data-doc="12">
+                <input type="checkbox" id="doc12" class="doc-checkbox" data-doc="12">
+                <label for="doc12" class="doc-label">
+                    <span class="doc-number">12</span>
+                    <div class="doc-info">
+                        <h4>Matrícula Vehículo</h4>
+                        <p class="optional">Si aplica - garantía</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Doc 13 -->
+            <div class="document-item" data-doc="13">
+                <input type="checkbox" id="doc13" class="doc-checkbox" data-doc="13">
+                <label for="doc13" class="doc-label">
+                    <span class="doc-number">13</span>
+                    <div class="doc-info">
+                        <h4>Impuesto Predial</h4>
+                        <p class="optional">Si aplica - inmuebles</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+
+            <!-- Doc 14 -->
+            <div class="document-item has-action" data-doc="14">
+                <input type="checkbox" id="doc14" class="doc-checkbox" data-doc="14">
+                <label for="doc14" class="doc-label">
+                    <span class="doc-number">14</span>
+                    <div class="doc-info">
+                        <h4>Croquis</h4>
+                        <p>Ubicación domicilio</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+                <button class="action-btn" onclick="event.stopPropagation(); window.location.href='croquis.html'">
+                    <i class="fas fa-map-marked-alt"></i>
+                    Generar
+                </button>
+            </div>
+
+            <!-- Doc 15 -->
+            <div class="document-item" data-doc="15">
+                <input type="checkbox" id="doc15" class="doc-checkbox" data-doc="15">
+                <label for="doc15" class="doc-label">
+                    <span class="doc-number">15</span>
+                    <div class="doc-info">
+                        <h4>Servicios Básicos</h4>
+                        <p>Planilla luz/agua (3 meses)</p>
+                    </div>
+                    <i class="fas fa-check doc-check"></i>
+                </label>
+            </div>
+        </div>
+
+        <!-- Important Notes -->
+        <div class="important-notes">
+            <div class="notes-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Notas Importantes</span>
+            </div>
+            <ul class="notes-list">
+                <li><strong>UN SOLO PDF</strong> con todos los documentos en orden</li>
+                <li>Escaneo nítido y legible</li>
+                <li>Respetar el orden establecido</li>
+                <li>"Si aplica" = solo cuando corresponda</li>
+            </ul>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Confirm Modal -->
+    <div class="confirm-modal" id="confirm-modal">
+        <div class="confirm-content">
+            <div class="confirm-icon">
+                <i class="fas fa-refresh"></i>
+            </div>
+            <h3>Reiniciar Checklist</h3>
+            <p>¿Deseas reiniciar todo el progreso?</p>
+            <div class="confirm-buttons">
+                <button class="btn-cancel" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="btn-confirm" onclick="confirmReset()">Sí, Reiniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="../../shared/auth.js"></script>
+    <script src="../js/mobile-documentacion.js"></script>
+</body>
+</html>
+

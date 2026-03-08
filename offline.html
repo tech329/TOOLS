@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#001749">
+    <title>Sin conexión - Tupak Rantina</title>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            font-family: "Inter", "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, rgba(1, 92, 208, 0.16), transparent 40%), linear-gradient(135deg, #001749 0%, #015cd0 100%);
+            color: white;
+        }
+
+        .card {
+            width: min(100%, 540px);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 28px;
+            padding: 28px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: 32px;
+        }
+
+        p {
+            margin: 0 0 14px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.86);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(228, 132, 16, 0.18);
+            border: 1px solid rgba(228, 132, 16, 0.24);
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 8px;
+            padding: 12px 18px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #e48410, #f59e0b);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="pill">Modo sin conexión</div>
+        <h1>No hay conexión disponible</h1>
+        <p>La app intentó cargar la versión más reciente desde la red y usó el respaldo local cuando fue posible.</p>
+        <p>Revisa tu conexión y vuelve a intentar para sincronizar la información más reciente.</p>
+        <a class="button" href="./index.html">Reintentar</a>
+    </div>
+</body>
+</html>

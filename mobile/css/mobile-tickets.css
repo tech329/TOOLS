@@ -1,0 +1,241 @@
+/* =====================================================
+   MOBILE-TICKETS.CSS - Estilos para módulo Tickets Móvil
+   ===================================================== */
+
+.tickets-container {
+    padding: 1rem;
+    max-width: 100%;
+}
+
+.step-indicator-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+}
+
+.m-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.m-step-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--border-color);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.m-step.active .m-step-circle {
+    background: var(--accent-color);
+    color: white;
+    box-shadow: 0 0 0 3px rgba(228, 132, 16, 0.2);
+}
+
+.m-step-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.m-step.active .m-step-label {
+    color: var(--primary-color);
+}
+
+.m-step-line {
+    width: 40px;
+    height: 2px;
+    background: var(--border-color);
+}
+
+.m-step-line.active {
+    background: var(--accent-color);
+}
+
+.mobile-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 1.5rem;
+}
+
+.mobile-card-header {
+    background: var(--primary-color);
+    padding: 1.25rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.mobile-card-header i {
+    font-size: 1.5rem;
+    color: var(--accent-color);
+}
+
+.mobile-card-header h2 {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.mobile-card-header p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+    margin: 0.2rem 0 0 0;
+}
+
+.mobile-card-body {
+    padding: 1.25rem 1rem;
+}
+
+.m-form-group {
+    margin-bottom: 1.25rem;
+}
+
+.m-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.m-textarea {
+    width: 100%;
+    border: 1.5px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.m-textarea:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+}
+
+.m-btn {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: none;
+    transition: transform 0.1s active;
+}
+
+.m-btn:active {
+    transform: scale(0.98);
+}
+
+.m-btn-primary {
+    background: var(--accent-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(228, 132, 16, 0.3);
+}
+
+.m-btn-outline {
+    background: white;
+    border: 1.5px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.mobile-markdown h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.75rem;
+}
+
+.mobile-markdown ol {
+    list-style-type: decimal;
+    margin-left: 1.25rem;
+}
+
+.mobile-markdown li {
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.m-dynamic-input {
+    width: 100%;
+    border-bottom: 2px solid var(--border-color);
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    padding: 0.75rem 0;
+    font-size: 0.95rem;
+    border-radius: 0;
+    background: transparent;
+    transition: border-color 0.2s;
+}
+
+.m-dynamic-input:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+}
+
+.m-result-box {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1rem;
+    font-family: monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    border: 1px solid var(--border-color);
+}
+
+.m-suggestion {
+    background: #fffbeb;
+    border-left: 4px solid var(--accent-color);
+    padding: 0.75rem;
+    border-radius: 0 8px 8px 0;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: #92400e;
+}
+
+#toast-mobile {
+    position: fixed;
+    bottom: 90px;
+    left: 20px;
+    right: 20px;
+    background: #334155;
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    display: none;
+    z-index: 10000;
+    text-align: center;
+    font-size: 0.85rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}

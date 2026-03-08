@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#001749">
+    <title>Herramientas - Tupak Rantina</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/mobile-styles.css">
+</head>
+
+<body class="bg-gradient-to-br from-slate-100 to-gray-200 min-h-screen">
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Verificando sesión...</div>
+            <div class="loading-brand">Tupak Rantina</div>
+        </div>
+        <div class="loading-footer">
+            <span>POWERED BY</span>
+            <img src="../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Header Mobile -->
+    <header class="mobile-header">
+        <div class="header-content">
+            <div class="header-left">
+                <img src="../shared/img/logo.webp" alt="Logo" class="header-logo">
+                <div class="header-text">
+                    <h1 class="header-title">Tupak Rantina</h1>
+                    <p class="header-subtitle">Centro de Herramientas</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-avatar" id="user-avatar">
+                    <span>U</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="mobile-main">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <h2 class="welcome-title">¡Hola, <span id="welcome-name">Usuario</span>!</h2>
+            <p class="welcome-subtitle">Selecciona una herramienta para comenzar</p>
+            <p id="user-role-display" class="text-xs text-[#94a3b8] mt-1 font-bold uppercase"></p>
+        </section>
+
+        <!-- Tools Grid - Se carga dinámicamente -->
+        <section class="tools-section">
+            <div class="tools-grid" id="modules-grid">
+                <!-- Los módulos se cargan desde config.js -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item nav-item-active">
+            <i class="fas fa-home"></i>
+            <span>Inicio</span>
+        </div>
+        <div class="nav-item" onclick="navegarA('carga_comite')">
+            <i class="fas fa-upload"></i>
+            <span>Cargar</span>
+        </div>
+        <div class="nav-item" onclick="handleLogout()">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Salir</span>
+        </div>
+    </nav>
+
+    <!-- Toast Container -->
+    <div id="toast" class="mobile-toast">
+        <p id="toastMessage"></p>
+    </div>
+
+    <!-- Scripts compartidos -->
+    <script src="../shared/config.js"></script>
+    <script src="../shared/auth.js"></script>
+    <script src="../shared/pwa.js"></script>
+    <script src="js/mobile-main.js"></script>
+    
+    <script>
+        // Verificar autenticación al cargar
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Verificar sesión
+            if (typeof TupakAuth === 'undefined' || !TupakAuth.checkAuth()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Verificar token
+            const isValid = await TupakAuth.checkTokenValidity();
+            if (!isValid) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Cargar datos de usuario
+            loadUserData();
+            
+            // Cargar módulos
+            loadModulesGrid();
+            
+            // Ocultar loader
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+            }, 600);
+        });
+        
+        function loadUserData() {
+            const session = TupakAuth.getSession();
+            if (session) {
+                const name = session.name || 'Usuario';
+                const initial = name.charAt(0).toUpperCase();
+                document.getElementById('user-avatar').innerHTML = `<span>${initial}</span>`;
+                document.getElementById('welcome-name').textContent = name.split(' ')[0];
+            }
+        }
+        
+        function loadModulesGrid() {
+            const grid = document.getElementById('modules-grid');
+            const modules = APP_CONFIG.MODULES;
+            
+            grid.innerHTML = '';
+            
+            for (const key in modules) {
+                const mod = modules[key];
+                
+                // Ignorar módulos deshabilitados específicamente para móvil
+                if (mod.mobileEnabled === false) continue;
+
+                const isEnabled = mod.enabled;
+                
+                const card = document.createElement('div');
+                card.className = `tool-card ${!isEnabled ? 'tool-card-disabled' : ''}`;
+                card.innerHTML = `
+                    <div class="tool-icon ${!isEnabled ? 'tool-icon-disabled' : ''}" style="background: linear-gradient(135deg, ${getGradientColors(mod.color)})">
+                        <i class="fas ${mod.icon}"></i>
+                    </div>
+                    <div class="tool-content">
+                        <h3 class="tool-title ${!isEnabled ? 'tool-title-disabled' : ''}">${mod.name}</h3>
+                        <p class="tool-description ${!isEnabled ? 'tool-description-disabled' : ''}">${mod.description}</p>
+                        ${!isEnabled ? '<span class="badge-soon">Próximamente</span>' : ''}
+                    </div>
+                    <div class="tool-arrow ${!isEnabled ? 'tool-arrow-disabled' : ''}">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                `;
+                
+                if (isEnabled) {
+                    card.onclick = () => {
+                        showToast(`Abriendo ${mod.name}...`);
+                        setTimeout(() => {
+                            window.location.href = mod.mobilePath;
+                        }, 400);
+                    };
+                } else {
+                    card.onclick = () => showToast('Próximamente disponible');
+                }
+                
+                grid.appendChild(card);
+            }
+        }
+        
+        function getGradientColors(tailwindClass) {
+            const colorMap = {
+                'from-teal-500 to-cyan-500': '#14b8a6, #06b6d4',
+                'from-blue-500 to-indigo-500': '#3b82f6, #6366f1',
+                'from-purple-500 to-pink-500': '#a855f7, #ec4899',
+                'from-orange-500 to-red-500': '#f97316, #ef4444',
+                'from-green-500 to-emerald-500': '#22c55e, #10b981',
+                'from-yellow-500 to-amber-500': '#eab308, #f59e0b',
+                'from-rose-500 to-red-500': '#f43f5e, #ef4444',
+                'from-slate-500 to-gray-600': '#64748b, #4b5563'
+            };
+            return colorMap[tailwindClass] || '#3b82f6, #6366f1';
+        }
+        
+        function handleLogout() {
+            if (confirm('¿Cerrar sesión?')) {
+                TupakAuth.logout();
+            }
+        }
+    </script>
+</body>
+
+</html>

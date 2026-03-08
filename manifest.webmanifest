@@ -1,0 +1,19 @@
+{
+  "name": "Centro de Herramientas Tupak Rantina",
+  "short_name": "Tupak Tools",
+  "description": "Lanzador seguro del centro de herramientas de Tupak Rantina.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#001749",
+  "theme_color": "#001749",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./shared/img/logo.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}

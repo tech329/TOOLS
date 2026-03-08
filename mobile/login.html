@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#001749">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Acceso - Centro de Herramientas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="../shared/img/logo.webp" type="image/png">
+    <style>
+        :root {
+            --primary: #001749;
+            --secondary: #e48410;
+            --accent: #3787c6;
+            --blue: #015cd0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
+            min-height: 100%;
+            min-height: -webkit-fill-available;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(15px, env(safe-area-inset-bottom));
+        }
+
+        .login-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-header {
+            text-align: center;
+            padding: 0 0 20px 0;
+            color: white;
+        }
+
+        .logo-img {
+            width: 80px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .login-header h1 {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .login-header p {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .step-header {
+            text-align: center;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .step-header h2 {
+            color: var(--primary);
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .step-header p {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 28px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent);
+            font-size: 1.1em;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(55, 135, 198, 0.15);
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 18px;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05em;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: auto;
+        }
+
+        .btn-action:active {
+            transform: scale(0.98);
+        }
+
+        .btn-action:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        /* Animaciones */
+        .slide-out-left { animation: slideOutLeft 0.4s forwards; }
+        .slide-in-right { animation: slideInRight 0.4s forwards; }
+
+        @keyframes slideOutLeft {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(-50px); }
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in { animation: slideInSmooth 0.4s ease; }
+        @keyframes slideInSmooth {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .hidden { display: none !important; }
+
+        .error-message {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #ef4444;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .loader {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+
+        /* Session Loader */
+        #session-loader {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--primary);
+            z-index: 20000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .main-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loader-text {
+            font-weight: 600;
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        .loader-footer {
+            position: absolute;
+            bottom: max(30px, env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0.8;
+        }
+        .loader-footer span {
+            font-size: 0.7em;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .loader-footer img {
+            height: 18px;
+            filter: brightness(0) invert(1);
+        }
+
+        /* WhatsApp Info */
+        .whatsapp-info-box {
+            background: #f0fdf4;
+            border: 1px dashed #22c55e;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #166534;
+        }
+
+        .whatsapp-info-box i {
+            color: #25d366;
+            font-size: 1.6em;
+        }
+
+        .whatsapp-number {
+            font-weight: 800;
+            color: var(--primary);
+            font-size: 1.05em;
+            letter-spacing: 1px;
+        }
+
+        #otp-input {
+            letter-spacing: 6px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.3em;
+            padding-left: 16px;
+            text-transform: uppercase;
+        }
+
+        .greeting-name {
+            color: var(--secondary);
+            font-weight: 800;
+        }
+
+        .btn-back {
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--accent);
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            padding: 12px;
+        }
+
+        /* Footer */
+        .login-footer {
+            text-align: center;
+            padding: 15px 0 5px 0;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .login-footer p {
+            font-size: 0.75em;
+            opacity: 0.7;
+            margin-bottom: 3px;
+        }
+
+        .login-footer a {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.8em;
+        }
+
+        .footer-brand {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 0.7em;
+            opacity: 0.6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .footer-brand span {
+            font-size: 0.8em;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        .footer-brand img {
+            height: 16px;
+            filter: brightness(0) invert(1);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 10000;
+            display: none;
+            padding: 10px;
+            padding-top: max(10px, env(safe-area-inset-top));
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 16px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .modal-header i { font-size: 1.5em; }
+        .modal-header h3 { margin: 0; font-size: 1.1em; }
+        .modal-header p { margin: 0; font-size: 0.75em; opacity: 0.8; }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            -webkit-overflow-scrolling: touch;
+            line-height: 1.6;
+            color: #1e293b;
+            font-size: 0.9em;
+        }
+
+        .modal-body h4 {
+            color: var(--primary);
+            margin: 18px 0 10px 0;
+            font-size: 0.95em;
+            border-bottom: 2px solid var(--secondary);
+            display: inline-block;
+        }
+
+        .modal-body p { margin-bottom: 12px; text-align: justify; }
+        .modal-body ul { margin-left: 18px; margin-bottom: 12px; }
+        .modal-body li { margin-bottom: 6px; }
+
+        .modal-footer {
+            padding: 16px 20px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .scroll-warning {
+            font-size: 0.8em;
+            color: #ef4444;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 14px;
+            border-radius: 10px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+        }
+
+        .checkbox-row input {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-row span {
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+
+        .modal-closing {
+            opacity: 0 !important;
+            transition: opacity 0.3s ease;
+        }
+
+        .step-container {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Login Content (Header + Card) -->
+    <div class="login-content">
+        <!-- Header -->
+        <div class="login-header">
+            <img src="../shared/img/logo.webp" alt="Logo" class="logo-img">
+            <h1>Tupak Rantina</h1>
+            <p>Centro de Herramientas</p>
+        </div>
+
+        <!-- Card Principal -->
+        <div class="login-card">
+        <div id="error-box" class="error-message"></div>
+
+        <!-- PASO 1: Cédula -->
+        <div id="login-step" class="step-container fade-in">
+            <div class="step-header">
+                <h2>Iniciar Sesión</h2>
+                <p>Ingresa tu número de cédula</p>
+            </div>
+
+            <form id="form-cedula">
+                <div class="form-group">
+                    <label for="cedula">Cédula de Identidad</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-id-card input-icon"></i>
+                        <input type="text" id="cedula" class="form-control" placeholder="Ej: 1002345678" maxlength="10" required inputmode="numeric">
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-cedula" class="btn-action">
+                    <span>Validar Acceso</span>
+                    <i id="arrow-cedula" class="fas fa-arrow-right"></i>
+                    <div id="loader-cedula" class="loader hidden"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- PASO 2: OTP -->
+        <div id="otp-step" class="step-container hidden">
+            <div class="step-header">
+                <h2 id="greeting-title">¡Hola!</h2>
+                <p>Ingresa el código de WhatsApp</p>
+            </div>
+
+            <div class="whatsapp-info-box">
+                <i class="fab fa-whatsapp"></i>
+                <div>
+                    <p style="margin:0; opacity: 0.8; font-size: 0.85em;">Código enviado a:</p>
+                    <span class="whatsapp-number">*******<span id="last-digits">0000</span></span>
+                </div>
+            </div>
+
+            <form id="form-otp">
+                <div class="form-group">
+                    <label for="otp-input">Código de Seguridad</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-key input-icon"></i>
+                        <input type="text" id="otp-input" class="form-control" placeholder="••••••" maxlength="6" required>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-otp" class="btn-action">
+                    <span>Ingresar</span>
+                    <i id="arrow-otp" class="fas fa-sign-in-alt"></i>
+                    <div id="loader-otp" class="loader hidden"></div>
+                </button>
+
+                <button type="button" class="btn-back" onclick="location.reload()">
+                    <i class="fas fa-arrow-left"></i> Volver a empezar
+                </button>
+            </form>
+        </div>
+    </div>
+    </div><!-- End login-content -->
+
+    <!-- Footer -->
+    <div class="login-footer">
+        <p>Al continuar, aceptas los</p>
+        <a href="#" id="open-terms">Términos y Condiciones</a>
+        <div class="footer-brand">
+            <span>POWERED BY</span>
+            <img src="../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Session Loader -->
+    <div id="session-loader">
+        <div class="main-spinner"></div>
+        <p class="loader-text">ACCEDISTE CORRECTAMENTE<br>PREPARANDO TU SESIÓN</p>
+        <div class="loader-footer">
+            <span>POWERED BY</span>
+            <img src="../shared/img/lpsolutionswithe.webp" alt="LP Solutions">
+        </div>
+    </div>
+
+    <!-- Modal Términos -->
+    <div id="modal-terms" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <i class="fas fa-file-contract"></i>
+                <div>
+                    <h3>Términos y Condiciones</h3>
+                    <p>Política de Seguridad</p>
+                </div>
+            </div>
+            <div id="terms-scroll-body" class="modal-body">
+                <p style="text-align: center; font-weight: 800; color: var(--primary); border-bottom: 2px solid var(--secondary); padding-bottom: 10px; margin-bottom: 20px;">CAJA DE AHORRO Y CRÉDITO TUPAK RANTINA</p>
+                
+                <h4>1. PROPÓSITO DEL SISTEMA</h4>
+                <p>El Centro de Herramientas es una plataforma de uso exclusivo para colaboradores autorizados de la institución.</p>
+
+                <h4>2. CONFIDENCIALIDAD</h4>
+                <p>Toda la información procesada es de carácter confidencial y de uso exclusivo institucional.</p>
+
+                <h4>3. PROHIBICIONES</h4>
+                <ul>
+                    <li>Compartir credenciales de acceso</li>
+                    <li>Copiar o distribuir información</li>
+                    <li>Permitir acceso a terceros no autorizados</li>
+                </ul>
+
+                <h4>4. REGISTRO DE ACTIVIDAD</h4>
+                <p>El sistema registra todas las acciones realizadas para fines de auditoría.</p>
+
+                <h4>5. ACEPTACIÓN</h4>
+                <p>Al aceptar, el usuario se compromete a cumplir estos términos.</p>
+            </div>
+            <div class="modal-footer">
+                <label class="checkbox-row" id="check-container">
+                    <input type="checkbox" id="check-accept">
+                    <span>He leído y acepto los términos</span>
+                </label>
+                <button id="btn-close-terms" class="btn-action" disabled>ACEPTAR Y CONTINUAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../shared/auth.js"></script>
+    <script src="../shared/pwa.js"></script>
+    <script>
+        const webhookLogin = 'https://lpn8nwebhook.luispintasolutions.com/webhook/fe0874fe-7554-4f7e-8744-9865bd673a1e';
+        const webhookVerify = 'https://lpn8nwebhook.luispintasolutions.com/webhook/c672670b-5db3-4af5-bd91-bf594a1b915c';
+        const webhookUser = 'https://lpn8nwebhook.luispintasolutions.com/webhook/user7441558qwqqwqqssa';
+
+        const openTerms = document.getElementById('open-terms');
+        const modalTerms = document.getElementById('modal-terms');
+        const checkContainer = document.getElementById('check-container');
+        const checkAccept = document.getElementById('check-accept');
+        const btnCloseTerms = document.getElementById('btn-close-terms');
+        const sessionLoader = document.getElementById('session-loader');
+        let userPendingTransition = false;
+
+        // Verificar sesión existente
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof TupakAuth !== 'undefined' && TupakAuth.checkAuth()) {
+                sessionLoader.style.display = 'flex';
+                document.querySelector('.loader-text').innerHTML = 'Restaurando sesión...';
+                
+                const isValid = await TupakAuth.checkTokenValidity();
+                if (isValid) {
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+                    return;
+                }
+                sessionLoader.style.display = 'none';
+            }
+        });
+
+        openTerms.onclick = (e) => { e.preventDefault(); modalTerms.style.display = 'block'; };
+        checkAccept.onchange = () => { btnCloseTerms.disabled = !checkAccept.checked; };
+
+        btnCloseTerms.onclick = () => { 
+            modalTerms.classList.add('modal-closing');
+            setTimeout(() => {
+                modalTerms.style.display = 'none'; 
+                modalTerms.classList.remove('modal-closing');
+                if (userPendingTransition) {
+                    transitionSteps();
+                    userPendingTransition = false;
+                }
+            }, 300);
+        };
+
+        // Form Cédula
+        const formCedula = document.getElementById('form-cedula');
+        const loginStep = document.getElementById('login-step');
+        const otpStep = document.getElementById('otp-step');
+        const errorBox = document.getElementById('error-box');
+
+        formCedula.onsubmit = async (e) => {
+            e.preventDefault();
+            const cedula = document.getElementById('cedula').value.trim();
+            if (cedula.length < 10) { showErr('Cédula debe tener 10 dígitos'); vibrate(); return; }
+
+            setLoading('cedula', true);
+            try {
+                const res = await fetch(webhookLogin, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cedula })
+                });
+                const data = await res.json();
+
+                const loginRole = typeof TupakAuth !== 'undefined'
+                    ? TupakAuth.normalizeAllowedRole(data.rol || data.roles || '')
+                    : '';
+
+                if (data.nombre && (!(data.rol || data.roles) || loginRole)) {
+                    document.getElementById('greeting-title').innerHTML = `¡Hola <span class="greeting-name">${data.nombre}</span>!`;
+                    if (data.numero) document.getElementById('last-digits').innerText = data.numero;
+
+                    userPendingTransition = true;
+                    checkAccept.checked = false;
+                    btnCloseTerms.disabled = true;
+                    
+                    modalTerms.style.display = 'block';
+                } else {
+                    showErr((data.rol || data.roles) ? 'Usuario sin rol autorizado' : 'Cédula no autorizada'); vibrate();
+                }
+            } catch (err) {
+                showErr('Error de conexión'); vibrate();
+            } finally {
+                setLoading('cedula', false);
+            }
+        };
+
+        // OTP
+        const otpInput = document.getElementById('otp-input');
+        otpInput.addEventListener('input', () => { otpInput.value = otpInput.value.toUpperCase(); });
+
+        const formOtp = document.getElementById('form-otp');
+        formOtp.onsubmit = async (e) => {
+            e.preventDefault();
+            const cedula = document.getElementById('cedula').value.trim();
+            const otp = otpInput.value.toUpperCase();
+
+            setLoading('otp', true);
+            try {
+                const res = await fetch(webhookVerify, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cedula, otp })
+                });
+                
+                const dataVerify = await res.json();
+
+                if (dataVerify.token || dataVerify.success || res.ok) {
+                    sessionLoader.style.display = 'flex';
+                    const startTime = Date.now();
+
+                    try {
+                        const resUser = await fetch(webhookUser, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': dataVerify.token || '' },
+                            body: JSON.stringify({ 
+                                cedula: cedula, 
+                                token: dataVerify.token || "" 
+                            })
+                        });
+                        
+                        const text = await resUser.text();
+                        console.log('DEBUG: Respuesta raw del webhookUser (Mobile):', text);
+
+                        let userData = {};
+                        try {
+                            const parsed = JSON.parse(text);
+                            userData = Array.isArray(parsed) ? (parsed[0] || {}) : (parsed || {});
+                        } catch(e) {}
+
+                        const userRole = typeof TupakAuth !== 'undefined'
+                            ? TupakAuth.normalizeAllowedRole(userData.rol || userData.roles || '')
+                            : '';
+
+                        if (!userRole) {
+                            showErr('Acceso denegado: consulta con el administrador');
+                            sessionLoader.style.display = 'none';
+                            return;
+                        }
+
+                        const session = { 
+                            cedula: userData.cedula || cedula, 
+                            name: userData.nombre || dataVerify.nombre || 'Usuario',
+                            email: userData.correo || '',
+                            rol: userRole,
+                            token: dataVerify.token || '',
+                            ts: Date.now() 
+                        };
+                        localStorage.setItem('appSession', JSON.stringify(session));
+
+                        const remaining = Math.max(0, 1500 - (Date.now() - startTime));
+                        setTimeout(() => { window.location.href = 'index.html'; }, remaining);
+                    } catch (errUser) {
+                        const fallbackRole = typeof TupakAuth !== 'undefined'
+                            ? TupakAuth.normalizeAllowedRole(dataVerify.rol || dataVerify.roles || '')
+                            : '';
+                        if (!fallbackRole) {
+                            showErr('Acceso denegado: consulta con el administrador');
+                            sessionLoader.style.display = 'none';
+                            return;
+                        }
+
+                        localStorage.setItem('appSession', JSON.stringify({ cedula, name: dataVerify.nombre || 'Usuario', rol: fallbackRole, token: dataVerify.token || '', ts: Date.now() }));
+                        setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+                    }
+                } else {
+                    showErr('Código incorrecto'); vibrate();
+                }
+            } catch (err) {
+                showErr('Error de conexión'); vibrate();
+            } finally {
+                setLoading('otp', false);
+            }
+        };
+
+        function transitionSteps() {
+            loginStep.classList.add('slide-out-left');
+            setTimeout(() => {
+                loginStep.classList.add('hidden');
+                otpStep.classList.remove('hidden');
+                otpStep.classList.add('slide-in-right');
+                otpInput.focus();
+            }, 400);
+        }
+
+        function showErr(msg) {
+            errorBox.innerText = msg;
+            errorBox.style.display = 'block';
+            setTimeout(() => { errorBox.style.display = 'none'; }, 4000);
+        }
+
+        function setLoading(step, active) {
+            const btn = document.getElementById(`btn-${step}`);
+            const arrow = document.getElementById(`arrow-${step}`);
+            const loader = document.getElementById(`loader-${step}`);
+            const span = btn.querySelector('span');
+            btn.disabled = active;
+            if (active) { span.classList.add('hidden'); arrow.classList.add('hidden'); loader.classList.remove('hidden'); }
+            else { span.classList.remove('hidden'); arrow.classList.remove('hidden'); loader.classList.add('hidden'); }
+        }
+
+        function vibrate() { if ('vibrate' in navigator) navigator.vibrate(50); }
+    </script>
+</body>
+
+</html>
