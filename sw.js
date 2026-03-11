@@ -1,4 +1,4 @@
-const VERSION = '2.1.1';
+const VERSION = '2.1.2';
 const STATIC_CACHE = `tupak-static-${VERSION}`;
 const RUNTIME_CACHE = `tupak-runtime-${VERSION}`;
 const OFFLINE_URL = './offline.html';

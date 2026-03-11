@@ -19,8 +19,99 @@
 
     <!-- CSS externo -->
     <link rel="stylesheet" href="../css/tickets.css">
+    <style>
+        .coming-soon-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .coming-soon-content {
+            background: rgba(30, 41, 59, 0.7);
+            padding: 3.5rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            animation: fadeInScale 0.6s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .coming-soon-icon {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.5));
+        }
+
+        .coming-soon-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: -0.025em;
+        }
+
+        .coming-soon-text {
+            font-size: 1.125rem;
+            color: #94a3b8;
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+        }
+
+        .btn-return {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: white;
+            color: #0f172a;
+            padding: 0.875rem 2rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-return:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            background: #f8fafc;
+        }
+    </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
+    <!-- Próximamente Overlay -->
+    <div class="coming-soon-overlay">
+        <div class="coming-soon-content">
+            <i class="fas fa-rocket coming-soon-icon"></i>
+            <h2 class="coming-soon-title">Próximamente disponible</h2>
+            <p class="coming-soon-text">
+                Estamos trabajando para brindarte la mejor experiencia en la gestión de tus requerimientos.
+            </p>
+            <a href="../index.html" class="btn-return">
+                <i class="fas fa-home"></i>
+                Volver al inicio
+            </a>
+        </div>
+    </div>
+
     <script>const loaderStartTime = Date.now();</script>
 
     <!-- Loading Screen -->
