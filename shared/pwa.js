@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    const VERSION_FALLBACK = (window.APP_CONFIG && window.APP_CONFIG.APP_VERSION) || '2.1.0';
+    const VERSION_FALLBACK = (window.APP_CONFIG && window.APP_CONFIG.APP_VERSION) || '2.1.1';
     const STORAGE_KEYS = {
         version: 'tupak_pwa_current_version',
         seen: 'tupak_pwa_seen_version',
