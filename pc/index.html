@@ -393,10 +393,47 @@
             if (key) trackModuleUsage(key);
             window.location.href = module.pcPath;
         }
+
+        function showLogoutConfirm() {
+            return new Promise((resolve) => {
+                const existing = document.getElementById('logout-confirm-overlay');
+                if (existing) existing.remove();
+
+                const overlay = document.createElement('div');
+                overlay.id = 'logout-confirm-overlay';
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:24px;z-index:9999;backdrop-filter:blur(4px);';
+                overlay.innerHTML = `
+                    <div style="width:min(100%,420px);background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 25px 60px rgba(15,23,42,.24);">
+                        <div style="padding:22px 24px;background:linear-gradient(135deg,#001749,#015cd0);color:#fff;font-size:22px;font-weight:800;display:flex;align-items:center;gap:12px;">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Cerrar sesión
+                        </div>
+                        <div style="padding:24px;color:#334155;font-size:14px;line-height:1.6;">¿Estás seguro que deseas cerrar sesión?</div>
+                        <div style="padding:0 24px 24px;display:flex;justify-content:flex-end;gap:12px;">
+                            <button type="button" id="logout-confirm-cancel" style="padding:12px 18px;border-radius:14px;border:1px solid #cbd5e1;background:#fff;color:#475569;font-weight:700;">Cancelar</button>
+                            <button type="button" id="logout-confirm-accept" style="padding:12px 18px;border-radius:14px;border:none;background:#b45309;color:#fff;font-weight:800;">Cerrar sesión</button>
+                        </div>
+                    </div>
+                `;
+
+                const cleanup = (value) => {
+                    overlay.remove();
+                    resolve(value);
+                };
+
+                document.body.appendChild(overlay);
+                overlay.querySelector('#logout-confirm-cancel')?.addEventListener('click', () => cleanup(false));
+                overlay.querySelector('#logout-confirm-accept')?.addEventListener('click', () => cleanup(true));
+                overlay.addEventListener('click', (event) => {
+                    if (event.target === overlay) cleanup(false);
+                });
+            });
+        }
         
         // ===== LOGOUT =====
-        function handleLogout() {
-            if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+        async function handleLogout() {
+            const confirmed = await showLogoutConfirm();
+            if (confirmed) {
                 TupakAuth.logout();
             }
         }

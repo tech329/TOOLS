@@ -482,11 +482,36 @@
                 roleEl.textContent = filtered;
             }
         }
+
+        function showInlineAlert(message, title = 'Aviso') {
+            return new Promise((resolve) => {
+                const existing = document.getElementById('inline-alert-overlay');
+                if (existing) existing.remove();
+
+                const overlay = document.createElement('div');
+                overlay.id = 'inline-alert-overlay';
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.56);display:flex;align-items:center;justify-content:center;padding:24px;z-index:9999;backdrop-filter:blur(4px);';
+                overlay.innerHTML = `
+                    <div style="width:min(100%,420px);background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 25px 60px rgba(15,23,42,.24);">
+                        <div style="padding:20px 24px;background:linear-gradient(135deg,#059669,#10b981);color:#fff;font-size:21px;font-weight:800;">${title}</div>
+                        <div style="padding:24px;color:#334155;font-size:14px;line-height:1.6;">${message}</div>
+                        <div style="padding:0 24px 24px;display:flex;justify-content:flex-end;">
+                            <button type="button" id="inline-alert-ok" style="padding:12px 18px;border:none;border-radius:14px;background:#001749;color:#fff;font-weight:800;">Entendido</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                overlay.querySelector('#inline-alert-ok')?.addEventListener('click', () => {
+                    overlay.remove();
+                    resolve();
+                });
+            });
+        }
         
         let protectedPage = null;
         
-        function handleSessionExpired() {
-            alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        async function handleSessionExpired() {
+            await showInlineAlert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.', 'Sesión expirada');
             if (typeof TupakAuth !== 'undefined') {
                 TupakAuth.logout();
                 return;

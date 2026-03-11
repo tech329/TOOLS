@@ -55,16 +55,6 @@
         </div>
     </header>
 
-    <div class="cartera-lock-overlay-m" id="cartera-lock-overlay-m" aria-hidden="true">
-        <div class="cartera-lock-card-m">
-            <div class="cartera-lock-icon-m">
-                <i class="fas fa-lock"></i>
-            </div>
-            <div class="cartera-lock-title-m">MODULO INCOMPLETO POR FALTA DE DATOS</div>
-            <div class="cartera-lock-text-m">Este modulo requiere una actualizacion de base de datos para su funcionamiento correcto. Puedes continuar navegando en las demas secciones.</div>
-        </div>
-    </div>
-
     <!-- Stats Dashboard (Mejorado - Grid 3 columnas) -->
     <div class="stats-container pt-4">
         <div class="stat-card-m" onclick="switchView('atrasados')">
@@ -114,6 +104,24 @@
             <h2 id="card-title" class="text-xs font-bold text-slate-500 uppercase tracking-wider">Cargando datos...</h2>
             <i class="fas fa-sort-amount-down text-slate-400"></i>
         </div>
+
+        <section id="missing-payment-schedule-section" class="hidden mb-4">
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="px-4 py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white flex items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-sm font-black uppercase tracking-wide flex items-center gap-2">
+                            <i class="fas fa-calendar-exclamation"></i>
+                            Sin Fecha Asignada
+                        </h2>
+                        <p class="text-[11px] text-amber-50/90 mt-1">Complete día y primer pago para que entren al flujo de cartera.</p>
+                    </div>
+                    <span id="missing-payment-schedule-count" class="px-2.5 py-1 rounded-full bg-white/20 text-xs font-black">0</span>
+                </div>
+                <div id="missing-payment-schedule-list" class="p-3 space-y-3">
+                    <!-- JS -->
+                </div>
+            </div>
+        </section>
 
         <div id="data-list">
             <!-- Items renderizados por JS -->

@@ -12,60 +12,6 @@ body {
     color: var(--text-dark);
 }
 
-.cartera-lock-overlay-m {
-    position: fixed;
-    top: 86px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 120;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 2rem 1rem;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.48), rgba(15, 23, 42, 0.7));
-    backdrop-filter: blur(6px);
-}
-
-.cartera-lock-card-m {
-    width: min(100%, 520px);
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid rgba(203, 213, 225, 0.95);
-    border-radius: 24px;
-    padding: 1.75rem 1.25rem;
-    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.24);
-    text-align: center;
-}
-
-.cartera-lock-icon-m {
-    width: 68px;
-    height: 68px;
-    margin: 0 auto 1rem;
-    border-radius: 999px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.55rem;
-    background: linear-gradient(135deg, #ef4444, #b91c1c);
-    box-shadow: 0 16px 36px rgba(185, 28, 28, 0.28);
-}
-
-.cartera-lock-title-m {
-    color: #0f172a;
-    font-size: 1.05rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.cartera-lock-text-m {
-    margin-top: 0.75rem;
-    color: #475569;
-    font-size: 0.95rem;
-    line-height: 1.5;
-}
-
 /* Header y Secciones */
 .mobile-header {
     background: white;

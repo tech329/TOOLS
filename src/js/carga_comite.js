@@ -826,7 +826,7 @@ async function handleFile(file) {
     if (!file) return;
 
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-        alert('Solo se permiten archivos PDF');
+        showToast('Solo se permiten archivos PDF', 'error');
         return;
     }
 

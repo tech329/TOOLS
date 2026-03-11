@@ -698,8 +698,8 @@
         
         let protectedPage = null;
         
-        function handleSessionExpired() {
-            alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        async function handleSessionExpired() {
+            await showAlert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
             if (typeof TupakAuth !== 'undefined') {
                 TupakAuth.logout();
                 return;

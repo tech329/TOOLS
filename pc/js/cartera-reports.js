@@ -23,7 +23,7 @@
             console.log('📊 Total de créditos recibidos:', creditosData?.length || 0);
 
             if (!creditosData || creditosData.length === 0) {
-                alert('⚠️ No hay datos de créditos para generar el reporte.');
+                showReportToast('No hay datos de créditos para generar el reporte.', 'warning');
                 return;
             }
 
@@ -44,7 +44,7 @@
 
         } catch (error) {
             console.error('❌ Error al generar el reporte:', error);
-            alert('Error al generar el reporte: ' + error.message);
+            showReportToast('Error al generar el reporte: ' + error.message, 'error');
             ocultarLoading();
         }
     }
@@ -376,6 +376,23 @@
     function obtenerNombreMes(f) { return ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][f.getMonth()]; }
     function mostrarLoading() { const l = document.createElement('div'); l.id='pdf-loading'; l.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:10000;color:white;display:flex;align-items:center;justify-content:center;font-size:24px;'; l.innerHTML='Generando PDF...'; document.body.appendChild(l); }
     function ocultarLoading() { const l = document.getElementById('pdf-loading'); if(l) l.remove(); }
+    function showReportToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        const colors = {
+            info: 'background:#e0e7ff;color:#312e81;border-left:4px solid #4f46e5;',
+            warning: 'background:#fef3c7;color:#92400e;border-left:4px solid #f59e0b;',
+            error: 'background:#fee2e2;color:#991b1b;border-left:4px solid #ef4444;'
+        };
+        toast.style.cssText = `position:fixed;top:24px;right:24px;z-index:10001;min-width:320px;max-width:460px;padding:16px 18px;border-radius:16px;box-shadow:0 20px 45px rgba(15,23,42,.18);font:600 14px/1.45 Arial,sans-serif;${colors[type] || colors.info}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(16px)';
+            toast.style.transition = 'all .25s ease';
+            setTimeout(() => toast.remove(), 260);
+        }, 3800);
+    }
 
     window.CarteraReportes = { generarReporteCartera };
 })();

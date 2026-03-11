@@ -37,6 +37,42 @@ let responsiveRedirectInProgress = false;
 let sessionGuardIntervalId = null;
 let sessionValidationInFlight = null;
 
+function showSharedAuthAlert(message) {
+    return new Promise((resolve) => {
+        if (typeof document === 'undefined' || !document.body) {
+            resolve();
+            return;
+        }
+
+        const existing = document.getElementById('tupak-shared-auth-alert');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'tupak-shared-auth-alert';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.58);display:flex;align-items:center;justify-content:center;padding:24px;z-index:20000;backdrop-filter:blur(4px);';
+        overlay.innerHTML = `
+            <div style="width:min(100%,420px);background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 25px 60px rgba(15,23,42,.22);">
+                <div style="padding:20px 24px;background:linear-gradient(135deg,#b91c1c,#dc2626);color:#fff;display:flex;align-items:center;gap:12px;font-size:20px;font-weight:800;">
+                    <i class="fas fa-ban"></i>
+                    Acceso denegado
+                </div>
+                <div style="padding:24px;display:flex;flex-direction:column;gap:18px;">
+                    <p style="margin:0;color:#334155;font-size:14px;line-height:1.6;">${message}</p>
+                    <div style="display:flex;justify-content:flex-end;">
+                        <button type="button" id="tupak-shared-auth-alert-btn" style="padding:12px 18px;border:none;border-radius:14px;background:#0f172a;color:#fff;font-weight:700;cursor:pointer;">Entendido</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        overlay.querySelector('#tupak-shared-auth-alert-btn')?.addEventListener('click', () => {
+            overlay.remove();
+            resolve();
+        });
+    });
+}
+
 function getDeviceProfile() {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera || '';
     const dimensions = [window.innerWidth, window.innerHeight, window.screen && window.screen.width, window.screen && window.screen.height]
@@ -658,7 +694,7 @@ async function checkTokenValidity(options) {
 
         // Validar Roles
         if (!isAllowedRole(data.rol)) {
-            alert("Acceso denegado: consulta con el administrador");
+            await showSharedAuthAlert('Consulta con el administrador para habilitar tu acceso.');
             invalidateSession({ redirect: settings.redirectOnFailure });
             return false;
         }

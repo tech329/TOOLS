@@ -1,10 +1,11 @@
 (function () {
     'use strict';
 
-    const VERSION_FALLBACK = (window.APP_CONFIG && window.APP_CONFIG.APP_VERSION) || '2.0.1';
+    const VERSION_FALLBACK = (window.APP_CONFIG && window.APP_CONFIG.APP_VERSION) || '2.1.0';
     const STORAGE_KEYS = {
         version: 'tupak_pwa_current_version',
-        seen: 'tupak_pwa_seen_version'
+        seen: 'tupak_pwa_seen_version',
+        accepted210: 'tupak_pwa_release_2_1_0_accepted'
     };
 
     let registrationRef = null;
@@ -217,6 +218,15 @@
         }
     }
 
+    function hasAcceptedPersistentReleaseNotice() {
+        return localStorage.getItem(STORAGE_KEYS.accepted210) === 'true';
+    }
+
+    function markPersistentReleaseNoticeAccepted() {
+        localStorage.setItem(STORAGE_KEYS.accepted210, 'true');
+        localStorage.setItem(STORAGE_KEYS.seen, VERSION_FALLBACK);
+    }
+
     function showUpdateModal(version, isReloadAvailable) {
         ensureModalStyles();
         closeModal();
@@ -229,31 +239,28 @@
                 <div class="tupak-update-head">
                     <div class="tupak-update-chip"><i class="fas fa-sparkles"></i><span>Actualización menor</span></div>
                     <h3 id="tupak-update-title">Nueva versión ${version}</h3>
-                    <p>La app ya incluye compatibilidad PWA, carga network-first y una capa visual renovada para la experiencia en PC y móvil.</p>
+                    <p>Ya puedes usar cartera y generar actas con una experiencia más completa tanto en PC como en móvil.</p>
                 </div>
                 <div class="tupak-update-body">
                     <ul class="tupak-update-list">
-                        <li><i class="fas fa-wifi"></i><span>Navegación optimizada con service worker network-first y respaldo en caché cuando la red falle.</span></li>
-                        <li><i class="fas fa-mobile-screen-button"></i><span>Instalable como PWA en escritorio y móvil con ajustes de manifiesto según el dispositivo.</span></li>
-                        <li><i class="fas fa-palette"></i><span>Mejoras visuales menores para el lanzamiento de esta versión y control dinámico de versión desde el SW.</span></li>
+                        <li><i class="fas fa-wallet"></i><span>Cartera ya está disponible con su flujo operativo activo y ahora también cuenta con versión móvil.</span></li>
+                        <li><i class="fas fa-file-signature"></i><span>Ya puedes generar actas y también reimprimir actas de los últimos créditos; antes de crear una nueva, busca primero por cédula.</span></li>
+                        <li><i class="fas fa-chart-line"></i><span>Créditos incorpora la nueva vista de estadísticas para revisar montos, capital vigente y evolución reciente.</span></li>
+                        <li><i class="fas fa-bell"></i><span>Enviar recordatorios en créditos ahora tiene una función adicional distinta para reforzar la gestión de cobros y seguimiento.</span></li>
                     </ul>
                     <div class="tupak-update-foot">
-                        <button type="button" id="tupak-update-primary" class="tupak-update-btn tupak-update-btn-primary">${isReloadAvailable ? 'Actualizar ahora' : 'Entendido'}</button>
-                        <button type="button" id="tupak-update-secondary" class="tupak-update-btn tupak-update-btn-secondary">Más tarde</button>
+                        <button type="button" id="tupak-update-primary" class="tupak-update-btn tupak-update-btn-primary">Aceptar</button>
                     </div>
                 </div>
             </div>
         `;
         document.body.appendChild(backdrop);
 
-        document.getElementById('tupak-update-secondary').addEventListener('click', closeModal);
         document.getElementById('tupak-update-primary').addEventListener('click', () => {
+            markPersistentReleaseNoticeAccepted();
+            closeModal();
             if (isReloadAvailable && pendingWorker) {
                 pendingWorker.postMessage({ type: 'SKIP_WAITING' });
-            }
-            closeModal();
-            if (!isReloadAvailable) {
-                localStorage.setItem(STORAGE_KEYS.seen, version);
             }
         });
     }
@@ -263,13 +270,13 @@
         localStorage.setItem(STORAGE_KEYS.version, normalized);
         updateVersionLabels(normalized);
 
-        const seenVersion = localStorage.getItem(STORAGE_KEYS.seen);
-        if (seenVersion === normalized && !isReloadAvailable) {
+        if (hasAcceptedPersistentReleaseNotice()) {
             return;
         }
 
-        if (!isReloadAvailable) {
-            localStorage.setItem(STORAGE_KEYS.seen, normalized);
+        const seenVersion = localStorage.getItem(STORAGE_KEYS.seen);
+        if (seenVersion === normalized && !isReloadAvailable) {
+            return;
         }
 
         showUpdateModal(normalized, isReloadAvailable);

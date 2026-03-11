@@ -2,6 +2,31 @@
 let CARTERA_DATA = [];
 let hasAtrasados = false;
 let currentView = 'cobros';
+const ACTUALIZAR_CREDITO_WEBHOOK = 'https://lpn8nwebhook.luispintasolutions.com/webhook/actualizar_credito';
+const REGISTRAR_PAGO_WEBHOOK = 'https://lpn8nwebhook.luispintasolutions.com/webhook/registrar_pago';
+const LIQUIDAR_CREDITO_WEBHOOK = 'https://lpn8nwebhook.luispintasolutions.com/webhook/liquidar_credito';
+
+function isAdminUser() {
+    const session = typeof TupakAuth !== 'undefined'
+        ? TupakAuth.getSession()
+        : JSON.parse(localStorage.getItem('appSession') || 'null');
+    const roles = String(session?.rol || '').split(',').map(role => role.trim().toUpperCase());
+    return roles.includes('ADMIN') || session?.email === 'contacto@tupakrantina.com' || session?.name === 'Luis Pinta';
+}
+
+function canEditCartera() {
+    return !isAdminUser();
+}
+
+function showAdminReadOnlyToast() {
+    showCustomToast('Los administradores tienen acceso de solo lectura en cartera.', 'info');
+}
+
+function getCurrentSessionData() {
+    return typeof TupakAuth !== 'undefined'
+        ? TupakAuth.getSession()
+        : JSON.parse(localStorage.getItem('appSession') || 'null');
+}
 
 // ===== UTILIDADES DE FECHA (MIGRADAS DE APP MADRE) =====
 
@@ -9,11 +34,114 @@ function getMesAnioPrimerPago(credito) {
     return credito['mes_anio_primer_pago'] || credito['mes / año_primer_pago'] || credito.mes_año_primer_pago || null;
 }
 
+function hasMissingPaymentSchedule(credito) {
+    return !credito?.dia_pago || !getMesAnioPrimerPago(credito);
+}
+
+function isActiveCredit(credito) {
+    const plazo = parseInt(credito?.plazo, 10) || 0;
+    const cuotaPagada = parseInt(credito?.cuota_pagada, 10) || 0;
+    const capitalRestante = parseEuropeanNumber(credito?.capital_restante);
+    return plazo > 0 && cuotaPagada < plazo && capitalRestante > 0;
+}
+
+function getMissingPaymentScheduleCredits() {
+    return CARTERA_DATA.filter(credito => isActiveCredit(credito) && hasMissingPaymentSchedule(credito));
+}
+
+function getCreditoDias(credito) {
+    return diasHastaFecha(credito.dia_pago, getMesAnioPrimerPago(credito), parseInt(credito.cuota_pagada, 10) || 0);
+}
+
+function sortCreditosByDias(creditos, direction = 'asc') {
+    return [...creditos].sort((a, b) => {
+        const diasA = getCreditoDias(a);
+        const diasB = getCreditoDias(b);
+
+        const safeDiasA = diasA === null ? Number.POSITIVE_INFINITY : diasA;
+        const safeDiasB = diasB === null ? Number.POSITIVE_INFINITY : diasB;
+
+        if (safeDiasA !== safeDiasB) {
+            return direction === 'desc' ? safeDiasB - safeDiasA : safeDiasA - safeDiasB;
+        }
+
+        const fechaA = new Date(a.fecha_hora || a.created_at || 0).getTime() || 0;
+        const fechaB = new Date(b.fecha_hora || b.created_at || 0).getTime() || 0;
+        if (fechaA !== fechaB) return fechaA - fechaB;
+
+        return String(a.nombre_socio || '').localeCompare(String(b.nombre_socio || ''), 'es', { sensitivity: 'base' });
+    });
+}
+
+function getAssignPaymentDateDefaults() {
+    const hoy = new Date();
+    const nextMonth = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
+    return {
+        mes: String(nextMonth.getMonth() + 1).padStart(2, '0'),
+        anio: String(nextMonth.getFullYear())
+    };
+}
+
+function renderMissingPaymentScheduleSection() {
+    const section = document.getElementById('missing-payment-schedule-section');
+    const countEl = document.getElementById('missing-payment-schedule-count');
+    const listEl = document.getElementById('missing-payment-schedule-list');
+    if (!section || !countEl || !listEl) return;
+
+    const missingCredits = getMissingPaymentScheduleCredits();
+    countEl.textContent = String(missingCredits.length);
+
+    if (missingCredits.length === 0) {
+        section.classList.add('hidden');
+        listEl.innerHTML = '';
+        return;
+    }
+
+    section.classList.remove('hidden');
+    listEl.innerHTML = missingCredits.map(credito => `
+        <article class="bg-white border border-amber-200 rounded-2xl p-3 shadow-sm">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-xs font-black text-slate-800 uppercase">${credito.nombre_socio || 'N/A'}</p>
+                    <p class="text-[11px] text-slate-500 mt-1">${credito.cedula_socio || 'N/A'}</p>
+                    <p class="text-[11px] text-slate-500">$${formatStoredAmount(credito.monto_aprobado)}</p>
+                </div>
+                <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black uppercase">Pendiente</span>
+            </div>
+            <div class="flex gap-2 mt-3">
+                ${canEditCartera() ? `<button onclick="openAsignarFechaModal('${credito.id}')" class="flex-1 px-3 py-2 rounded-xl bg-amber-500 text-white text-[10px] font-black uppercase tracking-wider"><i class="fas fa-calendar-plus mr-1"></i>Asignar</button>` : `<span class="flex-1 px-3 py-2 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wider text-center">Solo ver</span>`}
+                ${credito.acta ? `<button onclick="window.open('https://cajatupakrantina.webcoopec.com/view/${credito.acta}', '_blank')" class="flex-1 px-3 py-2 rounded-xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-wider"><i class="fas fa-table mr-1"></i>Tabla</button>` : ''}
+            </div>
+        </article>
+    `).join('');
+}
+
 function parseEuropeanNumber(value) {
-    if (!value) return 0;
-    const str = String(value).trim();
-    const normalized = str.replace(/\./g, '').replace(',', '.');
-    return parseFloat(normalized) || 0;
+    if (value === null || value === undefined || value === '') return 0;
+    if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+
+    const str = String(value).trim().replace(/\s+/g, '');
+    if (!str) return 0;
+
+    let normalized = str;
+
+    if (str.includes(',') && str.includes('.')) {
+        normalized = str.lastIndexOf(',') > str.lastIndexOf('.')
+            ? str.replace(/\./g, '').replace(',', '.')
+            : str.replace(/,/g, '');
+    } else if (str.includes(',')) {
+        normalized = str.replace(/\./g, '').replace(',', '.');
+    } else if (/^\d{1,3}(\.\d{3})+$/.test(str)) {
+        normalized = str.replace(/\./g, '');
+    }
+
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function isValidCapitalInputFormat(value) {
+    const normalized = String(value || '').trim();
+    return /^(?:\d{1,3}|\d{1,3}(?:\.\d{3})+),\d{2}$/.test(normalized);
 }
 
 function diasHastaFecha(diaPago, mesAnioPrimerPago, cuotaPagada = 0) {
@@ -52,7 +180,12 @@ function formatDateDisplay(diaPago, mesAnioPrimerPago, cuotaPagada = 0) {
 }
 
 function formatEuropeanNumber(value) {
-    return value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (!Number.isFinite(value)) return '0,00';
+    return value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatStoredAmount(value) {
+    return formatEuropeanNumber(parseEuropeanNumber(value));
 }
 
 // ===== SISTEMA DE NOTIFICACIONES Y MODALES (TIPO APP MADRE) =====
@@ -182,6 +315,8 @@ function viewCreditoDetails(id) {
     const credito = CARTERA_DATA.find(c => String(c.id) === String(id));
     if (!credito) return;
 
+    const missingSchedule = hasMissingPaymentSchedule(credito);
+
     const extraHTML = `
         <div class="text-left space-y-4">
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
@@ -209,11 +344,11 @@ function viewCreditoDetails(id) {
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <p class="text-[10px] text-indigo-500 uppercase font-bold">Monto</p>
-                        <p class="font-black text-indigo-700">$${parseFloat(credito.monto_aprobado || 0).toLocaleString('es-ES', {minimumFractionDigits:2})}</p>
+                        <p class="font-black text-indigo-700">$${formatStoredAmount(credito.monto_aprobado)}</p>
                     </div>
                     <div>
                         <p class="text-[10px] text-indigo-500 uppercase font-bold">Capital Vigente</p>
-                        <p class="font-black text-indigo-700">$${credito.capital_restante}</p>
+                        <p class="font-black text-indigo-700">$${formatStoredAmount(credito.capital_restante)}</p>
                     </div>
                     <div>
                         <p class="text-[10px] text-indigo-500 uppercase font-bold">Plazo</p>
@@ -241,6 +376,13 @@ function viewCreditoDetails(id) {
                 <p class="text-[9px] text-slate-500 uppercase font-bold">Primer Pago</p>
                 <p class="text-xs font-bold text-slate-700">${formatearPrimerPago(getMesAnioPrimerPago(credito), credito.dia_pago)}</p>
             </div>
+
+            ${missingSchedule ? `
+            <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
+                <p class="text-[9px] text-amber-600 uppercase font-black">Fecha de Pago Pendiente</p>
+                <p class="text-xs font-semibold text-amber-800 mt-1">Este crédito no tiene día de pago ni mes y año asignados.</p>
+                ${canEditCartera() ? `<button onclick="openAsignarFechaModal('${credito.id}')" class="mt-3 w-full px-3 py-3 rounded-xl bg-amber-500 text-white text-[10px] font-black uppercase tracking-wider"><i class="fas fa-calendar-plus mr-1"></i>Asignar Fecha</button>` : `<div class="mt-3 w-full px-3 py-3 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wider text-center">Solo visualización para admin</div>`}
+            </div>` : ''}
             
             ${credito.acta ? `
             <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 flex justify-between items-center">
@@ -308,6 +450,11 @@ function abrirAutorizacion(cedula, nombre) {
 // ===== ACCIONES FINANCIERAS (RÉPLICA APP MADRE) =====
 
 function prepararLiquidacion(id) {
+    if (!canEditCartera()) {
+        showAdminReadOnlyToast();
+        return;
+    }
+
     const credito = CARTERA_DATA.find(c => String(c.id) === String(id));
     if (!credito) return;
 
@@ -315,36 +462,186 @@ function prepararLiquidacion(id) {
         title: 'LIQUIDAR CRÉDITO',
         message: `¿Estás seguro de liquidar el crédito de ${credito.nombre_socio}? El saldo actual se marcará como 0,00.`,
         icon: 'fas fa-money-bill-wave',
-        onConfirm: () => {
+        onConfirm: async () => {
+            const session = getCurrentSessionData();
             const payload = {
                 id_credito: credito.id,
-                cedula_socio: credito.cedula_socio,
-                cuota_pagada: credito.plazo, // Se marca como pagado total
-                capital_restante: "0,00",
+                cedula: session?.cedula || '',
+                rol: session?.rol || '',
+                asesor: session?.name || '',
+                correo: session?.email || '',
                 accion: "LIQUIDAR_CREDITO",
                 timestamp: new Date().toISOString()
             };
 
             console.log('📤 PAYLOAD LIQUIDACIÓN:', payload);
-            showCustomToast('Petición de liquidación generada (Simulado)');
-            
-            // Actualización visual local
-            credito.capital_restante = "0,00";
-            credito.cuota_pagada = credito.plazo;
-            renderCards(currentView, document.getElementById('data-list'));
-            updateStats();
+
+            try {
+                const response = await fetch(LIQUIDAR_CREDITO_WEBHOOK, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': session?.token || ''
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                credito.capital_restante = "0,00";
+                credito.cuota_pagada = credito.plazo;
+                renderCards(currentView, document.getElementById('data-list'));
+                updateStats();
+                renderMissingPaymentScheduleSection();
+                showCustomToast('Crédito liquidado correctamente.', 'success');
+            } catch (error) {
+                console.error('❌ Error al liquidar crédito:', error);
+                showCustomToast('No se pudo liquidar el crédito. Intenta nuevamente.', 'error');
+            }
         }
     });
 }
 
+function openAsignarFechaModal(id) {
+    if (!canEditCartera()) {
+        showAdminReadOnlyToast();
+        return;
+    }
+
+    const credito = CARTERA_DATA.find(c => String(c.id) === String(id));
+    if (!credito) {
+        showCustomToast('No se encontró el crédito', 'error');
+        return;
+    }
+
+    const defaults = getAssignPaymentDateDefaults();
+    const currentMonth = getMesAnioPrimerPago(credito)?.split('/')?.[0] || defaults.mes;
+    const currentYear = getMesAnioPrimerPago(credito)?.split('/')?.[1] || defaults.anio;
+    const currentDay = String(credito.dia_pago || '').replace(/\D/g, '');
+    const currentYearNumber = parseInt(currentYear, 10) || new Date().getFullYear();
+
+    const monthOptions = [
+        ['01', 'Enero'], ['02', 'Febrero'], ['03', 'Marzo'], ['04', 'Abril'],
+        ['05', 'Mayo'], ['06', 'Junio'], ['07', 'Julio'], ['08', 'Agosto'],
+        ['09', 'Septiembre'], ['10', 'Octubre'], ['11', 'Noviembre'], ['12', 'Diciembre']
+    ].map(([value, label]) => `<option value="${value}" ${value === currentMonth ? 'selected' : ''}>${label}</option>`).join('');
+
+    let yearOptions = '';
+    for (let year = currentYearNumber; year <= currentYearNumber + 2; year++) {
+        yearOptions += `<option value="${year}" ${String(year) === String(currentYear) ? 'selected' : ''}>${year}</option>`;
+    }
+
+    const extraHTML = `
+        <div class="text-left space-y-4">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm space-y-1">
+                <p><strong>Socio:</strong> ${credito.nombre_socio || 'N/A'}</p>
+                <p><strong>Cédula:</strong> ${credito.cedula_socio || 'N/A'}</p>
+                <p><strong>Monto:</strong> $${formatStoredAmount(credito.monto_aprobado)}</p>
+            </div>
+            <div>
+                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Día de Pago</label>
+                <input id="assign-dia-pago" type="number" min="1" max="31" value="${currentDay}" placeholder="15" class="w-full px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-lg font-black text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-100 outline-none transition-all">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Mes Primer Pago</label>
+                    <select id="assign-mes-primer-pago" class="w-full px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-100 outline-none transition-all">${monthOptions}</select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Año Primer Pago</label>
+                    <select id="assign-anio-primer-pago" class="w-full px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-100 outline-none transition-all">${yearOptions}</select>
+                </div>
+            </div>
+            <p class="text-[10px] text-slate-400 italic">Se guardará como dia_pago = DD y mes_anio_primer_pago = MM/YYYY.</p>
+        </div>`;
+
+    showConfirmModal({
+        title: 'ASIGNAR FECHA',
+        message: 'Complete los datos del primer pago para este crédito.',
+        icon: 'fas fa-calendar-plus',
+        extraHTML,
+        confirmText: 'GUARDAR',
+        onConfirm: () => guardarFechaPago(id)
+    });
+}
+
+async function guardarFechaPago(id) {
+    if (!canEditCartera()) {
+        showAdminReadOnlyToast();
+        return;
+    }
+
+    const credito = CARTERA_DATA.find(c => String(c.id) === String(id));
+    if (!credito) return;
+
+    const day = parseInt(document.getElementById('assign-dia-pago')?.value, 10);
+    const month = document.getElementById('assign-mes-primer-pago')?.value || '';
+    const year = document.getElementById('assign-anio-primer-pago')?.value || '';
+
+    if (!Number.isInteger(day) || day < 1 || day > 31) {
+        showCustomToast('El día debe estar entre 1 y 31', 'error');
+        return;
+    }
+
+    const diaFormateado = String(day).padStart(2, '0');
+    const mesAnioPrimerPago = `${month}/${year}`;
+    const session = getCurrentSessionData();
+    const payload = {
+        id_credito: credito.id,
+        cedula_socio: credito.cedula_socio,
+        dia_pago: diaFormateado,
+        mes_anio_primer_pago: mesAnioPrimerPago,
+        cedula: session?.cedula || '',
+        rol: session?.rol || '',
+        asesor: session?.name || '',
+        correo: session?.email || '',
+        accion: 'ASIGNAR_FECHA_PAGO',
+        timestamp: new Date().toISOString()
+    };
+
+    console.log('📤 PAYLOAD FECHA PAGO:', payload);
+
+    try {
+        const response = await fetch(ACTUALIZAR_CREDITO_WEBHOOK, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': session?.token || ''
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        credito.dia_pago = diaFormateado;
+        credito.mes_anio_primer_pago = mesAnioPrimerPago;
+        renderCards(currentView, document.getElementById('data-list'));
+        updateStats();
+        renderMissingPaymentScheduleSection();
+        showCustomToast('Fecha de pago asignada correctamente', 'success');
+    } catch (error) {
+        console.error('❌ Error al asignar fecha de pago:', error);
+        showCustomToast('No se pudo actualizar la fecha de pago', 'error');
+    }
+}
+
 function prepararPagoCuota(id) {
+    if (!canEditCartera()) {
+        showAdminReadOnlyToast();
+        return;
+    }
+
     const credito = CARTERA_DATA.find(c => String(c.id) === String(id));
     if (!credito) return;
 
     const cuotaActual = parseInt(credito.cuota_pagada) || 0;
     const plazoTotal = parseInt(credito.plazo) || 0;
     const proximaCuota = cuotaActual + 1;
-    const capitalActual = credito.capital_restante || '0,00';
+    const capitalActual = formatStoredAmount(credito.capital_restante || '0,00');
 
     // HTML Extra con acciones (Réplica exacta de la imagen)
     const extraHTML = `
@@ -396,17 +693,16 @@ function validarYConfirmarPago(credito, nuevoCapitalStr, numeroCuota) {
     }
 
     // Validar formato (ej: 1.500,00 o 500,00)
-    const regexFormato = /^-?\d{1,3}(\.\d{3})*,\d{2}$/;
-    if (!regexFormato.test(nuevoCapitalStr)) {
-        showCustomToast('Formato inválido. Use 0.000,00', 'error');
+    if (!isValidCapitalInputFormat(nuevoCapitalStr)) {
+        showCustomToast('Corrija el valor. Use . para miles y , para decimales. Ejemplo: 8.500,50', 'error');
         return;
     }
 
     const nuevoCapital = parseEuropeanNumber(nuevoCapitalStr);
     const capitalAnterior = parseEuropeanNumber(credito.capital_restante);
 
-    if (nuevoCapital > capitalAnterior) {
-        showCustomToast('El nuevo capital no puede ser mayor al anterior', 'error');
+    if (nuevoCapital >= capitalAnterior) {
+        showCustomToast('El capital debe disminuir', 'error');
         return;
     }
 
@@ -414,36 +710,67 @@ function validarYConfirmarPago(credito, nuevoCapitalStr, numeroCuota) {
         title: 'CONFIRMAR REGISTRO',
         message: `Socio: ${credito.nombre_socio}\nCuota a registrar: #${numeroCuota}\nNuevo Capital: $${nuevoCapitalStr}\n\n¿Desea proceder?`,
         icon: 'fas fa-shield-alt',
-        onConfirm: () => {
+        onConfirm: async () => {
+            const session = getCurrentSessionData();
+            const capitalAnterior = parseEuropeanNumber(credito.capital_restante);
+            const capitalNuevo = parseEuropeanNumber(nuevoCapitalStr);
             const payload = {
                 id_credito: credito.id,
                 cedula_socio: credito.cedula_socio,
-                cuota_pagada: numeroCuota,
+                cuota_pagada: String(numeroCuota),
                 capital_restante: nuevoCapitalStr,
+                valor_registrado: formatEuropeanNumber(Math.max(0, capitalAnterior - capitalNuevo)),
+                cedula: session?.cedula || '',
+                rol: session?.rol || '',
+                asesor: session?.name || '',
+                correo: session?.email || '',
                 accion: "REGISTRAR_PAGO_CUOTA",
                 timestamp: new Date().toISOString()
             };
 
             console.log('📤 PAYLOAD PAGO:', payload);
-            showCustomToast(`Pago de cuota #${numeroCuota} registrado (Simulado)`);
 
-            // Simular actualización local
-            credito.cuota_pagada = numeroCuota;
-            credito.capital_restante = nuevoCapitalStr;
-            renderCards(currentView, document.getElementById('data-list'));
-            updateStats();
+            try {
+                const response = await fetch(REGISTRAR_PAGO_WEBHOOK, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': session?.token || ''
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                credito.cuota_pagada = numeroCuota;
+                credito.capital_restante = nuevoCapitalStr;
+                renderCards(currentView, document.getElementById('data-list'));
+                updateStats();
+                renderMissingPaymentScheduleSection();
+                showCustomToast(`Pago de cuota #${numeroCuota} registrado correctamente.`, 'success');
+            } catch (error) {
+                console.error('❌ Error al registrar pago:', error);
+                showCustomToast('No se pudo registrar el pago. Intenta nuevamente.', 'error');
+            }
         }
     });
 }
 
 function confirmarNotificarWhatsApp(id) {
+    if (!canEditCartera()) {
+        showAdminReadOnlyToast();
+        return;
+    }
+
     const credito = CARTERA_DATA.find(c => String(c.id) === String(id));
     if (!credito) return;
     
     const cuotaPagada = parseInt(credito.cuota_pagada) || 0;
     const mesAnioPrimerPago = getMesAnioPrimerPago(credito);
     const fechaPagoTexto = formatearFechaTexto(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
-    const montoDisplay = parseFloat(credito.monto_aprobado || 0).toLocaleString('es-ES', {minimumFractionDigits:2});
+    const montoDisplay = formatStoredAmount(credito.monto_aprobado);
 
     const extraHTML = `
         <div class="text-left space-y-3 mt-4">
@@ -456,7 +783,7 @@ function confirmarNotificarWhatsApp(id) {
             </div>
             <p class="text-[10px] text-slate-500 italic flex items-center gap-2">
                 <i class="fab fa-whatsapp text-green-500 text-sm"></i>
-                Se enviará un mensaje automático mediante la API oficial.
+                Se abrirá WhatsApp con el número del socio y el mensaje listo para enviar.
             </p>
         </div>
     `;
@@ -473,23 +800,34 @@ function confirmarNotificarWhatsApp(id) {
     });
 }
 
-async function enviarWhatsApp(id) {
+function enviarWhatsApp(id) {
     const credito = CARTERA_DATA.find(c => String(c.id) === String(id));
     if (!credito) return;
 
-    // Obtener config (si no existe, usamos simulado para el log)
-    const config = JSON.parse(localStorage.getItem('userNotificationConfig')) || { user: 'Simulación', instance: 'SIM-XXXX', apikey: 'NO-KEY' };
+    const session = typeof TupakAuth !== 'undefined'
+        ? TupakAuth.getSession()
+        : JSON.parse(localStorage.getItem('appSession') || 'null');
+    const config = JSON.parse(localStorage.getItem('userNotificationConfig') || 'null');
+    const userName = session?.name || config?.user || 'La Caja';
 
     let telefono = (credito.telefono_socio || '').replace(/\D/g, '');
+    if (!telefono) {
+        showCustomToast('Socio no tiene teléfono registrado', 'error');
+        return;
+    }
+
     const ultimosNueve = telefono.slice(-9);
+    if (ultimosNueve.length !== 9) {
+        showCustomToast('El teléfono del socio no es válido', 'error');
+        return;
+    }
+
     telefono = `+593${ultimosNueve}`;
 
     const cuotaPagada = parseInt(credito.cuota_pagada) || 0;
     const mesAnioPrimerPago = getMesAnioPrimerPago(credito);
     const fechaPagoTexto = formatearFechaTexto(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
-
     const nombreSocio = credito.nombre_socio || 'Estimado socio';
-    const userName = config.user || 'La Caja';
 
     const dias = diasHastaFecha(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
     let mensaje = "";
@@ -518,54 +856,9 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
 ¡Que tenga un excelente día! 🌿✨`;
     }
 
-    const payload = {
-        number: telefono,
-        mediatype: "image",
-        mimetype: "image/png",
-        caption: mensaje,
-        media: "https://lh3.googleusercontent.com/d/1oMybBIAVHNJaxK-xwDVt379sl_eW0Qhi=w2048",
-        fileName: "recordatorio_pago.png",
-        delay: 0,
-        linkPreview: false,
-        mentionsEveryOne: false
-    };
-
-    console.log("📤 JSON NOTIFICACIÓN WHATSAPP:", payload);
-
-    if (!credito.telefono_socio) {
-        showCustomToast('Socio no tiene teléfono registrado', 'error');
-        return;
-    }
-
-    if (!canSendNotifications()) {
-        showCustomToast('Configuración de WhatsApp no activa', 'error');
-        console.warn("⚠️ Notificación no enviada: Configuración incompleta.");
-        return;
-    }
-
-    try {
-        const url = `https://api.luispinta.com/message/sendMedia/${config.instance}`;
-
-        showCustomToast('Enviando notificación...', 'info');
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'apikey': config.apikey,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-            showCustomToast(`🌿 Notificación enviada a ${nombreSocio}`, 'success');
-        } else {
-            showCustomToast('Error al enviar. Verifique config.', 'error');
-        }
-    } catch (error) {
-        console.error('Error WhatsApp:', error);
-        showCustomToast('Error al procesar la notificación', 'error');
-    }
+    const url = `https://api.whatsapp.com/send?phone=${encodeURIComponent(telefono)}&text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+    showCustomToast(`WhatsApp abierto para ${nombreSocio}`, 'success');
 }
 
 // ===== INICIALIZACIÓN =====
@@ -613,7 +906,7 @@ function setupSearch() {
 }
 
 async function fetchCartera() {
-    const session = typeof TupakAuth !== 'undefined' ? TupakAuth.getSession() : JSON.parse(localStorage.getItem('appSession'));
+    const session = getCurrentSessionData();
     if (!session) return;
 
     try {
@@ -630,10 +923,15 @@ async function fetchCartera() {
                 correo: session.email || ""
             })
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         
         const data = await response.json();
         CARTERA_DATA = Array.isArray(data) ? data : [];
         updateStats();
+        renderMissingPaymentScheduleSection();
     } catch (err) {
         console.error('Error fetching cartera:', err);
     }
@@ -712,17 +1010,17 @@ function renderCards(view, container, searchTerm = '') {
     let filtered = [];
     
     if (view === 'atrasados') {
-        filtered = dataToFilter.filter(c => {
+        filtered = sortCreditosByDias(dataToFilter.filter(c => {
             const dias = diasHastaFecha(c.dia_pago, getMesAnioPrimerPago(c), parseInt(c.cuota_pagada) || 0);
             const capitalRestante = parseEuropeanNumber(c.capital_restante);
             return capitalRestante > 0 && (parseInt(c.plazo) || 0) > (parseInt(c.cuota_pagada) || 0) && dias < 0;
-        });
+        }), 'asc');
     } else if (view === 'cobros') {
-        filtered = dataToFilter.filter(c => {
+        filtered = sortCreditosByDias(dataToFilter.filter(c => {
             const dias = diasHastaFecha(c.dia_pago, getMesAnioPrimerPago(c), parseInt(c.cuota_pagada) || 0);
             const capitalRestante = parseEuropeanNumber(c.capital_restante);
             return capitalRestante > 0 && (parseInt(c.plazo) || 0) > (parseInt(c.cuota_pagada) || 0) && dias >= 0 && dias <= 5;
-        });
+        }), 'asc');
     } else {
         filtered = dataToFilter;
     }
@@ -733,58 +1031,56 @@ function renderCards(view, container, searchTerm = '') {
     }
 
     container.innerHTML = filtered.map(item => {
+        const missingSchedule = hasMissingPaymentSchedule(item);
         const dias = diasHastaFecha(item.dia_pago, getMesAnioPrimerPago(item), parseInt(item.cuota_pagada) || 0);
         const fecha = formatDateDisplay(item.dia_pago, getMesAnioPrimerPago(item), parseInt(item.cuota_pagada) || 0);
         
         // Botón dinámico según vista
         const actionBtn = view === 'general' 
-            ? `<button onclick="${item.acta ? `window.open('https://cajatupakrantina.webcoopec.com/view/${item.acta}', '_blank')` : "showCustomToast('Sin acta asignada', 'info')"}" class="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-blue-50 text-blue-600 transition-colors">
+            ? `${missingSchedule
+                ? canEditCartera()
+                    ? `<button onclick="openAsignarFechaModal('${item.id}')" class="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-amber-50 text-amber-600 transition-colors"><i class="fas fa-calendar-plus text-lg"></i><span class="text-[10px] font-bold uppercase">Asignar</span></button>`
+                    : `<button disabled class="flex flex-col items-center gap-1 p-2 rounded-xl bg-slate-100 text-slate-400 cursor-not-allowed"><i class="fas fa-lock text-lg"></i><span class="text-[10px] font-bold uppercase">Solo ver</span></button>`
+                : `<button onclick="${item.acta ? `window.open('https://cajatupakrantina.webcoopec.com/view/${item.acta}', '_blank')` : "showCustomToast('Sin acta asignada', 'info')"}" class="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-blue-50 text-blue-600 transition-colors">
                     <i class="fas fa-table text-lg"></i>
                     <span class="text-[10px] font-bold uppercase">Tabla</span>
-               </button>`
-            : `<button onclick="prepararLiquidacion('${item.id}')" class="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-amber-50 text-amber-600 transition-colors">
-                    <i class="fas fa-money-bill-wave text-lg"></i>
-                    <span class="text-[10px] font-bold uppercase">Liquidar</span>
-               </button>`;
+               </button>`}`
+            : `${canEditCartera()
+                ? `<button onclick="prepararLiquidacion('${item.id}')" class="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-amber-50 text-amber-600 transition-colors"><i class="fas fa-money-bill-wave text-lg"></i><span class="text-[10px] font-bold uppercase">Liquidar</span></button>`
+                : `<button onclick="${item.acta ? `window.open('https://cajatupakrantina.webcoopec.com/view/${item.acta}', '_blank')` : "showCustomToast('Sin acta asignada', 'info')"}" class="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-blue-50 text-blue-600 transition-colors"><i class="fas fa-table text-lg"></i><span class="text-[10px] font-bold uppercase">Tabla</span></button>`}`;
 
         return `
-        <div class="data-item ${view}">
+        <div class="data-item ${view} ${missingSchedule ? 'ring-2 ring-amber-200 bg-amber-50/70' : ''}">
             <div class="item-head">
                 <div style="flex: 1; min-width: 0;">
                     <div class="item-socio truncate">${item.nombre_socio}</div>
                     <div class="item-cedula">ID: ${item.cedula_socio}</div>
                 </div>
-                ${getBadge(dias, view)}
+                ${missingSchedule ? '<span class="badge-m bg-amber-100 text-amber-700 border border-amber-200">FALTA FECHA</span>' : getBadge(dias, view)}
             </div>
             
             <div class="item-details">
                 <div class="detail-box">
                     <span class="detail-label">VALOR CUOTA</span>
-                    <span class="detail-val text-blue-900 font-bold">$${parseFloat(item.monto_aprobado).toFixed(2)}</span>
+                    <span class="detail-val text-blue-900 font-bold">$${formatStoredAmount(item.monto_aprobado)}</span>
                 </div>
                 <div class="detail-box">
                     <span class="detail-label">CAPITAL VIGENTE</span>
-                    <span class="detail-val text-indigo-600 font-bold">$${item.capital_restante}</span>
+                    <span class="detail-val text-indigo-600 font-bold">$${formatStoredAmount(item.capital_restante)}</span>
                 </div>
                 <div class="detail-box">
                     <span class="detail-label">VENCIMIENTO</span>
-                    <span class="detail-val">${fecha}</span>
+                    <span class="detail-val">${missingSchedule ? 'PENDIENTE' : fecha}</span>
                 </div>
                 <div class="detail-box">
                     <span class="detail-label">CUOTA #</span>
-                    <span class="detail-val font-medium text-slate-700">${item.cuota_pagada || 0}/${item.plazo}</span>
+                    <span class="detail-val font-medium text-slate-700">${missingSchedule ? 'Sin fecha' : `${item.cuota_pagada || 0}/${item.plazo}`}</span>
                 </div>
             </div>
 
             <div class="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-slate-100">
-                <button onclick="confirmarNotificarWhatsApp('${item.id}')" class="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-green-50 text-green-600 transition-colors">
-                    <i class="fab fa-whatsapp text-lg"></i>
-                    <span class="text-[10px] font-bold uppercase">WhatsApp</span>
-                </button>
-                <button onclick="prepararPagoCuota('${item.id}')" class="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-indigo-50 text-indigo-600 transition-colors">
-                    <i class="fas fa-hand-holding-usd text-lg"></i>
-                    <span class="text-[10px] font-bold uppercase">Cobrar</span>
-                </button>
+                ${canEditCartera() ? `<button onclick="confirmarNotificarWhatsApp('${item.id}')" class="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-green-50 text-green-600 transition-colors"><i class="fab fa-whatsapp text-lg"></i><span class="text-[10px] font-bold uppercase">WhatsApp</span></button>` : `<button onclick="${item.acta ? `window.open('https://cajatupakrantina.webcoopec.com/view/${item.acta}', '_blank')` : "showCustomToast('Sin acta asignada', 'info')"}" class="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-blue-50 text-blue-600 transition-colors"><i class="fas fa-table text-lg"></i><span class="text-[10px] font-bold uppercase">Tabla</span></button>`}
+                ${canEditCartera() ? `<button onclick="prepararPagoCuota('${item.id}')" class="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-indigo-50 text-indigo-600 transition-colors"><i class="fas fa-hand-holding-usd text-lg"></i><span class="text-[10px] font-bold uppercase">Cobrar</span></button>` : `<button disabled class="flex flex-col items-center gap-1 p-2 rounded-xl bg-slate-100 text-slate-400 cursor-not-allowed"><i class="fas fa-lock text-lg"></i><span class="text-[10px] font-bold uppercase">Lectura</span></button>`}
                 ${actionBtn}
                 <button onclick="viewCreditoDetails('${item.id}')" class="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-slate-50 text-slate-600 transition-colors">
                     <i class="fas fa-eye text-lg"></i>

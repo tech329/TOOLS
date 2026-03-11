@@ -33,12 +33,14 @@ function setupUserInfo(userData) {
 }
 
 function handleSessionExpired() {
-    alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-    if (typeof TupakAuth !== 'undefined') {
-        TupakAuth.logout();
-        return;
-    }
-    window.location.href = '../login.html';
+    showToast('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.', 'error');
+    setTimeout(() => {
+        if (typeof TupakAuth !== 'undefined') {
+            TupakAuth.logout();
+            return;
+        }
+        window.location.href = '../login.html';
+    }, 900);
 }
 
 // Funciones para gestionar el loading screen
@@ -871,7 +873,7 @@ async function handleFile(file) {
     if (!file) return;
 
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-        alert('Solo se permiten archivos PDF');
+        showToast('Solo se permiten archivos PDF', 'error');
         return;
     }
 

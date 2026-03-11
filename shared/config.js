@@ -7,7 +7,7 @@ window.APP_CONFIG = {
     // Información de la App
     APP_NAME: 'Centro de Herramientas',
     APP_SUBTITLE: 'Caja de Ahorro y Crédito Tupak Rantina',
-    APP_VERSION: '2.0.1',
+    APP_VERSION: '2.1.0',
     
     // URLs de recursos
     LOGO_URL: './img/logo.webp',

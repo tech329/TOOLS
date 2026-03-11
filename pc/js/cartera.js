@@ -7,28 +7,661 @@ let currentView = 'atrasados';
 let CARTERA_DATA = [];
 let filteredData = [];
 let isAdmin = false;
+let generalSortState = { key: 'fecha_hora', direction: 'desc' };
+let atrasadosSortState = { key: 'dias_mora', direction: 'desc' };
+let cobrosSortState = { key: 'dias_restantes', direction: 'asc' };
+let approvedEvolutionChart = null;
+const ACTUALIZAR_CREDITO_WEBHOOK = 'https://lpn8nwebhook.luispintasolutions.com/webhook/actualizar_credito';
+const REGISTRAR_PAGO_WEBHOOK = 'https://lpn8nwebhook.luispintasolutions.com/webhook/registrar_pago';
+const LIQUIDAR_CREDITO_WEBHOOK = 'https://lpn8nwebhook.luispintasolutions.com/webhook/liquidar_credito';
 
 // ===== UTILIDADES DE NÚMEROS (MIGRADAS DE APP MADRE) =====
 
 function parseEuropeanNumber(value) {
-    if (!value) return 0;
-    const str = String(value).trim();
-    const normalized = str.replace(/\./g, '').replace(',', '.');
-    return parseFloat(normalized) || 0;
+    if (value === null || value === undefined || value === '') return 0;
+    if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+
+    const str = String(value).trim().replace(/\s+/g, '');
+    if (!str) return 0;
+
+    let normalized = str;
+
+    if (str.includes(',') && str.includes('.')) {
+        normalized = str.lastIndexOf(',') > str.lastIndexOf('.')
+            ? str.replace(/\./g, '').replace(',', '.')
+            : str.replace(/,/g, '');
+    } else if (str.includes(',')) {
+        normalized = str.replace(/\./g, '').replace(',', '.');
+    } else if (/^\d{1,3}(\.\d{3})+$/.test(str)) {
+        normalized = str.replace(/\./g, '');
+    }
+
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function formatEuropeanNumber(value) {
-    if (!value || isNaN(value)) return '0,00';
+    if (!Number.isFinite(value)) return '0,00';
     return value.toLocaleString('es-ES', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
 }
 
+function formatStoredAmount(value) {
+    return formatEuropeanNumber(parseEuropeanNumber(value));
+}
+
+function getCurrentSessionData() {
+    return typeof TupakAuth !== 'undefined'
+        ? TupakAuth.getSession()
+        : JSON.parse(localStorage.getItem('appSession') || 'null');
+}
+
+function isValidCapitalInputFormat(value) {
+    const normalized = String(value || '').trim();
+    return /^(?:\d{1,3}|\d{1,3}(?:\.\d{3})+),\d{2}$/.test(normalized);
+}
+
 // ===== UTILIDADES DE FECHA =====
 
 function getMesAnioPrimerPago(credito) {
     return credito['mes_anio_primer_pago'] || credito['mes / año_primer_pago'] || credito.mes_año_primer_pago || null;
+}
+
+function hasMissingPaymentSchedule(credito) {
+    return !credito?.dia_pago || !getMesAnioPrimerPago(credito);
+}
+
+function isActiveCredit(credito) {
+    const plazo = parseInt(credito?.plazo, 10) || 0;
+    const cuotaPagada = parseInt(credito?.cuota_pagada, 10) || 0;
+    const capitalRestante = parseEuropeanNumber(credito?.capital_restante);
+    return plazo > 0 && cuotaPagada < plazo && capitalRestante > 0;
+}
+
+function getMissingPaymentScheduleCredits() {
+    return CARTERA_DATA.filter(credito => isActiveCredit(credito) && hasMissingPaymentSchedule(credito));
+}
+
+function canEditCartera() {
+    return !isAdmin;
+}
+
+function showAdminReadOnlyToast() {
+    showCustomToast('Los administradores tienen acceso de solo lectura en cartera.', 'info');
+}
+
+function getCreditoDias(credito) {
+    return diasHastaFecha(credito.dia_pago, getMesAnioPrimerPago(credito), parseInt(credito.cuota_pagada, 10) || 0);
+}
+
+function getRegistroTimestamp(credito) {
+    const rawValue = credito?.fecha_hora || credito?.created_at || credito?.fecha || '';
+    const timestamp = rawValue ? new Date(rawValue).getTime() : 0;
+    return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function formatRegistroFecha(credito) {
+    const timestamp = getRegistroTimestamp(credito);
+    if (!timestamp) return 'N/A';
+
+    return new Date(timestamp).toLocaleString('es-EC', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    });
+}
+
+function isLiquidatedCredit(credito) {
+    return parseEuropeanNumber(credito?.capital_restante) <= 0;
+}
+
+function getDueTimestamp(credito) {
+    const diaPago = credito?.dia_pago;
+    const mesAnioPrimerPago = getMesAnioPrimerPago(credito);
+    const cuotaPagada = parseInt(credito?.cuota_pagada, 10) || 0;
+    if (!diaPago || !mesAnioPrimerPago) return 0;
+
+    try {
+        const [mes, anio] = mesAnioPrimerPago.split('/');
+        const fechaBase = new Date(parseInt(anio, 10), parseInt(mes, 10) - 1, parseInt(diaPago, 10));
+        fechaBase.setMonth(fechaBase.getMonth() + cuotaPagada);
+        fechaBase.setHours(0, 0, 0, 0);
+        return fechaBase.getTime();
+    } catch (error) {
+        return 0;
+    }
+}
+
+function sortCreditosByDias(creditos, direction = 'asc') {
+    return [...creditos].sort((a, b) => {
+        const diasA = getCreditoDias(a);
+        const diasB = getCreditoDias(b);
+
+        const safeDiasA = diasA === null ? Number.POSITIVE_INFINITY : diasA;
+        const safeDiasB = diasB === null ? Number.POSITIVE_INFINITY : diasB;
+
+        if (safeDiasA !== safeDiasB) {
+            return direction === 'desc' ? safeDiasB - safeDiasA : safeDiasA - safeDiasB;
+        }
+
+        const fechaA = new Date(a.fecha_hora || a.created_at || 0).getTime() || 0;
+        const fechaB = new Date(b.fecha_hora || b.created_at || 0).getTime() || 0;
+        if (fechaA !== fechaB) return fechaA - fechaB;
+
+        return String(a.nombre_socio || '').localeCompare(String(b.nombre_socio || ''), 'es', { sensitivity: 'base' });
+    });
+}
+
+function sortGeneralData(creditos) {
+    const { key, direction } = generalSortState;
+    const factor = direction === 'asc' ? 1 : -1;
+
+    return [...creditos].sort((a, b) => {
+        let valueA;
+        let valueB;
+
+        switch (key) {
+            case 'nombre_socio':
+                valueA = String(a.nombre_socio || '').toLowerCase();
+                valueB = String(b.nombre_socio || '').toLowerCase();
+                break;
+            case 'cedula_socio':
+                valueA = String(a.cedula_socio || '');
+                valueB = String(b.cedula_socio || '');
+                break;
+            case 'fecha_hora':
+                valueA = getRegistroTimestamp(a);
+                valueB = getRegistroTimestamp(b);
+                break;
+            case 'monto_aprobado':
+                valueA = parseEuropeanNumber(a.monto_aprobado);
+                valueB = parseEuropeanNumber(b.monto_aprobado);
+                break;
+            case 'capital_restante':
+                valueA = parseEuropeanNumber(a.capital_restante);
+                valueB = parseEuropeanNumber(b.capital_restante);
+                break;
+            case 'plazo':
+                valueA = parseInt(a.plazo, 10) || 0;
+                valueB = parseInt(b.plazo, 10) || 0;
+                break;
+            case 'cuota_pagada':
+                valueA = parseInt(a.cuota_pagada, 10) || 0;
+                valueB = parseInt(b.cuota_pagada, 10) || 0;
+                break;
+            default:
+                valueA = String(a[key] || '').toLowerCase();
+                valueB = String(b[key] || '').toLowerCase();
+        }
+
+        if (valueA < valueB) return -1 * factor;
+        if (valueA > valueB) return 1 * factor;
+
+        return getRegistroTimestamp(b) - getRegistroTimestamp(a);
+    });
+}
+
+function sortAtrasadosData(creditos) {
+    const { key, direction } = atrasadosSortState;
+    const factor = direction === 'asc' ? 1 : -1;
+
+    return [...creditos].sort((a, b) => {
+        let valueA;
+        let valueB;
+
+        switch (key) {
+            case 'fecha_pago':
+                valueA = getDueTimestamp(a);
+                valueB = getDueTimestamp(b);
+                break;
+            case 'dias_mora':
+                valueA = Math.abs(getCreditoDias(a) || 0);
+                valueB = Math.abs(getCreditoDias(b) || 0);
+                break;
+            case 'nombre_socio':
+                valueA = String(a.nombre_socio || '').toLowerCase();
+                valueB = String(b.nombre_socio || '').toLowerCase();
+                break;
+            case 'cedula_socio':
+                valueA = String(a.cedula_socio || '');
+                valueB = String(b.cedula_socio || '');
+                break;
+            case 'monto_aprobado':
+                valueA = parseEuropeanNumber(a.monto_aprobado);
+                valueB = parseEuropeanNumber(b.monto_aprobado);
+                break;
+            case 'score':
+                valueA = parseInt(a.tupak_score, 10) || 0;
+                valueB = parseInt(b.tupak_score, 10) || 0;
+                break;
+            default:
+                valueA = getDueTimestamp(a);
+                valueB = getDueTimestamp(b);
+        }
+
+        if (valueA < valueB) return -1 * factor;
+        if (valueA > valueB) return 1 * factor;
+        return getRegistroTimestamp(b) - getRegistroTimestamp(a);
+    });
+}
+
+function sortCobrosData(creditos) {
+    const { key, direction } = cobrosSortState;
+    const factor = direction === 'asc' ? 1 : -1;
+
+    return [...creditos].sort((a, b) => {
+        let valueA;
+        let valueB;
+
+        switch (key) {
+            case 'fecha_pago':
+                valueA = getDueTimestamp(a);
+                valueB = getDueTimestamp(b);
+                break;
+            case 'dias_restantes':
+                valueA = getCreditoDias(a) ?? Number.POSITIVE_INFINITY;
+                valueB = getCreditoDias(b) ?? Number.POSITIVE_INFINITY;
+                break;
+            case 'nombre_socio':
+                valueA = String(a.nombre_socio || '').toLowerCase();
+                valueB = String(b.nombre_socio || '').toLowerCase();
+                break;
+            case 'cedula_socio':
+                valueA = String(a.cedula_socio || '');
+                valueB = String(b.cedula_socio || '');
+                break;
+            case 'monto_aprobado':
+                valueA = parseEuropeanNumber(a.monto_aprobado);
+                valueB = parseEuropeanNumber(b.monto_aprobado);
+                break;
+            case 'score':
+                valueA = parseInt(a.tupak_score, 10) || 0;
+                valueB = parseInt(b.tupak_score, 10) || 0;
+                break;
+            default:
+                valueA = getCreditoDias(a) ?? Number.POSITIVE_INFINITY;
+                valueB = getCreditoDias(b) ?? Number.POSITIVE_INFINITY;
+        }
+
+        if (valueA < valueB) return -1 * factor;
+        if (valueA > valueB) return 1 * factor;
+        return getRegistroTimestamp(b) - getRegistroTimestamp(a);
+    });
+}
+
+function getSortIndicator(sortState, columnKey) {
+    const isActive = sortState.key === columnKey;
+    const upClass = isActive && sortState.direction === 'asc' ? 'text-indigo-600' : 'text-slate-300';
+    const downClass = isActive && sortState.direction === 'desc' ? 'text-indigo-600' : 'text-slate-300';
+
+    return `<span class="inline-flex flex-col ml-2 leading-none align-middle"><i class="fas fa-chevron-up text-[10px] ${upClass}"></i><i class="fas fa-chevron-down text-[10px] -mt-0.5 ${downClass}"></i></span>`;
+}
+
+function getGeneralSortIndicator(columnKey) {
+    return getSortIndicator(generalSortState, columnKey);
+}
+
+function renderGeneralSortableHeader(label, columnKey) {
+    return `<th><button type="button" onclick="toggleGeneralSort('${columnKey}')" class="inline-flex items-center font-bold text-slate-700 hover:text-indigo-700 transition-colors">${label}${getGeneralSortIndicator(columnKey)}</button></th>`;
+}
+
+function renderAtrasadosSortableHeader(label, columnKey) {
+    return `<th><button type="button" onclick="toggleAtrasadosSort('${columnKey}')" class="inline-flex items-center font-bold text-slate-700 hover:text-indigo-700 transition-colors">${label}${getSortIndicator(atrasadosSortState, columnKey)}</button></th>`;
+}
+
+function renderCobrosSortableHeader(label, columnKey) {
+    return `<th><button type="button" onclick="toggleCobrosSort('${columnKey}')" class="inline-flex items-center font-bold text-slate-700 hover:text-indigo-700 transition-colors">${label}${getSortIndicator(cobrosSortState, columnKey)}</button></th>`;
+}
+
+function toggleGeneralSort(columnKey) {
+    if (generalSortState.key === columnKey) {
+        generalSortState.direction = generalSortState.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        generalSortState = { key: columnKey, direction: 'asc' };
+    }
+
+    renderData(currentView, document.getElementById('search-input')?.value.toLowerCase() || '');
+}
+
+function toggleAtrasadosSort(columnKey) {
+    if (atrasadosSortState.key === columnKey) {
+        atrasadosSortState.direction = atrasadosSortState.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        atrasadosSortState = { key: columnKey, direction: columnKey === 'dias_mora' ? 'desc' : 'asc' };
+    }
+
+    renderData(currentView, document.getElementById('search-input')?.value.toLowerCase() || '');
+}
+
+function toggleCobrosSort(columnKey) {
+    if (cobrosSortState.key === columnKey) {
+        cobrosSortState.direction = cobrosSortState.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        cobrosSortState = { key: columnKey, direction: columnKey === 'dias_restantes' ? 'asc' : 'asc' };
+    }
+
+    renderData(currentView, document.getElementById('search-input')?.value.toLowerCase() || '');
+}
+
+function buildCategorySeparatorRow(label, count, colspan, theme) {
+    const themeClasses = theme === 'liquidado'
+        ? 'bg-slate-100 text-slate-700 border-slate-200'
+        : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    return `<tr class="${themeClasses}"><td colspan="${colspan}" class="px-4 py-3 border-y font-black uppercase tracking-wide text-xs">${label} (${count})</td></tr>`;
+}
+
+function getCreditCreatedDate(credito) {
+    const timestamp = getRegistroTimestamp(credito);
+    if (!timestamp) return null;
+
+    const date = new Date(timestamp);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getMonthLabel(date, short = false) {
+    return date.toLocaleDateString('es-EC', {
+        month: short ? 'short' : 'long',
+        year: 'numeric'
+    }).replace('.', '');
+}
+
+function shouldProjectNextMonth(referenceDate = new Date()) {
+    return referenceDate.getDate() >= 15;
+}
+
+function calculateProjectedNextMonthTotal(months, referenceDate = new Date()) {
+    const currentMonthKey = `${referenceDate.getFullYear()}-${String(referenceDate.getMonth() + 1).padStart(2, '0')}`;
+    const completedMonths = months.filter(month => month.key !== currentMonthKey);
+    const referenceMonths = completedMonths.slice(-3);
+
+    if (!referenceMonths.length) {
+        const currentMonth = months.find(month => month.key === currentMonthKey);
+        return currentMonth?.total || 0;
+    }
+
+    const total = referenceMonths.reduce((sum, month) => sum + month.total, 0);
+    return total / referenceMonths.length;
+}
+
+function buildMonthlyApprovedSeries(monthCount, options = {}) {
+    const { includeProjection = false } = options;
+    const today = new Date();
+    const months = [];
+
+    for (let offset = monthCount - 1; offset >= 0; offset--) {
+        const date = new Date(today.getFullYear(), today.getMonth() - offset, 1);
+        months.push({
+            key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
+            label: getMonthLabel(date, true),
+            fullLabel: getMonthLabel(date, false),
+            total: 0,
+            projected: false
+        });
+    }
+
+    const monthMap = new Map(months.map(month => [month.key, month]));
+
+    CARTERA_DATA.forEach(credito => {
+        const createdDate = getCreditCreatedDate(credito);
+        if (!createdDate) return;
+
+        const key = `${createdDate.getFullYear()}-${String(createdDate.getMonth() + 1).padStart(2, '0')}`;
+        const bucket = monthMap.get(key);
+        if (!bucket) return;
+
+        bucket.total += parseEuropeanNumber(credito.monto_aprobado);
+    });
+
+    if (includeProjection && shouldProjectNextMonth(today)) {
+        const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
+        months.push({
+            key: `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}`,
+            label: getMonthLabel(nextMonthDate, true),
+            fullLabel: getMonthLabel(nextMonthDate, false),
+            total: calculateProjectedNextMonthTotal(months, today),
+            projected: true
+        });
+    }
+
+    return months;
+}
+
+function buildTopCreditsList(limit, direction = 'desc') {
+    const sorted = CARTERA_DATA
+        .filter(credito => parseEuropeanNumber(credito.monto_aprobado) > 0)
+        .sort((a, b) => {
+            const amountA = parseEuropeanNumber(a.monto_aprobado);
+            const amountB = parseEuropeanNumber(b.monto_aprobado);
+            if (amountA !== amountB) {
+                return direction === 'desc' ? amountB - amountA : amountA - amountB;
+            }
+
+            return getRegistroTimestamp(b) - getRegistroTimestamp(a);
+        });
+
+    return sorted.slice(0, limit);
+}
+
+function renderTopCreditsList(containerId, credits, accentClass) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!credits.length) {
+        container.innerHTML = '<div class="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-500">No hay datos disponibles.</div>';
+        return;
+    }
+
+    container.innerHTML = credits.map((credito, index) => `
+        <article class="bg-white border border-slate-200 rounded-2xl px-4 py-4 shadow-sm">
+            <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <div class="flex items-center gap-3 mb-1">
+                        <span class="w-8 h-8 rounded-full ${accentClass} text-white text-xs font-black flex items-center justify-center">${index + 1}</span>
+                        <p class="text-sm font-black text-slate-800 uppercase truncate">${credito.nombre_socio || 'N/A'}</p>
+                    </div>
+                    <p class="text-xs text-slate-500">Cédula: ${credito.cedula_socio || 'N/A'}</p>
+                    <p class="text-xs text-slate-500">Registro: ${formatRegistroFecha(credito)}</p>
+                </div>
+                <div class="text-right shrink-0">
+                    <p class="text-lg font-black text-slate-900">$${formatStoredAmount(credito.monto_aprobado)}</p>
+                    <p class="text-[11px] text-slate-500">Capital vigente: $${formatStoredAmount(credito.capital_restante)}</p>
+                </div>
+            </div>
+        </article>
+    `).join('');
+}
+
+function renderLastThreeMonthsStats(months) {
+    const container = document.getElementById('stats-last-3-months');
+    if (!container) return;
+
+    const safeMonths = shouldProjectNextMonth() ? months : months.filter(month => !month.projected);
+
+    if (!safeMonths.length) {
+        container.innerHTML = '<div class="md:col-span-3 rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-500">No hay datos suficientes.</div>';
+        return;
+    }
+
+    const actualMonths = safeMonths.filter(month => !month.projected).reverse();
+    const projectedMonths = safeMonths.filter(month => month.projected);
+    const displayMonths = [...actualMonths, ...projectedMonths];
+
+    container.innerHTML = displayMonths.map(month => `
+        <article class="rounded-2xl border ${month.projected ? 'border-indigo-300 bg-indigo-50/70' : 'border-slate-200 bg-white'} p-5 shadow-sm">
+            <div class="flex items-center justify-between gap-3 mb-2">
+                <p class="text-xs font-black uppercase tracking-wide ${month.projected ? 'text-indigo-700' : 'text-slate-500'}">${month.fullLabel}</p>
+                ${month.projected ? '<span class="px-2 py-1 rounded-full bg-indigo-600 text-white text-[10px] font-black uppercase tracking-wide">Proyección</span>' : ''}
+            </div>
+            <p class="text-3xl font-black text-slate-900 mb-1">$${formatEuropeanNumber(month.total)}</p>
+            <p class="text-xs ${month.projected ? 'text-indigo-700' : 'text-slate-500'}">${month.projected ? 'Estimación del próximo mes basada en el promedio de los últimos 3 meses cerrados' : 'Monto aprobado acumulado del mes'}</p>
+        </article>
+    `).join('');
+}
+
+function renderApprovedEvolutionChart(months) {
+    const canvas = document.getElementById('stats-approved-chart');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    const safeMonths = shouldProjectNextMonth() ? months : months.filter(month => !month.projected);
+
+    const labels = safeMonths.map(month => month.label);
+    const actualValues = safeMonths.map(month => month.projected ? null : month.total);
+    const projectedIndex = safeMonths.findIndex(month => month.projected);
+    const projectionValues = safeMonths.map((month, index) => {
+        if (projectedIndex === -1) return null;
+        if (index === projectedIndex) return month.total;
+        if (index === projectedIndex - 1) return safeMonths[index].total;
+        return null;
+    });
+
+    if (approvedEvolutionChart) {
+        approvedEvolutionChart.destroy();
+    }
+
+    approvedEvolutionChart = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Monto aprobado',
+                data: actualValues,
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.16)',
+                fill: true,
+                borderWidth: 3,
+                tension: 0.35,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: '#4f46e5',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2
+            }, {
+                label: 'Proyección',
+                data: projectionValues,
+                borderColor: '#f59e0b',
+                backgroundColor: 'transparent',
+                fill: false,
+                borderWidth: 3,
+                tension: 0.35,
+                borderDash: [8, 6],
+                pointRadius(context) {
+                    return context.dataIndex === projectedIndex ? 5 : 0;
+                },
+                pointHoverRadius(context) {
+                    return context.dataIndex === projectedIndex ? 7 : 0;
+                },
+                pointBackgroundColor: '#f59e0b',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                spanGaps: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: projectedIndex !== -1
+                },
+                tooltip: {
+                    callbacks: {
+                        label(context) {
+                            const prefix = context.dataset.label === 'Proyección' ? 'Proyección: ' : 'Monto aprobado: ';
+                            return `${prefix}$${formatEuropeanNumber(context.parsed.y || 0)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback(value) {
+                            return `$${formatEuropeanNumber(Number(value) || 0)}`;
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.18)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderStatisticsView() {
+    const projectionEnabled = shouldProjectNextMonth();
+    const totalColocado = CARTERA_DATA.reduce((sum, credito) => sum + parseEuropeanNumber(credito.monto_aprobado), 0);
+    const capitalVigente = CARTERA_DATA.reduce((sum, credito) => sum + parseEuropeanNumber(credito.capital_restante), 0);
+    const largestCredits = buildTopCreditsList(5, 'desc');
+    const smallestCredits = buildTopCreditsList(5, 'asc');
+    const lastThreeMonths = buildMonthlyApprovedSeries(3, { includeProjection: projectionEnabled });
+    const lastSixMonths = buildMonthlyApprovedSeries(6, { includeProjection: projectionEnabled });
+
+    const totalColocadoEl = document.getElementById('stats-total-colocado');
+    const capitalVigenteEl = document.getElementById('stats-capital-vigente');
+
+    if (totalColocadoEl) totalColocadoEl.textContent = `$${formatEuropeanNumber(totalColocado)}`;
+    if (capitalVigenteEl) capitalVigenteEl.textContent = `$${formatEuropeanNumber(capitalVigente)}`;
+
+    renderTopCreditsList('stats-largest-credits', largestCredits, 'bg-emerald-600');
+    renderTopCreditsList('stats-smallest-credits', smallestCredits, 'bg-amber-500');
+    renderLastThreeMonthsStats(lastThreeMonths);
+    renderApprovedEvolutionChart(lastSixMonths);
+}
+
+function getAssignPaymentDateDefaults() {
+    const hoy = new Date();
+    const nextMonth = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
+    return {
+        mes: String(nextMonth.getMonth() + 1).padStart(2, '0'),
+        anio: String(nextMonth.getFullYear())
+    };
+}
+
+function renderMissingPaymentScheduleSection() {
+    const section = document.getElementById('missing-payment-schedule-section');
+    const countEl = document.getElementById('missing-payment-schedule-count');
+    const listEl = document.getElementById('missing-payment-schedule-list');
+    if (!section || !countEl || !listEl) return;
+
+    const missingCredits = getMissingPaymentScheduleCredits();
+    countEl.textContent = String(missingCredits.length);
+
+    if (missingCredits.length === 0) {
+        section.classList.add('hidden');
+        listEl.innerHTML = '';
+        return;
+    }
+
+    section.classList.remove('hidden');
+    listEl.innerHTML = missingCredits.map(credito => `
+        <article class="bg-white border border-amber-200 rounded-2xl p-4 shadow-sm flex flex-col gap-4">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-sm font-black text-slate-800 uppercase">${credito.nombre_socio || 'N/A'}</p>
+                    <p class="text-xs text-slate-500 mt-1">Cédula: ${credito.cedula_socio || 'N/A'}</p>
+                    <p class="text-xs text-slate-500">Monto: $${formatStoredAmount(credito.monto_aprobado)}</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-[11px] font-black uppercase">Pendiente</span>
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
+                ${canEditCartera() ? `<button onclick="openAsignarFechaModal('${credito.id}')" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black transition-colors shadow-sm"><i class="fas fa-calendar-plus mr-2"></i>Asignar Fecha</button>` : `<span class="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold">Solo visualización para admin</span>`}
+                ${credito.acta ? `<button onclick="viewAmortizationTable('${credito.acta}')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black transition-colors shadow-sm"><i class="fas fa-table mr-2"></i>Ver Tabla</button>` : ''}
+            </div>
+        </article>
+    `).join('');
 }
 
 function diasHastaFecha(diaPago, mesAnioPrimerPago, cuotaPagada = 0) {
@@ -126,7 +759,7 @@ function canSendNotifications() {
 function calcularTupakScore(creditos) {
     if (creditos.length === 0) return creditos;
 
-    const montos = creditos.map(c => parseFloat(c.monto_aprobado) || 0);
+    const montos = creditos.map(c => parseEuropeanNumber(c.monto_aprobado));
     const plazos = creditos.map(c => parseInt(c.plazo) || 1);
     const retornos = creditos.map((c, i) => plazos[i] > 0 ? montos[i] / plazos[i] : 0);
     const tasas = creditos.map(c => parseFloat(c.interes) || 0);
@@ -220,12 +853,29 @@ function switchView(view) {
     const btn = document.getElementById(`btn-${view}`);
     if (btn) btn.classList.add('active');
     
+    const dataCard = document.getElementById('data-card');
+    const statisticsView = document.getElementById('statistics-view');
+    const missingScheduleSection = document.getElementById('missing-payment-schedule-section');
+    const isStatisticsView = view === 'estadisticas';
+    
     const titles = {
         atrasados: 'Pagos Atrasados / Mora',
         cobros: 'Cobros Próximos (Próximos 5 días)',
-        general: 'Base de Datos de Cartera'
+        general: 'Base de Datos de Cartera',
+        estadisticas: 'Estadísticas de Cartera'
     };
-    document.getElementById('card-main-title').textContent = titles[view];
+    const titleEl = document.getElementById('card-main-title');
+    if (titleEl) titleEl.textContent = titles[view] || titles.general;
+
+    if (statisticsView) statisticsView.classList.toggle('hidden', !isStatisticsView);
+    if (dataCard) dataCard.classList.toggle('hidden', isStatisticsView);
+    if (missingScheduleSection) {
+        if (isStatisticsView) {
+            missingScheduleSection.classList.add('hidden');
+        } else {
+            renderMissingPaymentScheduleSection();
+        }
+    }
 
     // Controlar visibilidad del Dashboard Admin (Solo en Vista General para Admins)
     const adminDashboard = document.getElementById('admin-dashboard');
@@ -235,6 +885,11 @@ function switchView(view) {
         } else {
             adminDashboard.classList.add('hidden');
         }
+    }
+
+    if (isStatisticsView) {
+        renderStatisticsView();
+        return;
     }
 
     renderData(view);
@@ -270,6 +925,7 @@ async function fetchCartera() {
         CARTERA_DATA = Array.isArray(data) ? data : [];
         CARTERA_DATA = calcularTupakScore(CARTERA_DATA);
         updateStats();
+        renderMissingPaymentScheduleSection();
         if (isAdmin) updateAdminDashboard();
         
         // Determinar vista inicial dinámica
@@ -304,26 +960,28 @@ function updateStats() {
         if (activa) {
             if (dias < 0) atrasados++;
             else if (dias <= 5) cobros++;
-            montoTotal += parseFloat(c.monto_aprobado) || 0;
+            montoTotal += parseEuropeanNumber(c.monto_aprobado);
         }
     });
 
     document.getElementById('stat-atrasados').textContent = atrasados;
     document.getElementById('stat-cobros').textContent = cobros;
-    document.getElementById('stat-monto').textContent = '$' + montoTotal.toLocaleString('es-ES', { minimumFractionDigits: 2 });
+    document.getElementById('stat-monto').textContent = '$' + formatEuropeanNumber(montoTotal);
+
+    renderStatisticsView();
 }
 
 function updateAdminDashboard() {
     const totalCreditos = CARTERA_DATA.length;
-    const montoTotalGlobal = CARTERA_DATA.reduce((sum, c) => sum + (parseFloat(c.monto_aprobado) || 0), 0);
+    const montoTotalGlobal = CARTERA_DATA.reduce((sum, c) => sum + parseEuropeanNumber(c.monto_aprobado), 0);
     const capitalVigenteGlobal = CARTERA_DATA.reduce((sum, c) => sum + parseEuropeanNumber(c.capital_restante), 0);
     const promedio = totalCreditos > 0 ? montoTotalGlobal / totalCreditos : 0;
 
     // Métricas principales
     document.getElementById('dashboard-total-creditos').textContent = totalCreditos;
-    document.getElementById('dashboard-monto-total').textContent = '$' + montoTotalGlobal.toLocaleString('es-ES', { maximumFractionDigits: 0 });
+    document.getElementById('dashboard-monto-total').textContent = '$' + formatEuropeanNumber(montoTotalGlobal);
     document.getElementById('dashboard-capital-vigente').textContent = '$' + formatEuropeanNumber(capitalVigenteGlobal);
-    document.getElementById('dashboard-promedio-monto').textContent = '$' + promedio.toLocaleString('es-ES', { maximumFractionDigits: 0 });
+    document.getElementById('dashboard-promedio-monto').textContent = '$' + formatEuropeanNumber(promedio);
 
     // Conteo de Asesores únicos (por correo)
     const asesoresUnicos = new Set(CARTERA_DATA.map(c => c.correo_asesor || c.asesor_credito).filter(a => a));
@@ -338,7 +996,7 @@ function updateAdminDashboard() {
         if (!asesoresData[idAsesor]) {
             asesoresData[idAsesor] = { nombre: nombreAsesor, monto: 0, cant: 0 };
         }
-        asesoresData[idAsesor].monto += parseFloat(c.monto_aprobado) || 0;
+        asesoresData[idAsesor].monto += parseEuropeanNumber(c.monto_aprobado);
         asesoresData[idAsesor].cant++;
     });
 
@@ -354,7 +1012,7 @@ function updateAdminDashboard() {
                         <p class="text-xs font-bold text-slate-700 truncate">${a.nombre}</p>
                         <p class="text-[10px] text-slate-400 font-medium">${a.cant} créditos otorgados</p>
                     </div>
-                    <span class="text-sm font-black text-indigo-700">$${a.monto.toLocaleString('es-ES', {maximumFractionDigits:0})}</span>
+                    <span class="text-sm font-black text-indigo-700">$${formatEuropeanNumber(a.monto)}</span>
                 </div>
                 <div class="w-full bg-indigo-200 h-1.5 rounded-full overflow-hidden">
                     <div class="bg-indigo-600 h-full transition-all duration-1000" style="width: ${(a.monto / maxMonto * 100)}%"></div>
@@ -381,7 +1039,7 @@ function updateAdminDashboard() {
             return f.getMonth() === currentMonth && f.getFullYear() === currentYear;
         });
 
-        const montoMes = delMes.reduce((sum, c) => sum + (parseFloat(c.monto_aprobado) || 0), 0);
+        const montoMes = delMes.reduce((sum, c) => sum + parseEuropeanNumber(c.monto_aprobado), 0);
         const capitalMes = delMes.reduce((sum, c) => sum + parseEuropeanNumber(c.capital_restante), 0);
 
         // Agrupar por asesor para este mes
@@ -392,7 +1050,7 @@ function updateAdminDashboard() {
                 asesoresDelMes[id] = { nombre: c.asesor_credito || 'Desconocido', cant: 0, monto: 0 };
             }
             asesoresDelMes[id].cant++;
-            asesoresDelMes[id].monto += parseFloat(c.monto_aprobado) || 0;
+            asesoresDelMes[id].monto += parseEuropeanNumber(c.monto_aprobado);
         });
 
         const listAsesoresSorted = Object.values(asesoresDelMes).sort((a, b) => b.monto - a.monto);
@@ -405,7 +1063,7 @@ function updateAdminDashboard() {
 
         if (nameEl) nameEl.textContent = mesesNombres[currentMonth] + ' ' + currentYear;
         if (countEl) countEl.textContent = delMes.length;
-        if (amountEl) amountEl.textContent = '$' + montoMes.toLocaleString('es-ES', { maximumFractionDigits: 0 });
+        if (amountEl) amountEl.textContent = '$' + formatEuropeanNumber(montoMes);
         if (capitalEl) capitalEl.textContent = '$' + formatEuropeanNumber(capitalMes);
         
         if (asesoresContainer) {
@@ -413,7 +1071,7 @@ function updateAdminDashboard() {
                 asesoresContainer.innerHTML = listAsesoresSorted.map(as => `
                     <div class="flex justify-between items-center text-[11px] py-1 border-b border-white/10 last:border-0 uppercase font-medium">
                         <span class="truncate pr-2">${as.nombre}</span>
-                        <span class="flex-shrink-0 font-bold">${as.cant} | $${as.monto.toLocaleString('es-ES', {maximumFractionDigits:0})}</span>
+                        <span class="flex-shrink-0 font-bold">${as.cant} | $${formatEuropeanNumber(as.monto)}</span>
                     </div>
                 `).join('');
             } else {
@@ -428,6 +1086,13 @@ function renderData(view, searchTerm = '') {
     const thead = document.getElementById('table-head');
     if (!tbody || !thead) return;
 
+    if (view === 'estadisticas') {
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+        renderStatisticsView();
+        return;
+    }
+
     let data = CARTERA_DATA;
     if (searchTerm) {
         data = data.filter(c => 
@@ -440,12 +1105,12 @@ function renderData(view, searchTerm = '') {
     tbody.innerHTML = '';
 
     if (view === 'atrasados') {
-        thead.innerHTML = `<tr><th>Vencimiento</th><th>Días Mora</th><th>Socio</th><th>Cédula</th><th>Monto</th><th>Score</th><th>Acciones</th></tr>`;
-        const filtered = data.filter(c => {
+        thead.innerHTML = `<tr>${renderAtrasadosSortableHeader('Vencimiento', 'fecha_pago')}${renderAtrasadosSortableHeader('Días Mora', 'dias_mora')}${renderAtrasadosSortableHeader('Socio', 'nombre_socio')}${renderAtrasadosSortableHeader('Cédula', 'cedula_socio')}${renderAtrasadosSortableHeader('Monto Aprob.', 'monto_aprobado')}${renderAtrasadosSortableHeader('Score', 'score')}<th>Acciones</th></tr>`;
+        const filtered = sortAtrasadosData(data.filter(c => {
             const dias = diasHastaFecha(c.dia_pago, getMesAnioPrimerPago(c), parseInt(c.cuota_pagada) || 0);
             const capitalRestante = parseEuropeanNumber(c.capital_restante);
             return capitalRestante > 0 && (parseInt(c.plazo) || 0) > (parseInt(c.cuota_pagada) || 0) && (dias !== null && dias < 0);
-        });
+        }));
 
         if (filtered.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500">No hay pagos atrasados</td></tr>`;
@@ -456,6 +1121,16 @@ function renderData(view, searchTerm = '') {
             const dias = diasHastaFecha(item.dia_pago, getMesAnioPrimerPago(item), parseInt(item.cuota_pagada) || 0);
             const fecha = calcularFechaVencida(item.dia_pago, getMesAnioPrimerPago(item), parseInt(item.cuota_pagada) || 0);
             const stars = '★'.repeat(item.tupak_score || 1) + '☆'.repeat(5 - (item.tupak_score || 1));
+            const actionButtons = [
+                `<button class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition-colors" title="Ver Detalles" onclick="viewCreditoDetails('${item.id}')"><i class="fas fa-eye"></i></button>`,
+                item.acta ? `<button class="text-slate-600 hover:bg-slate-50 p-2 rounded-lg transition-colors" title="Amortización" onclick="viewAmortizationTable('${item.acta}')"><i class="fas fa-table"></i></button>` : ''
+            ];
+
+            if (canEditCartera()) {
+                actionButtons.splice(1, 0, `<button class="text-green-600 hover:bg-green-50 p-2 rounded-lg transition-colors" title="Notificar WhatsApp" onclick="confirmarNotificarWhatsApp('${item.id}')"><i class="fab fa-whatsapp"></i></button>`);
+                actionButtons.push(`<button class="text-emerald-600 hover:bg-emerald-50 p-2 rounded-lg transition-colors" title="Registrar Pago" onclick="prepararPagoCuota('${item.id}')"><i class="fas fa-check-circle"></i></button>`);
+                actionButtons.push(`<button class="text-amber-600 hover:bg-amber-50 p-2 rounded-lg transition-colors" title="Liquidar Crédito" onclick="prepararLiquidacion('${item.id}')"><i class="fas fa-money-bill-wave"></i></button>`);
+            }
             
             tbody.innerHTML += `
                 <tr>
@@ -463,27 +1138,21 @@ function renderData(view, searchTerm = '') {
                     <td><span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">${Math.abs(dias)} días</span></td>
                     <td class="font-medium">${item.nombre_socio}</td>
                     <td>${item.cedula_socio}</td>
-                    <td class="font-bold text-gray-900">$${parseFloat(item.monto_aprobado).toFixed(2)}</td>
+                    <td class="font-bold text-gray-900">$${formatStoredAmount(item.monto_aprobado)}</td>
                     <td class="text-amber-500 font-bold">${stars}</td>
                     <td>
-                        <div class="flex items-center gap-1">
-                            <button class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition-colors" title="Ver Detalles" onclick="viewCreditoDetails('${item.id}')"><i class="fas fa-eye"></i></button>
-                            <button class="text-green-600 hover:bg-green-50 p-2 rounded-lg transition-colors" title="Notificar WhatsApp" onclick="confirmarNotificarWhatsApp('${item.id}')"><i class="fab fa-whatsapp"></i></button>
-                            ${item.acta ? `<button class="text-slate-600 hover:bg-slate-50 p-2 rounded-lg transition-colors" title="Amortización" onclick="viewAmortizationTable('${item.acta}')"><i class="fas fa-table"></i></button>` : ''}
-                            <button class="text-emerald-600 hover:bg-emerald-50 p-2 rounded-lg transition-colors" title="Registrar Pago" onclick="prepararPagoCuota('${item.id}')"><i class="fas fa-check-circle"></i></button>
-                            <button class="text-amber-600 hover:bg-amber-50 p-2 rounded-lg transition-colors" title="Liquidar Crédito" onclick="prepararLiquidacion('${item.id}')"><i class="fas fa-money-bill-wave"></i></button>
-                        </div>
+                        <div class="flex items-center gap-1">${actionButtons.join('')}</div>
                     </td>
                 </tr>
             `;
         });
     } else if (view === 'cobros') {
-        thead.innerHTML = `<tr><th>Fecha Pago</th><th>Estado</th><th>Socio</th><th>Cédula</th><th>Monto</th><th>Score</th><th>Acciones</th></tr>`;
-        const filtered = data.filter(c => {
+        thead.innerHTML = `<tr>${renderCobrosSortableHeader('Fecha Pago', 'fecha_pago')}${renderCobrosSortableHeader('Estado', 'dias_restantes')}${renderCobrosSortableHeader('Socio', 'nombre_socio')}${renderCobrosSortableHeader('Cédula', 'cedula_socio')}${renderCobrosSortableHeader('Monto Aprob.', 'monto_aprobado')}${renderCobrosSortableHeader('Score', 'score')}<th>Acciones</th></tr>`;
+        const filtered = sortCobrosData(data.filter(c => {
             const dias = diasHastaFecha(c.dia_pago, getMesAnioPrimerPago(c), parseInt(c.cuota_pagada) || 0);
             const capitalRestante = parseEuropeanNumber(c.capital_restante);
             return capitalRestante > 0 && (parseInt(c.plazo) || 0) > (parseInt(c.cuota_pagada) || 0) && (dias !== null && dias >= 0 && dias <= 5);
-        });
+        }));
 
         if (filtered.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500">No hay cobros en los próximos 5 días</td></tr>`;
@@ -494,6 +1163,16 @@ function renderData(view, searchTerm = '') {
             const dias = diasHastaFecha(item.dia_pago, getMesAnioPrimerPago(item), parseInt(item.cuota_pagada) || 0);
             const fecha = calcularFechaVencida(item.dia_pago, getMesAnioPrimerPago(item), parseInt(item.cuota_pagada) || 0);
             const stars = '★'.repeat(item.tupak_score || 1) + '☆'.repeat(5 - (item.tupak_score || 1));
+            const actionButtons = [
+                `<button class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition-colors" title="Ver Detalles" onclick="viewCreditoDetails('${item.id}')"><i class="fas fa-eye"></i></button>`,
+                item.acta ? `<button class="text-slate-600 hover:bg-slate-50 p-2 rounded-lg transition-colors" title="Amortización" onclick="viewAmortizationTable('${item.acta}')"><i class="fas fa-table"></i></button>` : ''
+            ];
+
+            if (canEditCartera()) {
+                actionButtons.splice(1, 0, `<button class="text-green-600 hover:bg-green-50 p-2 rounded-lg transition-colors" title="Notificar WhatsApp" onclick="confirmarNotificarWhatsApp('${item.id}')"><i class="fab fa-whatsapp"></i></button>`);
+                actionButtons.push(`<button class="text-emerald-600 hover:bg-emerald-50 p-2 rounded-lg transition-colors" title="Registrar Pago" onclick="prepararPagoCuota('${item.id}')"><i class="fas fa-check-circle"></i></button>`);
+                actionButtons.push(`<button class="text-amber-600 hover:bg-amber-50 p-2 rounded-lg transition-colors" title="Liquidar Crédito" onclick="prepararLiquidacion('${item.id}')"><i class="fas fa-money-bill-wave"></i></button>`);
+            }
             
             tbody.innerHTML += `
                 <tr>
@@ -501,38 +1180,90 @@ function renderData(view, searchTerm = '') {
                     <td>${getUrgenciaBadge(dias)}</td>
                     <td class="font-medium">${item.nombre_socio}</td>
                     <td>${item.cedula_socio}</td>
-                    <td class="font-bold text-gray-900">$${parseFloat(item.monto_aprobado).toFixed(2)}</td>
+                    <td class="font-bold text-gray-900">$${formatStoredAmount(item.monto_aprobado)}</td>
                     <td class="text-amber-500 font-bold">${stars}</td>
                     <td>
-                        <div class="flex items-center gap-1">
-                            <button class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition-colors" title="Ver Detalles" onclick="viewCreditoDetails('${item.id}')"><i class="fas fa-eye"></i></button>
-                            <button class="text-green-600 hover:bg-green-50 p-2 rounded-lg transition-colors" title="Notificar WhatsApp" onclick="confirmarNotificarWhatsApp('${item.id}')"><i class="fab fa-whatsapp"></i></button>
-                            ${item.acta ? `<button class="text-slate-600 hover:bg-slate-50 p-2 rounded-lg transition-colors" title="Amortización" onclick="viewAmortizationTable('${item.acta}')"><i class="fas fa-table"></i></button>` : ''}
-                            <button class="text-emerald-600 hover:bg-emerald-50 p-2 rounded-lg transition-colors" title="Registrar Pago" onclick="prepararPagoCuota('${item.id}')"><i class="fas fa-check-circle"></i></button>
-                            <button class="text-amber-600 hover:bg-amber-50 p-2 rounded-lg transition-colors" title="Liquidar Crédito" onclick="prepararLiquidacion('${item.id}')"><i class="fas fa-money-bill-wave"></i></button>
-                        </div>
+                        <div class="flex items-center gap-1">${actionButtons.join('')}</div>
                     </td>
                 </tr>
             `;
         });
     } else {
-        thead.innerHTML = `<tr><th>Socio</th><th>Cédula</th><th>Monto Aprob.</th><th>Capital Rest.</th><th>Plazo</th><th>Cuota</th><th>Acciones</th></tr>`;
-        
-        data.forEach(item => {
+        thead.innerHTML = `<tr>${renderGeneralSortableHeader('Fecha Registro', 'fecha_hora')}${renderGeneralSortableHeader('Socio', 'nombre_socio')}${renderGeneralSortableHeader('Cédula', 'cedula_socio')}${renderGeneralSortableHeader('Monto Aprob.', 'monto_aprobado')}${renderGeneralSortableHeader('Capital Rest.', 'capital_restante')}${renderGeneralSortableHeader('Plazo', 'plazo')}${renderGeneralSortableHeader('Cuota', 'cuota_pagada')}<th>Acciones</th></tr>`;
+
+        const activeCredits = sortGeneralData(data.filter(item => !isLiquidatedCredit(item)));
+        const liquidatedCredits = sortGeneralData(data.filter(item => isLiquidatedCredit(item)));
+
+        if (activeCredits.length === 0 && liquidatedCredits.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-500">No hay registros en cartera</td></tr>`;
+            return;
+        }
+
+        if (activeCredits.length > 0) {
+            tbody.innerHTML += buildCategorySeparatorRow('Créditos Activos', activeCredits.length, 8, 'activo');
+        }
+
+        activeCredits.forEach(item => {
+            const missingSchedule = hasMissingPaymentSchedule(item);
+            const actionButtons = [
+                `<button class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition-colors" title="Ver Detalles" onclick="viewCreditoDetails('${item.id}')"><i class="fas fa-eye"></i></button>`,
+                item.acta ? `<button class="text-slate-600 hover:bg-slate-50 p-2 rounded-lg transition-colors" title="Amortización" onclick="viewAmortizationTable('${item.acta}')"><i class="fas fa-table"></i></button>` : ''
+            ];
+
+            if (!isAdmin) {
+                actionButtons.splice(1, 0, `<button class="text-orange-600 hover:bg-orange-50 p-2 rounded-lg transition-colors" title="Autorización Buró" onclick="abrirAutorizacion('${item.cedula_socio}', '${item.nombre_socio}')"><i class="fas fa-user-shield"></i></button>`);
+                if (missingSchedule) {
+                    actionButtons.push(`<button class="text-amber-600 hover:bg-amber-50 p-2 rounded-lg transition-colors" title="Asignar Fecha" onclick="openAsignarFechaModal('${item.id}')"><i class="fas fa-calendar-plus"></i></button>`);
+                } else {
+                    actionButtons.push(`<button class="text-amber-600 hover:bg-amber-50 p-2 rounded-lg transition-colors" title="Liquidar Crédito" onclick="prepararLiquidacion('${item.id}')"><i class="fas fa-money-bill-wave"></i></button>`);
+                }
+            }
+
             tbody.innerHTML += `
-                <tr>
+                <tr class="${missingSchedule ? 'bg-amber-50 hover:bg-amber-100' : ''}">
+                    <td class="text-sm text-slate-600 whitespace-nowrap">${formatRegistroFecha(item)}</td>
                     <td class="font-medium">${item.nombre_socio}</td>
                     <td>${item.cedula_socio}</td>
-                    <td class="font-bold text-gray-900">$${parseFloat(item.monto_aprobado).toFixed(2)}</td>
-                    <td class="text-indigo-700 font-semibold">$${item.capital_restante || '0,00'}</td>
+                    <td class="font-bold text-gray-900">$${formatStoredAmount(item.monto_aprobado)}</td>
+                    <td class="text-indigo-700 font-semibold">$${formatStoredAmount(item.capital_restante)}</td>
                     <td>${item.plazo} m</td>
-                    <td>${item.cuota_pagada || 0}/${item.plazo}</td>
+                    <td>${missingSchedule ? '<span class="px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">Falta fecha</span>' : `${item.cuota_pagada || 0}/${item.plazo}`}</td>
                     <td>
-                        <div class="flex items-center gap-1">
-                            <button class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition-colors" title="Ver Detalles" onclick="viewCreditoDetails('${item.id}')"><i class="fas fa-eye"></i></button>
-                            <button class="text-orange-600 hover:bg-orange-50 p-2 rounded-lg transition-colors" title="Autorización Buró" onclick="abrirAutorizacion('${item.cedula_socio}', '${item.nombre_socio}')"><i class="fas fa-user-shield"></i></button>
-                            ${item.acta ? `<button class="text-slate-600 hover:bg-slate-50 p-2 rounded-lg transition-colors" title="Amortización" onclick="viewAmortizationTable('${item.acta}')"><i class="fas fa-table"></i></button>` : ''}
-                        </div>
+                        <div class="flex items-center gap-1">${actionButtons.join('')}</div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        if (liquidatedCredits.length > 0) {
+            tbody.innerHTML += buildCategorySeparatorRow('Créditos Liquidados', liquidatedCredits.length, 8, 'liquidado');
+        }
+
+        liquidatedCredits.forEach(item => {
+            const missingSchedule = hasMissingPaymentSchedule(item);
+            const actionButtons = [
+                `<button class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition-colors" title="Ver Detalles" onclick="viewCreditoDetails('${item.id}')"><i class="fas fa-eye"></i></button>`,
+                item.acta ? `<button class="text-slate-600 hover:bg-slate-50 p-2 rounded-lg transition-colors" title="Amortización" onclick="viewAmortizationTable('${item.acta}')"><i class="fas fa-table"></i></button>` : ''
+            ];
+
+            if (!isAdmin) {
+                actionButtons.splice(1, 0, `<button class="text-orange-600 hover:bg-orange-50 p-2 rounded-lg transition-colors" title="Autorización Buró" onclick="abrirAutorizacion('${item.cedula_socio}', '${item.nombre_socio}')"><i class="fas fa-user-shield"></i></button>`);
+                if (missingSchedule) {
+                    actionButtons.push(`<button class="text-amber-600 hover:bg-amber-50 p-2 rounded-lg transition-colors" title="Asignar Fecha" onclick="openAsignarFechaModal('${item.id}')"><i class="fas fa-calendar-plus"></i></button>`);
+                }
+            }
+
+            tbody.innerHTML += `
+                <tr class="${missingSchedule ? 'bg-slate-50 hover:bg-slate-100' : ''}">
+                    <td class="text-sm text-slate-600 whitespace-nowrap">${formatRegistroFecha(item)}</td>
+                    <td class="font-medium">${item.nombre_socio}</td>
+                    <td>${item.cedula_socio}</td>
+                    <td class="font-bold text-gray-900">$${formatStoredAmount(item.monto_aprobado)}</td>
+                    <td class="text-indigo-700 font-semibold">$${formatStoredAmount(item.capital_restante)}</td>
+                    <td>${item.plazo} m</td>
+                    <td><span class="px-2 py-1 bg-slate-200 text-slate-700 rounded-full text-xs font-bold">${item.cuota_pagada || 0}/${item.plazo}</span></td>
+                    <td>
+                        <div class="flex items-center gap-1">${actionButtons.join('')}</div>
                     </td>
                 </tr>
             `;
@@ -543,6 +1274,8 @@ function renderData(view, searchTerm = '') {
 function viewCreditoDetails(creditoId) {
     const credito = CARTERA_DATA.find(c => String(c.id) === String(creditoId));
     if (!credito) return;
+
+    const missingSchedule = hasMissingPaymentSchedule(credito);
 
     const modal = document.getElementById('modal-container');
     const wrapper = document.getElementById('modal-content-wrapper');
@@ -594,7 +1327,7 @@ function viewCreditoDetails(creditoId) {
                             <div class="flex gap-4">
                                 <div class="flex-1">
                                     <p class="text-xs text-slate-500">Monto Aprobado</p>
-                                    <p class="font-black text-indigo-700 text-lg">$${parseFloat(credito.monto_aprobado || 0).toLocaleString('es-ES', {minimumFractionDigits:2})}</p>
+                                    <p class="font-black text-indigo-700 text-lg">$${formatStoredAmount(credito.monto_aprobado)}</p>
                                 </div>
                                 <div class="flex-1">
                                     <p class="text-xs text-slate-500">Interés</p>
@@ -634,6 +1367,15 @@ function viewCreditoDetails(creditoId) {
                             </div>
                         </div>
                     </div>
+
+                    ${missingSchedule ? `
+                    <div class="md:col-span-2 bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                            <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Fecha de Pago Pendiente</p>
+                            <p class="text-sm font-semibold text-amber-800">Este crédito aún no tiene día de pago ni mes y año asignados.</p>
+                        </div>
+                        ${canEditCartera() ? `<button onclick="closeModal(); openAsignarFechaModal('${credito.id}')" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-black transition-colors shadow-sm whitespace-nowrap"><i class="fas fa-calendar-plus mr-2"></i>Asignar Fecha</button>` : `<span class="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-sm font-bold whitespace-nowrap">Solo visualización para admin</span>`}
+                    </div>` : ''}
 
                     <div class="md:col-span-2">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Detalles Operativos</p>
@@ -697,7 +1439,7 @@ function closeModal() {
 
 function viewAmortizationTable(acta) {
     if (!acta) {
-        alert('No hay acta asociada a este crédito.');
+        showCustomToast('No hay acta asociada a este crédito.', 'warning');
         return;
     }
     const url = `https://cajatupakrantina.webcoopec.com/view/${acta}`;
@@ -709,15 +1451,36 @@ function abrirAutorizacion(cedula, nombre) {
     window.location.href = `autorizacion_buro.html?cedula=${cedula}&nombre=${encodedNombre}`;
 }
 
-async function enviarWhatsApp(id) {
+function getWhatsAppUserName() {
+    const session = typeof TupakAuth !== 'undefined'
+        ? TupakAuth.getSession()
+        : JSON.parse(localStorage.getItem('appSession') || 'null');
+    if (session && session.name) return session.name;
+
+    const userNotificationConfig = JSON.parse(localStorage.getItem('userNotificationConfig') || 'null');
+    return userNotificationConfig?.user || 'La Caja';
+}
+
+function buildWhatsAppLink(telefono, mensaje) {
+    return `https://api.whatsapp.com/send?phone=${encodeURIComponent(telefono)}&text=${encodeURIComponent(mensaje)}`;
+}
+
+function enviarWhatsApp(id) {
     const credito = CARTERA_DATA.find(c => String(c.id) === String(id));
     if (!credito) return;
 
-    // Obtener config (si no existe, usamos un objeto vacío para generar el JSON de todas formas)
-    const userNotificationConfig = JSON.parse(localStorage.getItem('userNotificationConfig')) || { user: 'Simulación', instance: 'SIM-XXXX', apikey: 'NO-KEY' };
-
     let telefono = (credito.telefono_socio || '').replace(/\D/g, '');
+    if (!telefono) {
+        showCustomToast('Socio no tiene teléfono registrado.', 'error');
+        return;
+    }
+
     const ultimosNueve = telefono.slice(-9);
+    if (ultimosNueve.length !== 9) {
+        showCustomToast('El teléfono del socio no es válido.', 'error');
+        return;
+    }
+
     telefono = `+593${ultimosNueve}`;
 
     const cuotaPagada = parseInt(credito.cuota_pagada) || 0;
@@ -725,7 +1488,7 @@ async function enviarWhatsApp(id) {
     const fechaPagoTexto = formatearFechaTexto(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
 
     const nombreSocio = credito.nombre_socio || 'Estimado socio';
-    const userName = userNotificationConfig.user || 'La Caja';
+    const userName = getWhatsAppUserName();
 
     const dias = diasHastaFecha(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
     let mensaje = "";
@@ -754,66 +1517,24 @@ Ante cualquier pregunta, estoy para servirle. Este mensaje es solo un recordator
 ¡Que tenga un excelente día! 🌿✨`;
     }
 
-    const payload = {
-        number: telefono,
-        mediatype: "image",
-        mimetype: "image/png",
-        caption: mensaje,
-        media: "https://lh3.googleusercontent.com/d/1oMybBIAVHNJaxK-xwDVt379sl_eW0Qhi=w2048",
-        fileName: "recordatorio_pago.png",
-        delay: 0,
-        linkPreview: false,
-        mentionsEveryOne: false
-    };
-
-    console.log("📤 JSON NOTIFICACIÓN WHATSAPP:", payload);
-
-    if (!credito.telefono_socio) {
-        showCustomToast('Socio no tiene teléfono registrado.', 'error');
-        return;
-    }
-
-    if (!canSendNotifications()) {
-        showCustomToast('La configuración de notificaciones de WhatsApp no está activa o completa.', 'error');
-        console.warn("⚠️ Notificación no enviada: Configuración incompleta.");
-        return;
-    }
-
-    try {
-        const url = `https://api.luispinta.com/message/sendMedia/${userNotificationConfig.instance}`;
-        
-        showCustomToast('Enviando notificación...', 'info');
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'apikey': userNotificationConfig.apikey,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-        
-        if (response.ok) {
-            showCustomToast(`🌿 Notificación enviada a ${nombreSocio}`, 'success', 5000);
-        } else {
-            showCustomToast('Error al enviar. Verifique su configuración.', 'error');
-        }
-    } catch (error) {
-        console.error('Error WhatsApp:', error);
-        showCustomToast('Error al procesar la notificación.', 'error');
-    }
+    const url = buildWhatsAppLink(telefono, mensaje);
+    window.open(url, '_blank', 'noopener,noreferrer');
+    showCustomToast(`WhatsApp abierto para ${nombreSocio}`, 'success', 4000);
 }
 
 function confirmarNotificarWhatsApp(id) {
+    if (!canEditCartera()) {
+        showAdminReadOnlyToast();
+        return;
+    }
+
     const credito = CARTERA_DATA.find(c => String(c.id) === String(id));
     if (!credito) return;
     
     const cuotaPagada = parseInt(credito.cuota_pagada) || 0;
     const mesAnioPrimerPago = getMesAnioPrimerPago(credito);
     const fechaPagoTexto = formatearFechaTexto(credito.dia_pago, mesAnioPrimerPago, cuotaPagada);
-    const valorMonto = formatEuropeanNumber(parseFloat(credito.monto_aprobado));
+    const valorMonto = formatStoredAmount(credito.monto_aprobado);
 
     showConfirmModal(
         'Enviar Notificación',
@@ -828,7 +1549,7 @@ function confirmarNotificarWhatsApp(id) {
             </div>
             <p class="text-xs text-gray-600 italic">
                 <i class="fab fa-whatsapp text-green-600 mr-1"></i>
-                Se enviará un mensaje automático usando el servicio oficial.
+                Se abrirá WhatsApp con el número del socio y el mensaje listo para enviar.
             </p>
         </div>`,
         () => enviarWhatsApp(id),
@@ -870,6 +1591,162 @@ function closeConfirmModal() {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         document.body.classList.remove('overflow-hidden');
+    }
+}
+
+function openAsignarFechaModal(creditoId) {
+    if (!canEditCartera()) {
+        showAdminReadOnlyToast();
+        return;
+    }
+
+    const credito = CARTERA_DATA.find(c => String(c.id) === String(creditoId));
+    if (!credito) {
+        showCustomToast('No se encontró el crédito.', 'error');
+        return;
+    }
+
+    const existing = document.getElementById('modal-asignar-fecha');
+    if (existing) existing.remove();
+
+    const defaults = getAssignPaymentDateDefaults();
+    const currentMonth = getMesAnioPrimerPago(credito)?.split('/')?.[0] || defaults.mes;
+    const currentYear = getMesAnioPrimerPago(credito)?.split('/')?.[1] || defaults.anio;
+    const currentDay = String(credito.dia_pago || '').replace(/\D/g, '');
+    const currentYearNumber = parseInt(currentYear, 10) || new Date().getFullYear();
+
+    const monthOptions = [
+        ['01', 'Enero'], ['02', 'Febrero'], ['03', 'Marzo'], ['04', 'Abril'],
+        ['05', 'Mayo'], ['06', 'Junio'], ['07', 'Julio'], ['08', 'Agosto'],
+        ['09', 'Septiembre'], ['10', 'Octubre'], ['11', 'Noviembre'], ['12', 'Diciembre']
+    ].map(([value, label]) => `<option value="${value}" ${value === currentMonth ? 'selected' : ''}>${label}</option>`).join('');
+
+    let yearOptions = '';
+    for (let year = currentYearNumber; year <= currentYearNumber + 2; year++) {
+        yearOptions += `<option value="${year}" ${String(year) === String(currentYear) ? 'selected' : ''}>${year}</option>`;
+    }
+
+    const modalHTML = `
+        <div id="modal-asignar-fecha" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[2100] p-4 backdrop-blur-sm">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+                <div class="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-5 text-white flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-black flex items-center gap-3"><i class="fas fa-calendar-plus"></i>Asignar Fecha de Pago</h3>
+                        <p class="text-sm text-amber-50/90 mt-1">Complete los campos faltantes para este crédito.</p>
+                    </div>
+                    <button onclick="closeAsignarFechaModal()" class="text-white/90 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <div class="p-6 space-y-5">
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm space-y-1">
+                        <p><strong>Socio:</strong> ${credito.nombre_socio || 'N/A'}</p>
+                        <p><strong>Cédula:</strong> ${credito.cedula_socio || 'N/A'}</p>
+                        <p><strong>Monto:</strong> $${formatStoredAmount(credito.monto_aprobado)}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Día de Pago</label>
+                        <input id="assign-dia-pago" type="number" min="1" max="31" value="${currentDay}" placeholder="15" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-100 focus:border-amber-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Mes Primer Pago</label>
+                            <select id="assign-mes-primer-pago" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-100 focus:border-amber-500">${monthOptions}</select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Año Primer Pago</label>
+                            <select id="assign-anio-primer-pago" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-100 focus:border-amber-500">${yearOptions}</select>
+                        </div>
+                    </div>
+                    <p id="assign-fecha-error" class="hidden text-sm font-bold text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3"></p>
+                    <div class="flex gap-3 pt-2">
+                        <button onclick="closeAsignarFechaModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50">Cancelar</button>
+                        <button onclick="guardarFechaPago('${credito.id}')" class="flex-1 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black shadow-sm">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeAsignarFechaModal() {
+    const modal = document.getElementById('modal-asignar-fecha');
+    if (modal) modal.remove();
+    document.body.classList.remove('overflow-hidden');
+}
+
+async function guardarFechaPago(creditoId) {
+    if (!canEditCartera()) {
+        showAdminReadOnlyToast();
+        return;
+    }
+
+    const credito = CARTERA_DATA.find(c => String(c.id) === String(creditoId));
+    if (!credito) return;
+
+    const dayInput = document.getElementById('assign-dia-pago');
+    const monthInput = document.getElementById('assign-mes-primer-pago');
+    const yearInput = document.getElementById('assign-anio-primer-pago');
+    const errorEl = document.getElementById('assign-fecha-error');
+
+    const day = parseInt(dayInput?.value, 10);
+    if (!Number.isInteger(day) || day < 1 || day > 31) {
+        if (errorEl) {
+            errorEl.textContent = 'El día debe estar entre 1 y 31.';
+            errorEl.classList.remove('hidden');
+        }
+        return;
+    }
+
+    const diaFormateado = String(day).padStart(2, '0');
+    const mesAnioPrimerPago = `${monthInput?.value || ''}/${yearInput?.value || ''}`;
+    const session = typeof TupakAuth !== 'undefined'
+        ? TupakAuth.getSession()
+        : JSON.parse(localStorage.getItem('appSession') || 'null');
+    const payload = {
+        id_credito: credito.id,
+        cedula_socio: credito.cedula_socio,
+        dia_pago: diaFormateado,
+        mes_anio_primer_pago: mesAnioPrimerPago,
+        cedula: session?.cedula || '',
+        rol: session?.rol || '',
+        asesor: session?.name || '',
+        correo: session?.email || '',
+        accion: 'ASIGNAR_FECHA_PAGO',
+        timestamp: new Date().toISOString()
+    };
+
+    console.log('📤 JSON GENERADO PARA ASIGNAR FECHA:', payload);
+
+    try {
+        const response = await fetch(ACTUALIZAR_CREDITO_WEBHOOK, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': session?.token || ''
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        credito.dia_pago = diaFormateado;
+        credito.mes_anio_primer_pago = mesAnioPrimerPago;
+
+        closeAsignarFechaModal();
+        renderData(currentView, document.getElementById('search-input')?.value.toLowerCase());
+        updateStats();
+        renderMissingPaymentScheduleSection();
+        showCustomToast('Fecha de pago asignada correctamente.', 'success');
+    } catch (error) {
+        console.error('❌ Error al asignar fecha de pago:', error);
+        if (errorEl) {
+            errorEl.textContent = 'No se pudo actualizar la fecha de pago. Intenta nuevamente.';
+            errorEl.classList.remove('hidden');
+        }
+        showCustomToast('No se pudo actualizar la fecha de pago.', 'error');
     }
 }
 
@@ -915,14 +1792,20 @@ function showCustomToast(message, type = 'info', duration = 4000) {
 // ===== FLUJO REGISTRAR PAGO (MODAL CAPITAL) =====
 
 function prepararPagoCuota(id) {
+    if (!canEditCartera()) {
+        showAdminReadOnlyToast();
+        return;
+    }
+
     const credito = CARTERA_DATA.find(c => String(c.id) === String(id));
     if (!credito) return;
 
     const cuotaActual = parseInt(credito.cuota_pagada) || 0;
     const plazoTotal = parseInt(credito.plazo) || 0;
     const siguienteCuota = cuotaActual + 1;
-    const capitalActual = credito.capital_restante || '0,00';
-    const capitalActualNumero = parseEuropeanNumber(capitalActual);
+    const capitalActualRaw = credito.capital_restante || '0,00';
+    const capitalActual = formatStoredAmount(capitalActualRaw);
+    const capitalActualNumero = parseEuropeanNumber(capitalActualRaw);
 
     const modalHTML = `
         <div id="modal-capital-pagado" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] p-4 backdrop-blur-sm">
@@ -1008,7 +1891,16 @@ function prepararPagoCuota(id) {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     document.body.classList.add('overflow-hidden'); // Bloquear scroll
     window.tempCreditoData = { credito, capitalActualNumero, siguienteCuota, plazoTotal };
-    setTimeout(() => document.getElementById('input-nuevo-capital').focus(), 100);
+    const capitalInput = document.getElementById('input-nuevo-capital');
+    const errorEl = document.getElementById('error-capital');
+    if (capitalInput && errorEl) {
+        capitalInput.addEventListener('input', () => {
+            if (!errorEl.classList.contains('hidden')) {
+                errorEl.classList.add('hidden');
+            }
+        });
+    }
+    setTimeout(() => capitalInput?.focus(), 100);
 }
 
 function cerrarModalCapital() {
@@ -1029,9 +1921,9 @@ function validarYConfirmarPago() {
         return;
     }
 
-    const formatoValido = /^[\d.]+,\d{2}$/.test(valor);
+    const formatoValido = isValidCapitalInputFormat(valor);
     if (!formatoValido) {
-        errorEl.textContent = "⚠ Use formato 0.000,00";
+        errorEl.textContent = "⚠ Corrija el valor. Use . para miles y , para decimales. Ejemplo: 8.500,50";
         errorEl.classList.remove('hidden');
         return;
     }
@@ -1068,6 +1960,11 @@ function validarYConfirmarPago() {
 // ===== FLUJO LIQUIDACIÓN =====
 
 function prepararLiquidacion(id) {
+    if (!canEditCartera()) {
+        showAdminReadOnlyToast();
+        return;
+    }
+
     const credito = CARTERA_DATA.find(c => String(c.id) === String(id));
     if (!credito) return;
 
@@ -1083,7 +1980,7 @@ function prepararLiquidacion(id) {
             </div>
             <div class="space-y-2 text-sm">
                 <p class="flex justify-between"><span>Socio:</span> <span class="font-bold">${credito.nombre_socio}</span></p>
-                <p class="flex justify-between"><span>Saldo Actual:</span> <span class="font-bold">$${credito.capital_restante}</span></p>
+                <p class="flex justify-between"><span>Saldo Actual:</span> <span class="font-bold">$${formatStoredAmount(credito.capital_restante)}</span></p>
             </div>
         </div>`,
         () => ejecutarAccionPago(credito.id, credito.plazo, "0,00", "LIQUIDAR_CREDITO"),
@@ -1094,39 +1991,121 @@ function prepararLiquidacion(id) {
 
 // ===== EJECUCIÓN FINAL (JSON SIMULADO) =====
 
-function ejecutarAccionPago(id, cuota, capital, accion) {
+async function ejecutarAccionPago(id, cuota, capital, accion) {
     const credito = CARTERA_DATA.find(c => String(c.id) === String(id));
+    if (!credito) return;
+
+    const session = getCurrentSessionData();
+    const cuotaAnterior = parseInt(credito.cuota_pagada, 10) || 0;
+    const cuotaActualizada = parseInt(cuota, 10) || 0;
+    const capitalAnterior = parseEuropeanNumber(credito.capital_restante);
+    const capitalNuevo = parseEuropeanNumber(capital);
+    const valorRegistrado = formatEuropeanNumber(Math.max(0, capitalAnterior - capitalNuevo));
     
     const payload = {
         id_credito: id,
         cedula_socio: credito.cedula_socio,
-        cuota_pagada: String(cuota),
+        cuota_pagada: String(cuotaActualizada),
         capital_restante: capital,
+        valor_registrado: valorRegistrado,
+        cedula: session?.cedula || '',
+        rol: session?.rol || '',
+        asesor: session?.name || '',
+        correo: session?.email || '',
         accion: accion,
         timestamp: new Date().toISOString()
     };
 
     console.log("📤 JSON GENERADO PARA EL SERVIDOR:", payload);
+
+    if (accion === 'REGISTRAR_PAGO_CUOTA') {
+        try {
+            const response = await fetch(REGISTRAR_PAGO_WEBHOOK, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': session?.token || ''
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            credito.cuota_pagada = cuotaActualizada;
+            credito.capital_restante = capital;
+
+            renderData(currentView, document.getElementById('search-input')?.value.toLowerCase());
+            updateStats();
+            renderMissingPaymentScheduleSection();
+
+            showCustomToast(`Pago de cuota #${cuotaActualizada} registrado correctamente.`, 'success');
+        } catch (error) {
+            console.error('❌ Error al registrar pago:', error);
+            showCustomToast('No se pudo registrar el pago. Intenta nuevamente.', 'error');
+        }
+        return;
+    }
+
+    if (accion === 'LIQUIDAR_CREDITO') {
+        try {
+            const response = await fetch(LIQUIDAR_CREDITO_WEBHOOK, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': session?.token || ''
+                },
+                body: JSON.stringify({
+                    id_credito: id,
+                    cedula: session?.cedula || '',
+                    rol: session?.rol || '',
+                    asesor: session?.name || '',
+                    correo: session?.email || '',
+                    accion,
+                    timestamp: new Date().toISOString()
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            credito.cuota_pagada = cuotaActualizada;
+            credito.capital_restante = capital;
+
+            renderData(currentView, document.getElementById('search-input')?.value.toLowerCase());
+            updateStats();
+            renderMissingPaymentScheduleSection();
+
+            showCustomToast('Crédito liquidado correctamente.', 'success');
+        } catch (error) {
+            console.error('❌ Error al liquidar crédito:', error);
+            showCustomToast('No se pudo liquidar el crédito. Intenta nuevamente.', 'error');
+        }
+        return;
+    }
     
     // Simular el éxito de la actualización local
-    credito.cuota_pagada = cuota;
+    credito.cuota_pagada = cuotaActualizada;
     credito.capital_restante = capital;
     
     renderData(currentView, document.getElementById('search-input')?.value.toLowerCase());
     updateStats();
+    renderMissingPaymentScheduleSection();
     
     showCustomToast(`Acción ${accion} procesada exitosamente (Simulación JSON)`, 'success');
 }
 
 function simulateAction(action, context) {
-    alert(`[Módulo Cartera] Acción: ${action} para ${context}`);
+    showCustomToast(`[Módulo Cartera] Acción: ${action} para ${context}`, 'info');
 }
 
 async function generarReporteCarteraCompleto() {
     if (window.CarteraReportes && typeof window.CarteraReportes.generarReporteCartera === 'function') {
         await window.CarteraReportes.generarReporteCartera(CARTERA_DATA);
     } else {
-        alert('El generador de PDF no se ha cargado correctamente.');
+        showCustomToast('El generador de PDF no se ha cargado correctamente.', 'error');
     }
 }
 

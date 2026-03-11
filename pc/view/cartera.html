@@ -65,6 +65,9 @@
                 <button id="btn-general" class="view-btn" onclick="switchView('general')">
                     <i class="fas fa-list mr-2"></i>General
                 </button>
+                <button id="btn-estadisticas" class="view-btn" onclick="switchView('estadisticas')">
+                    <i class="fas fa-chart-pie mr-2"></i>Estadísticas
+                </button>
             </div>
 
             <div class="header-right">
@@ -83,16 +86,6 @@
 
     <!-- Main Container -->
     <main class="main-container">
-        <div class="cartera-lock-overlay" id="cartera-lock-overlay" aria-hidden="true">
-            <div class="cartera-lock-card">
-                <div class="cartera-lock-icon">
-                    <i class="fas fa-lock"></i>
-                </div>
-                <div class="cartera-lock-title">MODULO INCOMPLETO POR FALTA DE DATOS</div>
-                <div class="cartera-lock-text">Este modulo requiere una actualizacion de base de datos para su funcionamiento correcto. Puedes continuar navegando en las demas secciones.</div>
-            </div>
-        </div>
-        
         <!-- Stats Row -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -308,11 +301,100 @@
             </div>
         </div>
 
+        <section id="missing-payment-schedule-section" class="mb-8 hidden animate-fade-in">
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="px-6 py-5 bg-gradient-to-r from-amber-500 to-amber-600 text-white flex items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold flex items-center gap-3">
+                            <i class="fas fa-calendar-exclamation"></i>
+                            Créditos Sin Fecha Asignada
+                        </h2>
+                        <p class="text-amber-50/90 text-sm mt-1">Estos créditos no tienen día de pago ni mes y año asignados.</p>
+                    </div>
+                    <span id="missing-payment-schedule-count" class="px-3 py-1 rounded-full bg-white/20 text-sm font-black">0</span>
+                </div>
+                <div id="missing-payment-schedule-list" class="p-5 grid grid-cols-1 xl:grid-cols-2 gap-4">
+                    <!-- JS -->
+                </div>
+            </div>
+        </section>
+
+        <section id="statistics-view" class="mb-8 hidden animate-fade-in">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-900 p-6 text-white">
+                    <h2 class="text-2xl font-bold flex items-center gap-3">
+                        <i class="fas fa-chart-line"></i>
+                        Estadísticas de Cartera
+                    </h2>
+                    <p class="text-slate-200 text-sm mt-1">Resumen general, rankings y evolución mensual del monto aprobado.</p>
+                </div>
+
+                <div class="p-6 space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="rounded-2xl p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-sm font-bold uppercase tracking-wide opacity-90">Monto Total Colocado</span>
+                                <i class="fas fa-sack-dollar text-2xl opacity-80"></i>
+                            </div>
+                            <p id="stats-total-colocado" class="text-4xl font-black">$0,00</p>
+                        </div>
+                        <div class="rounded-2xl p-6 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white shadow-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-sm font-bold uppercase tracking-wide opacity-90">Capital Vigente</span>
+                                <i class="fas fa-coins text-2xl opacity-80"></i>
+                            </div>
+                            <p id="stats-capital-vigente" class="text-4xl font-black">$0,00</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
+                            <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <i class="fas fa-arrow-trend-up text-emerald-600"></i>
+                                5 Socios con Créditos Más Grandes
+                            </h3>
+                            <div id="stats-largest-credits" class="space-y-3"></div>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
+                            <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <i class="fas fa-arrow-trend-down text-amber-600"></i>
+                                5 Socios con Créditos Más Pequeños
+                            </h3>
+                            <div id="stats-smallest-credits" class="space-y-3"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-calendar-days text-indigo-600"></i>
+                            Capital Aprobado de los Últimos 3 Meses y Proyección
+                        </h3>
+                        <div id="stats-last-3-months" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                        <div class="flex items-center justify-between gap-3 mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="fas fa-chart-line text-indigo-600"></i>
+                                    Evolución de Monto Aprobado
+                                </h3>
+                                <p class="text-sm text-slate-500 mt-1">Suma mensual de montos aprobados en los últimos 6 meses y, desde el día 15, un mes adicional proyectado.</p>
+                            </div>
+                        </div>
+                        <div class="h-[360px]">
+                            <canvas id="stats-approved-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- View Switcher -->
         <!-- Movido al header -->
 
         <!-- Main Data Card -->
-        <div class="data-card">
+        <div id="data-card" class="data-card">
             <div class="card-header">
                 <div class="flex items-center gap-4">
                     <h2 class="card-title" id="card-main-title">Base de Datos de Cartera</h2>
@@ -348,7 +430,7 @@
     <script src="../../shared/config.js"></script>
     <script src="../../shared/auth.js"></script>
     <script src="../js/cartera-reports.js"></script>
-    <script src="../js/cartera.js"></script>
+    <script src="../js/cartera.js?v=20260310c"></script>
 
     <!-- Modal Detalles Crédito (Se inyecta/controla desde cartera.js) -->
     <div id="modal-container" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[100] p-4 backdrop-blur-sm transition-all duration-300">
