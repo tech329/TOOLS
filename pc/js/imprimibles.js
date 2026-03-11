@@ -56,30 +56,8 @@ async function initPage() {
     // Inicializar upload de comprobante
     initComprobanteUpload();
 
-    // Cargar datos de prueba (Temporal)
-    cargarDatosPrueba();
-
     // Ocultar loading
     hideLoadingScreen();
-}
-
-function cargarDatosPrueba() {
-    console.log("🧪 Cargando datos de prueba...");
-    const campos = {
-        'identificacion': '1727652107',
-        'nombreCompleto': 'LUIS PINTA TEST',
-        'telefono': '0962543428',
-        'montoAprobado': '1500',
-        'tasaInteres': '26',
-        'plazoPago': '12',
-        'destinoCredito': 'Capital de trabajo',
-        'observaciones': 'Crédito de prueba para integración de webhook'
-    };
-
-    for (const [id, valor] of Object.entries(campos)) {
-        const el = document.getElementById(id);
-        if (el) el.value = valor;
-    }
 }
 
 // ===== GESTIÓN DE DATOS (WEBHOOKS) =====
